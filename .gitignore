@@ -1,0 +1,92 @@
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pytype/
+.hypothesis/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Packaging and build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Environment variables and local secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Jupyter
+.ipynb_checkpoints/
+.jupyter/
+
+# Data generated or downloaded by the pipeline
+data/raw/*
+data/interim/*
+data/processed/*
+!data/raw/.gitkeep
+!data/interim/.gitkeep
+!data/processed/.gitkeep
+
+# Generated outputs
+outputs/figures/*
+outputs/metrics/*
+outputs/models/*
+outputs/reports/*
+!outputs/figures/.gitkeep
+!outputs/metrics/.gitkeep
+!outputs/models/.gitkeep
+!outputs/reports/.gitkeep
+
+# Serialized models and large data artifacts
+*.pkl
+*.pickle
+*.joblib
+*.parquet
+*.feather
+*.h5
+*.hdf5
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+*.bak
+*.swp
+*.swo
+tmp/
+temp/
+
+# IDE and editor settings
+.idea/
+.vscode/
+*.code-workspace
+
+# Operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Local tooling
+.tox/
+.nox/
+.cache/
+.python-version
+site/
