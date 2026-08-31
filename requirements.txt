@@ -1,3 +1,8 @@
 numpy
 pandas
 pytest
+matplotlib
+seaborn
+nbformat
+nbconvert
+ipykernel
