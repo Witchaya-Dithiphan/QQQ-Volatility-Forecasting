@@ -29,6 +29,7 @@ from config import (
     RAW_DATA_MANIFEST_PATH,
     RAW_DATA_PATH,
 )
+from src.report_paths import report_relative_path
 
 NASDAQ_API_URL = "https://api.nasdaq.com/api/quote/QQQ/historical"
 NASDAQ_SOURCE_PAGE = "https://www.nasdaq.com/market-activity/etf/qqq/historical"
@@ -381,7 +382,8 @@ async def refresh_latest_data(
         "source_page": NASDAQ_SOURCE_PAGE,
         "source_endpoint": url,
         "symbol": "QQQ",
-        "output_path": str(output_path),
+        "paths_relative_to": "report_directory",
+        "output_path": report_relative_path(output_path, report_path),
         "dataset": asdict(profile),
         "snapshot_modified": False,
     }

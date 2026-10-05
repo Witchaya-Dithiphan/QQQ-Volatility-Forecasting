@@ -29,6 +29,7 @@ from config import (
 from src.build_features import FEATURE_COLUMNS
 from src.build_targets import TARGET_COLUMN
 from src.load_data import load_qqq_data
+from src.report_paths import report_relative_path
 
 
 REGRESSION_TARGET = TARGET_COLUMN
@@ -381,12 +382,15 @@ def run_split_pipeline(
         raise RuntimeError("Source input checksum changed during split pipeline")
 
     report: dict[str, Any] = {
-        "input_path": str(Path(input_path)),
+        "paths_relative_to": "report_directory",
+        "input_path": report_relative_path(input_path, report_output_path),
         "output_paths": {
-            "train": str(Path(train_output_path)),
-            "validation": str(Path(validation_output_path)),
-            "test": str(Path(test_output_path)),
-            "report": str(Path(report_output_path)),
+            "train": report_relative_path(train_output_path, report_output_path),
+            "validation": report_relative_path(
+                validation_output_path, report_output_path
+            ),
+            "test": report_relative_path(test_output_path, report_output_path),
+            "report": report_relative_path(report_output_path, report_output_path),
         },
         "feature_columns": FEATURE_COLUMNS.copy(),
         "regression_target": REGRESSION_TARGET,

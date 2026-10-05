@@ -248,3 +248,11 @@ def test_pipeline_saves_matching_csvs_and_strict_report(tmp_path: Path) -> None:
         parse_constant=lambda value: (_ for _ in ()).throw(ValueError(value)),
     )
     assert report["source_input_unchanged"] is True
+    assert report["paths_relative_to"] == "report_directory"
+    assert report["input_path"] == "../input.csv"
+    assert report["output_paths"] == {
+        "train": "../processed/train.csv",
+        "validation": "../processed/validation.csv",
+        "test": "../processed/test.csv",
+        "report": "split.json",
+    }
