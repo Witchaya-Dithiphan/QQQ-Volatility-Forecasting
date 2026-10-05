@@ -268,9 +268,9 @@ outputs/figures/spike_analysis/dataset_comparison.png
 ### Phase 1 — Baseline Data Preparation Hardening
 
 - [x] Snapshot verification, baseline cleaning/features/targets/splits/labels และ unit tests
-- [ ] เพิ่ม end-to-end data runner และ integration test โดยไม่เขียนทับ Raw/Snapshot
-- [ ] เพิ่ม Regression target report และปรับ report paths ให้ portable
-- [ ] **อัปเดต `README.md` เป็นงานสุดท้ายของ Phase 1** — ทำหลังจาก end-to-end runner, integration test และ Regression target report เสร็จและผ่านการตรวจทั้งหมดแล้ว; เพิ่มคำสั่งรัน pipeline ตั้งแต่ Snapshot verification ถึง labeled splits, อธิบาย input/output artifacts, safety rule ที่ห้ามเขียนทับ Raw/Snapshot และผลทดสอบที่คาดหวัง; dependency: งาน Phase 1 ก่อนหน้าทั้งหมด; DoD: ผู้ใช้ใหม่สามารถทำตาม README จาก project root และได้ผลตรงกับ pipeline contract
+- [x] เพิ่ม end-to-end data runner และ integration test โดยไม่เขียนทับ Raw/Snapshot
+- [x] เพิ่ม Regression target report และปรับ report paths ให้ portable
+- [x] **อัปเดต `README.md` เป็นงานสุดท้ายของ Phase 1** — มีคำสั่งรัน pipeline ตั้งแต่ Snapshot verification ถึง labeled splits, อธิบาย input/output artifacts, safety rule ที่ห้ามเขียนทับ Raw/Snapshot และผลทดสอบที่คาดหวัง
 
 ### Phase 2 — Spike Analysis และ Experiment Dataset Preparation
 
