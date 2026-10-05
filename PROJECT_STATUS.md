@@ -1,335 +1,392 @@
 # QQQ Volatility Forecasting — Project Status
 
-> ตรวจสอบล่าสุด: 2026-09-20
+> ตรวจสอบล่าสุด: 2026-10-05
 >
-> ขอบเขตการตรวจ: source code, tests, notebooks และ saved outputs ใน working directory ปัจจุบัน โดยไม่แก้ไขหรือรัน pipeline ที่เขียนทับ artifacts
+> ขอบเขตการตรวจ: source code, tests, notebooks, datasets และ saved reports ใน working directory โดยใช้การตรวจแบบ read-only ยกเว้นการอัปเดตไฟล์สถานะนี้
 >
-> Git ณ เวลาตรวจ: branch `main`, commit `e69e588` (`docs: add data preparation and insights notebooks`), working tree สะอาดก่อนสร้างรายงานนี้
+> Git ก่อนแก้เอกสาร: branch `main`, commit `115a054`; tracked working tree สะอาด
+>
+> ผลทดสอบล่าสุด: `167 passed` จาก `.venv\Scripts\python.exe -B -m pytest -q -p no:cacheprovider`
 
 ## 1. ภาพรวมโปรเจกต์
 
-โปรเจกต์นี้เตรียมข้อมูลรายวันของ QQQ เพื่อพยากรณ์ realized volatility ล่วงหน้า 5 trading days โดยใช้ `Close` เป็นราคาหลักและไม่ใช้ `Adj Close`
+โปรเจกต์ใช้ daily QQQ OHLCV เพื่อพยากรณ์ realized volatility ล่วงหน้า 5 trading days โดยมีปัญหาเดิมสองแบบ:
 
-- ข้อมูลต้นทางคือ daily OHLCV: `Date`, `Open`, `High`, `Low`, `Close`, `Volume` จาก `data/raw/qqq_daily.csv`
-- งาน Regression ต้องการทำนายค่าต่อเนื่อง `target_volatility_5d` ซึ่งเป็น annualized sample standard deviation ของ 5 future daily returns
-- งาน Classification ต้องการทำนาย `target_high_volatility` ว่า future volatility สูงกว่า Q75 ที่คำนวณจาก Train หรือไม่
-- Use case ที่ระบุได้จาก Notebook คือช่วยประเมินความผันผวนระยะสั้นและแยกช่วง Normal/High Volatility; ยังไม่มีหลักฐานว่าเป็นระบบซื้อขายหรือรับประกันผลตอบแทน
+- Regression: ทำนาย `target_volatility_5d`
+- Classification: ทำนาย `target_high_volatility` จากนิยาม Train-only Q75
 
-ไม่พบเอกสาร Project Description หรือ Project List แยกต่างหาก และ `README.md` ยังว่าง จึงยังยืนยันรายการ model algorithms, metrics และรูปแบบไฟล์ส่งงานที่โจทย์ภายนอกต้องการไม่ได้
+Data Preparation เดิมทำเสร็จถึงขั้นสร้าง chronological Train/Validation/Test พร้อม purging gap และ labeled splits แล้ว แต่ model training, model evaluation และ persisted model artifacts ยังไม่เริ่ม
 
-## 2. Requirement จากโจทย์
+### Requirement ใหม่: With-Spike vs Non-Spike sensitivity experiment
 
-| Requirement | สถานะ | หลักฐาน | หมายเหตุ |
-| ----------- | ----- | ------- | -------- |
-| โหลด daily QQQ OHLCV และตรวจ required columns | ✅ เสร็จแล้ว | `src/load_data.py`, `tests/test_load_data.py` | ไม่แปลงหรือเดาชื่อ column |
-| ทำความสะอาดและบันทึก clean artifact | ✅ เสร็จแล้ว | `src/clean_data.py`, `data/interim/qqq_clean.csv`, `outputs/reports/cleaning_report.json` | ข้อมูลจริงไม่ถูกลบ: 2,512 → 2,512 แถว |
-| สร้าง causal features จากข้อมูลปัจจุบัน/อดีต | ✅ เสร็จแล้ว | `src/build_features.py`, `data/interim/qqq_features.csv`, `tests/test_features.py`, `tests/test_leakage.py` | มี 8 features; tests ตรวจว่า future values ไม่เปลี่ยนอดีต |
-| สร้าง Regression target ล่วงหน้า 5 วัน | ✅ เสร็จแล้ว | `src/build_targets.py`, `data/interim/qqq_regression_target.csv`, `tests/test_targets.py` | ใช้ returns ที่ `t+1` ถึง `t+5`, `ddof=1`, `sqrt(252)` |
-| เตรียม modeling rows และจัดการ NaN/Infinity | ✅ เสร็จแล้ว | `src/split_data.py`, `outputs/reports/data_split_report.json` | ลบ 25 แถวที่มีค่า model ไม่พร้อม; Infinity ใน artifact จริง = 0 |
-| แบ่ง Train/Validation/Test ตามเวลาและมี purging gap | ✅ เสร็จแล้ว | `src/split_data.py`, `data/processed/{train,validation,test}.csv`, `tests/test_split_data.py` | 70/15/15 หลังกัน gap 5 แถวสองช่วง |
-| สร้าง Classification target จาก Train-only Q75 | ✅ เสร็จแล้ว | `src/build_targets.py`, `data/processed/*_labeled.csv`, `outputs/reports/classification_threshold.json` | ใช้ `>`; ค่าเท่ากับ threshold เป็น class 0 |
-| EDA และ Data Preparation notebooks พร้อม saved outputs | ✅ เสร็จแล้ว | `notebooks/01_data_cleaning.ipynb`, `notebooks/02_eda_and_features.ipynb`, `outputs/figures/data_preparation/` | ทุก code cell มี execution count/output และไม่พบ saved error |
-| Regression model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/regression.py`, `notebooks/03_regression.ipynb` | ไฟล์ Python มีเพียง module docstring; Notebook มี 0 cells |
-| Classification model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/classification.py`, `notebooks/04_classification.ipynb` | ไฟล์ Python มีเพียง module docstring; Notebook มี 0 cells |
-| Model evaluation และ comparison | ⬜ ยังไม่พบว่าดำเนินการ | `outputs/metrics/.gitkeep`, `outputs/models/.gitkeep` | ไม่มี metrics, fitted model หรือ model-comparison report |
-| Project documentation และ reproducible run instructions | 🟡 ทำบางส่วน | Notebooks, `requirements.txt`, `config.py`; `README.md` ว่าง | ยังไม่มีคำสั่งรัน pipeline ตั้งแต่ต้นจนจบหรือ data provenance |
-| Automated tests | ✅ เสร็จแล้ว | `tests/`, `pytest.ini` | ตรวจรอบนี้ด้วย `python -m pytest -q -p no:cacheprovider`: 143 passed |
-| Project Description / Project List | ⚠️ ต้องตรวจสอบ/แก้ไข | ไม่พบไฟล์ดังกล่าวใน repository | ต้องนำ requirement ต้นฉบับมาเพิ่มก่อนเลือก models/metrics ขั้นสุดท้าย |
+ก่อนเริ่ม model training ต้องเพิ่มการทดลองแบบ paired comparison โดยคง Regression/Classification, features, targets, split boundaries และ main Validation/Test เดิม:
 
-## 3. โครงสร้างและ Data Pipeline ปัจจุบัน
+- **With-Spike Case:** ใช้ Original Train ทั้งหมด เป็น baseline experiment
+- **Non-Spike Case:** ตัดเฉพาะ modeling rows ใน Train ที่ `is_spike_affected == True` ออก เพื่อวัด sensitivity ต่อ extreme daily-return events
 
-ลำดับที่ยืนยันได้จาก implementation และ artifacts คือ:
+Requirement นี้เพิ่มภายหลัง Data Preparation เดิม ปัจจุบันมีเพียง EDA ที่ช่วยให้เห็น outliers และมีการคำนวณตรวจสอบแบบ read-only เพื่อวางแผน ยังไม่มี spike implementation, tests หรือ experiment artifacts จึง **ยังไม่ถือว่าเสร็จ**
 
-1. `data/raw/qqq_daily.csv` → validate schema ด้วย `src/load_data.py`
-2. `src/clean_data.py` → `data/interim/qqq_clean.csv` และ `cleaning_report.json`
-3. `src/build_features.py` → `data/interim/qqq_features.csv` และ `feature_report.json`
-4. `src/build_targets.py` → `data/interim/qqq_regression_target.csv`
-5. `src/split_data.py` → replace Infinity เป็น NaN เฉพาะ modeling copy, drop invalid model rows, chronological split พร้อม gap → `train.csv`, `validation.csv`, `test.csv` และ `data_split_report.json`
-6. `src/build_targets.py::run_classification_target_pipeline()` → คำนวณ Q75 จาก Train และสร้าง `*_labeled.csv` พร้อม `classification_threshold.json`
-7. `01_data_cleaning.ipynb` และ `02_eda_and_features.ipynb` อ่าน artifacts เพื่อทำ validation/EDA และสร้างกราฟ 12 ไฟล์
+Historical snapshot สำหรับผลปัจจุบันคือ `data/raw/qqq_daily.csv` จำนวน 2,512 แถว ช่วง 2016-08-31 ถึง 2026-08-28 และ SHA-256 `649e1db1b79c0990ea947a4ea162d6836b9bbdda2af24bc5ab6ae66cb83b6b13` ตรงกับ `data/manifests/qqq_daily_snapshot.json`
+
+## 2. Requirement และสถานะปัจจุบัน
+
+| Requirement | สถานะ | หลักฐานปัจจุบัน | หมายเหตุ |
+| --- | --- | --- | --- |
+| Snapshot verification และแยก Live refresh | ✅ เสร็จแล้ว | `src/download_qqq_data.py`, `data/manifests/qqq_daily_snapshot.json`, `tests/test_download_qqq_data.py` | Snapshot ไม่ถูก Live downloader เขียนทับ |
+| Load/validate daily QQQ OHLCV | ✅ เสร็จแล้ว | `src/load_data.py`, `tests/test_load_data.py` | ใช้ `Close`; ไม่ใช้ `Adj Close` |
+| Cleaning และ clean artifact | ✅ เสร็จแล้ว | `src/clean_data.py`, `data/interim/qqq_clean.csv`, `outputs/reports/cleaning_report.json` | 2,512 → 2,512 แถว |
+| Causal feature engineering | ✅ เสร็จแล้ว | `src/build_features.py`, `tests/test_features.py`, `tests/test_leakage.py` | 8 features จาก timeline เดิม |
+| Regression target 5 วัน | ✅ เสร็จแล้ว | `src/build_targets.py`, `tests/test_targets.py` | `t+1` ถึง `t+5`, `ddof=1`, `sqrt(252)` |
+| Chronological split พร้อม purging gap | ✅ เสร็จแล้ว | `src/split_data.py`, `tests/test_split_data.py` | 70/15/15 และ gap 5 แถวสองช่วง |
+| Classification target จาก Original Train Q75 | ✅ เสร็จแล้ว | `src/build_targets.py`, `outputs/reports/classification_threshold.json` | strict `>`; threshold `0.2530580184684854` |
+| Data Preparation notebooks | ✅ เสร็จแล้ว | `notebooks/01_data_cleaning.ipynb`, `notebooks/02_eda_and_features.ipynb` | มี saved cell outputs; working directory ปัจจุบันไม่มี exported PNG ใต้ `outputs/figures/` |
+| Spike analysis | 🟡 ทำบางส่วน | Notebook 02 มี daily-return/outlier EDA; มี read-only audit ในการอัปเดตเอกสารนี้ | ยังไม่มี detector, report หรือ saved spike figures |
+| Train-only spike threshold | ⬜ ยังไม่พบว่าดำเนินการ | ไม่มี `src/detect_spikes.py`, config, report หรือ tests | ตัวเลขในหัวข้อ 6 เป็นค่าตรวจยืนยันเพื่อวางแผน ไม่ใช่ artifact |
+| With-Spike experiment dataset | ⬜ ยังไม่พบว่าดำเนินการ | Original split มีอยู่ แต่ยังไม่มี experiment copy/manifest | ต้องสร้าง artifact แยกและยืนยัน checksum |
+| Non-Spike experiment dataset | ⬜ ยังไม่พบว่าดำเนินการ | ไม่มี affected mask หรือ filtered artifact | ห้ามแก้ Original Train |
+| Full/Non-Spike/Spike-Affected evaluation | ⬜ ยังไม่พบว่าดำเนินการ | ไม่มี diagnostic segment artifacts/metrics | Full Test ต้องเป็นผลหลัก |
+| Paired model comparison | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/*.py` ยังมีเพียง module docstring | ต้องควบคุม protocol ให้เหมือนกันทั้งสอง cases |
+| Regression model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/regression.py`, `notebooks/03_regression.ipynb` | Notebook มี 0 cells |
+| Classification model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/classification.py`, `notebooks/04_classification.ipynb` | Notebook มี 0 cells |
+| Automated tests ของ baseline data pipeline | ✅ เสร็จแล้ว | `tests/`, `pytest.ini` | 167 tests ผ่าน; ยังไม่มี spike-specific tests |
+| Project runbook/data provenance | 🟡 ทำบางส่วน | `README.md`, Manifest, config และ notebooks | มีคำสั่ง baseline pipeline แล้ว แต่ยังไม่มี end-to-end runner และ spike workflow |
+
+## 3. Data Pipeline
+
+### 3.1 Baseline pipeline — ทำแล้ว
+
+1. `data/raw/qqq_daily.csv` → schema/snapshot verification
+2. Cleaning → `data/interim/qqq_clean.csv`
+3. Feature engineering บน complete timeline → `data/interim/qqq_features.csv`
+4. Target construction บน complete timeline → `data/interim/qqq_regression_target.csv`
+5. NaN/Infinity handling บน modeling copy
+6. Chronological split พร้อม 5-row purging gaps → Original Train/Validation/Test
+7. Fit Classification Q75 จาก Original Train → labeled splits
+
+### 3.2 Spike experiment branch — Planned
 
 ```mermaid
-flowchart LR
-    A[Raw QQQ OHLCV] --> B[Validate and Clean]
-    B --> C[8 Causal Features]
-    C --> D[5-Day Forward Regression Target]
-    D --> E[NaN/Infinity Model Preparation]
-    E --> F[Chronological Split + 5-Row Gaps]
-    F --> G[Train-Only Q75]
-    G --> H[Labeled Train / Validation / Test]
-    B --> I[Data Preparation EDA]
-    C --> I
-    H --> I
+flowchart TD
+    subgraph DONE[Baseline Data Preparation — Completed]
+        A[Raw timeline] --> B[Clean data]
+        B --> C[8 causal features]
+        C --> D[5-day forward target]
+        D --> E[Modeling data: NaN/Infinity handling]
+        E --> F[Chronological split + purging gaps]
+        F --> G[Original labeled Train / Validation / Test]
+    end
+
+    subgraph PLAN[Spike Sensitivity Experiment — Planned]
+        G --> H[Fit Extreme-IQR threshold from Train only]
+        H --> I[Create is_spike and is_spike_affected flags]
+        I --> J[With-Spike Train: Original Train]
+        I --> K[Non-Spike Train: filter affected rows]
+        J --> L[Same Original Validation / Test]
+        K --> L
+        L --> M[Regression and Classification]
+        M --> N[Full / Non-Spike / Spike-Affected evaluation]
+        N --> O[Paired model comparison]
+    end
 ```
 
-ยังไม่พบ Model preprocessing/scaling, Regression training, Classification training, model evaluation หรือ persisted model artifacts และไม่มี orchestration script ที่เรียกทุกขั้นด้วยคำสั่งเดียว
+ข้อห้ามสำคัญ: ห้ามลบ spike จาก Raw ก่อน `pct_change()` เพราะจะสร้าง return ข้ามวันที่ และห้าม recompute features/targets หลังกรอง ต้องสร้างทุก feature/target จาก complete timeline ก่อน แล้วจึงกรองเฉพาะ modeling copy
 
-## 4. สิ่งที่ทำเสร็จแล้ว
+## 4. Current State ที่ตรวจจากไฟล์จริง
 
-### 4.1 Data Cleaning
+- Baseline artifacts มี Raw, Clean, Features, Regression target, Original splits และ labeled splits ครบใน working directory
+- Reports ปัจจุบันมี `cleaning_report.json`, `feature_report.json`, `data_split_report.json` และ `classification_threshold.json`
+- `README.md` อธิบาย Snapshot verification, Live refresh และ baseline pipeline แล้ว ไม่ใช่ไฟล์ว่าง
+- `outputs/figures/` ปัจจุบันมีเพียง `.gitkeep`; ภาพที่ Notebook อ้างถึงไม่ได้อยู่ใน working directory นี้ จึงต้อง regenerate/verify ภายหลังโดยไม่อ้างว่ามี saved PNG แล้ว
+- `src/models/regression.py` และ `src/models/classification.py` ยังไม่มี implementation; Notebook 03/04 ว่าง
+- ยังไม่มี orchestration script สำหรับ baseline end-to-end pipeline และยังไม่มี Regression target JSON report
+- Reports บางไฟล์เก็บ absolute path จากเครื่องปัจจุบัน ทำให้ byte checksum ต่างข้ามเครื่องได้ แม้สาระข้อมูลเหมือนกัน
 
-- `src/load_data.py` ตรวจ file existence, empty CSV และ required columns โดยไม่แก้ข้อมูลดิบ
-- `src/clean_data.py` parse/sort `Date`, แปลง numeric, จัดการ missing, duplicates, invalid OHLC/price/volume และป้องกัน overwrite raw data
-- Artifact และ report มีอยู่จริง; `cleaning_report.json` ระบุ 2,512 แถวทั้งก่อนและหลัง, ไม่มี missing/duplicate/invalid rows ในชุดปัจจุบัน
-- ข้อจำกัด: cleaning ไม่มี explicit Infinity rule; artifact ปัจจุบันไม่มี Infinity และ explicit handling อยู่ใน Modeling Data Preparation
+## 5. Features, Targets และ Spike Design Decisions
 
-### 4.2 Exploratory Data Analysis
+### 5.1 Features และ Targets เดิม
 
-- `notebooks/01_data_cleaning.ipynb` มี 21 cells (9 code cells รันแล้ว) พร้อม validation, before/after summary และ checksum audit
-- `notebooks/02_eda_and_features.ipynb` มี 32 cells (15 code cells รันแล้ว) ครอบคลุม price/return/volatility, train-only distributions/correlation, targets, splits และ class distribution
-- Saved notebooks ไม่มี error output และท้าย Notebook ยืนยัน input checksums ไม่เปลี่ยน
-- กราฟ full-period ถูกกำกับเป็น descriptive analysis; การวิเคราะห์ที่มีผลต่อ modeling ใช้ Train
+| ชื่อ | สูตร/ความหมายย่อ | สถานะในการทดลอง Spike |
+| --- | --- | --- |
+| `return_1d` | `Close.pct_change(1)` | เป็นตัวตรวจ spike หลัก: `abs(return_1d)` |
+| `return_5d` | `Close.pct_change(5)` | สูตรเดิม ไม่ recompute หลังกรอง |
+| `historical_volatility_5d` | trailing 5-return std × `sqrt(252)` | ใช้วิเคราะห์ผลกระทบ ไม่ใช้ OR เพื่อตรวจ spike |
+| `historical_volatility_20d` | trailing 20-return std × `sqrt(252)` | ใช้วิเคราะห์ผลกระทบ ไม่ใช้ OR เพื่อตรวจ spike |
+| `intraday_range` | `(High - Low) / Close` | สูตรเดิม |
+| `sma_ratio_5_20` | trailing `SMA_5 / SMA_20` | สูตรเดิม |
+| `rsi_14` | Wilder RSI 14 | สูตรเดิม |
+| `volume_zscore_20` | rolling 20-day Volume z-score | สูตรเดิม |
+| `target_volatility_5d` | `std(return_1d[t+1:t+5], ddof=1) * sqrt(252)` | สร้างก่อนกรองและห้าม recompute |
+| `target_high_volatility` | `target_volatility_5d > Original Train Q75` | ใช้ Q75 เดิมทั้ง With-Spike และ Non-Spike |
 
-### 4.3 Feature Engineering
+ห้ามคำนวณ Classification Q75 ใหม่จาก Non-Spike Train เพราะจะเปลี่ยนนิยาม High Volatility ระหว่าง cases
 
-- `src/build_features.py` สร้าง 8 features ตามตารางในหัวข้อ 5 และแทน feature Infinity ด้วย NaN หลังนับเพื่อทำ report
-- `feature_report.json` บันทึก NaN ตาม warm-up windows, first valid date, min/max และ Infinity count
-- ตรวจซ้ำแบบ read-only แล้วค่าที่คำนวณใหม่จาก `qqq_clean.csv` ตรงกับ `qqq_features.csv` ภายใน tolerance
+### 5.2 Spike detection ที่กำหนดแล้ว
 
-### 4.4 Target Construction
+```python
+abs_return = train_data["return_1d"].abs()
+q1 = abs_return.quantile(0.25)
+q3 = abs_return.quantile(0.75)
+iqr = q3 - q1
+spike_threshold = q3 + 3.0 * iqr
+is_spike = abs_return > spike_threshold
+```
 
-- Regression target ใช้ 5 future returns ไม่รวม return ณ `t`; 5 แถวท้ายเป็น NaN
-- Classification target ใช้ threshold เดียวกันทุก split โดยคำนวณ Q75 จาก Train เท่านั้น
-- ตรวจซ้ำแล้ว regression target, threshold และ labels ตรงกับ saved artifacts
-- ข้อจำกัด: ยังไม่มี `regression_target_report.json`; มีเพียง target CSV, tests และ summary ที่ `main()` สามารถพิมพ์ได้
+- Fit `q1`, `q3`, `iqr` และ threshold จาก **Original Train เท่านั้น**
+- ใช้ strict `>`; ค่าเท่ากับ threshold ไม่เป็น spike
+- ใช้ threshold เดียวกัน flag Validation/Test เพื่อ diagnostic เท่านั้น
+- `3 × IQR` เป็น main rule เพราะต้องการตัดเฉพาะ extreme spike ไม่ใช่ volatility ปกติ
+- เปรียบเทียบ sensitivity กับ `1.5 × IQR`, Train p99 และ Robust Z-score
 
-### 4.5 Data Splitting
+### 5.3 Direct และ affected rows
 
-- กรองเฉพาะ NaN/Infinity ใน 8 features และ Regression target แล้ว split แบบ chronological โดยไม่ shuffle
-- กัน 5 rows ระหว่าง Train–Validation และ Validation–Test เพื่อไม่ให้ forward target horizon ข้ามเข้า split ถัดไป
-- Saved splits ตรงกับผลคำนวณจาก pure functions และ source checksum ก่อน/หลังตรงกัน
+- `is_spike`: แถวที่ `abs(return_1d) > spike_threshold`
+- `is_spike_affected`: modeling row ที่ feature หรือ target อาจได้รับอิทธิพลจาก spike
+- ตาม design ที่ได้รับ เมื่อ spike อยู่ตำแหน่ง `s` ให้ flag ช่วง `s-5` ถึง `s+19` โดย clip ที่ขอบ split
+- มุมมองเทียบเท่า: row `t` ถูก flag หากมี spike ในช่วง `t-19` ถึง `t+5`
 
-### 4.6 Regression
+ช่วงนี้มาจาก forward target horizon 5 และ finite rolling windows สูงสุด 20 การลบเฉพาะ direct spike จะยังเหลือผลใน rolling features และ forward targets
 
-- 🟡 ทำเฉพาะ target และ modeling dataset พร้อมใช้งาน
-- ยังไม่มี model class, baseline, training, hyperparameter selection, validation metrics หรือ test metrics
+**Conflict ที่พบจาก source:** `src/build_features.py::_wilder_average()` คำนวณ `rsi_14` แบบ recursive Wilder average ดังนั้น return spike มีอิทธิพลแบบลดทอนต่อ RSI หลัง `s+19` ได้ในทางคณิตศาสตร์ และคำกล่าวว่า “maximum feature lookback = 20” จึงไม่จริงสำหรับทุก feature อย่างเคร่งครัด ค่า affected 213 แถวด้านล่างเป็นผลตาม window ที่กำหนด `s-5:s+19`; ก่อน freeze config ต้องตัดสินใจว่าจะยอมรับ window นี้เป็น operational definition, กำหนด RSI decay tolerance หรือขยาย affected logic โดยไม่เปลี่ยนสูตร feature เดิม
 
-### 4.7 Classification
+## 6. Dataset, Split และค่าที่ตรวจยืนยัน
 
-- 🟡 ทำ target labeling เสร็จ รวมทั้ง threshold report และ class distribution
-- ยังไม่มี classifier, class-imbalance strategy, probability calibration, threshold สำหรับ prediction หรือ evaluation
+### 6.1 Baseline dataset
 
-### 4.8 Evaluation และ Outputs
+| Dataset | ช่วงวันที่ | แถว | หมายเหตุ |
+| --- | --- | ---: | --- |
+| Raw/Clean | 2016-08-31 ถึง 2026-08-28 | 2,512 | Raw checksum ตรง Manifest; 0 duplicate dates, 0 missing OHLCV |
+| Modeling-ready ก่อน gaps | 2016-09-29 ถึง 2026-08-21 | 2,487 | กรอง 25 warm-up/end rows |
+| Original Train | 2016-09-29 ถึง 2023-08-18 | 1,733 | Class 0/1 = 1,300/433 |
+| Original Validation | 2023-08-28 ถึง 2025-02-19 | 371 | Class 0/1 = 337/34 |
+| Original Test | 2025-02-27 ถึง 2026-08-21 | 373 | Class 0/1 = 300/73 |
 
-- Data-quality และ leakage-related validation มี automated tests 143 tests ซึ่งผ่านทั้งหมดในการตรวจรอบนี้
-- มี reports 4 ไฟล์และ figures 12 ไฟล์สำหรับ data preparation
-- ยังไม่มี model metrics, predictions, fitted models หรือ model-comparison outputs
+มี gap 5 แถวระหว่าง Train–Validation และ Validation–Test รวม 10 แถว; boundaries เหล่านี้ต้องไม่เปลี่ยนในการทดลอง
 
-### 4.9 Presentation หรือ Documentation
+### 6.2 Read-only spike audit เพื่อยืนยันค่าที่คาด
 
-- Data Preparation notebooks มี narrative, formulas, saved outputs และรูปภาพพร้อมใช้อธิบายขั้นตอนข้อมูล
-- `requirements.txt`, `config.py` และ module docstrings มีอยู่
-- `README.md` ว่าง; ไม่พบ slide deck, Project Description, Project List หรือ final presentation
+ค่าต่อไปนี้คำนวณใหม่จาก `data/processed/train_labeled.csv` เมื่อ 2026-10-05 โดยไม่ได้สร้าง artifact และยังไม่ใช่ spike pipeline ที่ implement แล้ว:
 
-## 5. Feature และ Target ที่พบ
+| ค่า | ผลที่ตรวจยืนยัน |
+| --- | ---: |
+| Train rows | 1,733 |
+| `Q1(abs(return_1d))` | 0.0029797377830751 |
+| `Q3(abs(return_1d))` | 0.0138707144726510 |
+| `IQR` | 0.0108909766895759 |
+| Main threshold: `Q3 + 3 × IQR` | 0.0465436445413787 (ประมาณ 4.65%) |
+| Direct spike days, strict `>` | 19 (ประมาณ 1.10% ของ Train) |
+| Spike-affected Train rows (`s-5:s+19`) | 213 |
+| Planned Non-Spike Train rows | 1,520 |
+| Non-Spike Train Class 0/1 | 1,240/280 |
+| Non-Spike Train High ratio | 18.4211% |
 
-### Features
+ค่าจาก prompt ตรงกับไฟล์จริงภายใน precision ที่แสดง ไม่มีข้อแตกต่างเชิงสาระ
 
-| Feature | ความหมาย | วิธีคำนวณโดยสรุป | Notebook/ไฟล์ | สถานะ |
-| ------- | -------- | ---------------- | ------------- | ----- |
-| `return_1d` | ผลตอบแทน 1 วัน | `Close.pct_change(1)` | `src/build_features.py`, Notebook 02 | ✅ เสร็จแล้ว |
-| `return_5d` | ผลตอบแทนย้อนหลัง 5 วัน | `Close.pct_change(5)` | `src/build_features.py`, Notebook 02 | ✅ เสร็จแล้ว |
-| `historical_volatility_5d` | realized volatility ย้อนหลังระยะสั้น | trailing 5-day std ของ `return_1d`, `ddof=1`, คูณ `sqrt(252)` | `src/build_features.py`, Notebook 02 | ✅ เสร็จแล้ว |
-| `historical_volatility_20d` | realized volatility ย้อนหลังระยะกลาง | trailing 20-day std ของ `return_1d`, `ddof=1`, คูณ `sqrt(252)` | `src/build_features.py`, Notebook 02 | ✅ เสร็จแล้ว |
-| `intraday_range` | ช่วงราคาในวันเทียบกับ Close | `(High - Low) / Close` | `src/build_features.py`, Notebook 02 | ✅ เสร็จแล้ว |
-| `sma_ratio_5_20` | momentum/trend ระยะสั้นเทียบกลาง | trailing `SMA_5 / SMA_20` | `src/build_features.py`, Notebook 02 | ✅ เสร็จแล้ว |
-| `rsi_14` | Wilder RSI 14 ช่วง | seed gain/loss ด้วย simple average 14 ช่วงแรก แล้ว recursive Wilder average | `src/build_features.py`, Notebook 02 | ✅ เสร็จแล้ว |
-| `volume_zscore_20` | Volume เทียบ rolling baseline | `(Volume - mean_20) / std_20`, `ddof=1`; zero std → NaN | `src/build_features.py`, Notebook 02 | ✅ เสร็จแล้ว |
+Sensitivity check แบบ read-only:
 
-ทุก rolling feature เป็น trailing window และไม่มี negative shift; `tests/test_leakage.py` ยืนยันว่าการแก้ future rows ไม่เปลี่ยน features ณ หรือก่อน cutoff
+| Method | Threshold/กติกาที่ใช้ตรวจ | Direct rows |
+| --- | ---: | ---: |
+| `Q3 + 1.5 × IQR` | 0.0302071795070148 | 91 |
+| `Q3 + 3 × IQR` (main) | 0.0465436445413787 | 19 |
+| Train p99, strict `>` | 0.0487619470246741 | 18 |
+| Robust Z-score | `0.6745 × (abs_return - median) / MAD > 3.5` | 72 |
 
-### Targets
+Robust Z-score formula/cutoff ด้านบนเป็นวิธี sensitivity ที่เสนอไว้ ต้อง freeze ใน experiment config และ report ก่อนถือเป็น contract
 
-| Target | ประเภทงาน | วิธีสร้าง | ความเสี่ยง Leakage | สถานะ |
-| ------ | --------- | --------- | ------------------ | ----- |
-| `target_volatility_5d` | Regression | `std(return_1d[t+1:t+5], ddof=1) * sqrt(252)`; 5 แถวท้ายเป็น NaN | Target ใช้อนาคตโดยตั้งใจ จึงต้องแยกจาก features; gap 5 rows ป้องกัน target ของ split ก่อนหน้าทับช่วง split ถัดไป | ✅ เสร็จแล้ว |
-| `target_high_volatility` | Binary Classification | `1` เมื่อ `target_volatility_5d > Train Q75`, มิฉะนั้น `0` | Threshold ต้อง fit จาก Train เท่านั้น; implementation และ report ยืนยันว่า Validation/Test ไม่ร่วมคำนวณ | ✅ เสร็จแล้ว |
+เมื่อนำ main Train threshold ไปตรวจแบบ read-only พบ Validation มี 0 direct spike; Test มี 4 direct spikes และ 54 spike-affected rows (319 non-affected rows) ตัวเลขนี้เป็น diagnostic estimate ยังไม่มี segment artifact
 
-การสร้าง Regression target เกิดก่อน split แต่ใช้ purging gap เท่ากับ horizon 5 แถว และ Classification threshold เกิดหลัง split จาก Train เท่านั้น จึงยังไม่พบ leakage ในขั้น Data Preparation ปัจจุบัน
+### 6.3 Planned experiment datasets
 
-## 6. Dataset และ Data Split
+| Dataset | Train | Validation | Test | จุดประสงค์ |
+| --- | --- | --- | --- | --- |
+| With-Spike | Original Train 1,733 rows | Original Validation | Original Test | Baseline |
+| Non-Spike | Filter `is_spike_affected == True` ออกจาก Train; audit ปัจจุบันคาด 1,520 rows | Original Validation | Original Test | Sensitivity experiment |
 
-### Dataset summary
+ห้าม re-split, shuffle, ย้าย Validation/Test เข้า Train, เปลี่ยน purging gaps หรือ recompute features/targets หลังกรอง
 
-| Dataset | ช่วงวันที่ | แถว | Missing/Infinity ที่สำคัญ |
-| ------- | ---------- | ---: | ------------------------- |
-| Raw `qqq_daily.csv` | 2016-08-31 ถึง 2026-08-28 | 2,512 | 0 / 0 |
-| Clean `qqq_clean.csv` | 2016-08-31 ถึง 2026-08-28 | 2,512 | 0 / 0 |
-| Features `qqq_features.csv` | 2016-08-31 ถึง 2026-08-28 | 2,512 | 83 NaN cells จาก warm-up windows; 0 Infinity |
-| Regression target `qqq_regression_target.csv` | 2016-08-31 ถึง 2026-08-28 | 2,512 | 88 NaN cells รวม target 5 แถวท้าย; 0 Infinity |
-| Modeling-ready ก่อน gap | 2016-09-29 ถึง 2026-08-21 | 2,487 | 25 rows ถูกกรอง; ไม่มี NaN/Infinity ใน model columns |
+Planned Test diagnostics ซึ่งแยกจาก Main Test:
 
-`data/processed/qqq_features_target.csv` เป็นไฟล์ขนาด 0 bytes และไม่ใช่ path ที่ `config.py` ใช้ จึงไม่ถือเป็น valid artifact
+1. **Full Test:** Original Test ทั้งหมด เป็น final evaluation หลัก
+2. **Non-Spike Test Segment:** แถว Test ที่ `is_spike_affected == False`
+3. **Spike-Affected Test Segment:** แถว Test ที่ `is_spike_affected == True` สำหรับ stress test
 
-### Split summary
+## 7. Experiment Protocol และ Planned Artifacts
 
-| Split | ช่วงวันที่ | จำนวนแถว | Normal | High | High ratio |
-| ----- | ---------- | --------: | -----: | ---: | ---------: |
-| Train | 2016-09-29 ถึง 2023-08-18 | 1,733 | 1,300 | 433 | 24.9856% |
-| Validation | 2023-08-28 ถึง 2025-02-19 | 371 | 337 | 34 | 9.1644% |
-| Test | 2025-02-27 ถึง 2026-08-21 | 373 | 300 | 73 | 19.5710% |
+### 7.1 Paired comparison
 
-- Gap 1: 2023-08-21 ถึง 2023-08-25 จำนวน 5 rows
-- Gap 2: 2025-02-20 ถึง 2025-02-26 จำนวน 5 rows
-- Usable rows หลังหักสอง gaps: 2,477 = 1,733 + 371 + 373
-- Feature columns: `return_1d`, `return_5d`, `historical_volatility_5d`, `historical_volatility_20d`, `intraday_range`, `sma_ratio_5_20`, `rsi_14`, `volume_zscore_20`
-- Regression target: `target_volatility_5d`
-- Classification target: `target_high_volatility`
-- Classification threshold: `0.2530580184684854` หรือ `25.305801846848542%`, Q75 แบบ `linear` จาก Train เท่านั้น
+ทุก algorithm ต้องรันเป็นคู่ เช่น `Model A + With-Spike Train` เทียบกับ `Model A + Non-Spike Train` โดยควบคุม feature columns, target definition, Validation/Test periods, scaling strategy, hyperparameter search space, random seed และ metrics ให้เหมือนกัน
 
-สัดส่วน High แตกต่างกันระหว่าง splits ซึ่งอาจบ่งชี้ distribution shift หรือสภาวะตลาดที่แตกต่างกัน แต่หลักฐานนี้เพียงอย่างเดียวยังไม่เพียงพอสำหรับยืนยันการเปลี่ยน market regime
+Scaler, imputer, feature selector, sampler และ preprocessing อื่นต้อง fit แยกจาก Training Case ของตนเองเท่านั้น ห้ามใช้ Test เลือก model หรือ spike threshold หาก tune prediction threshold ให้ใช้ Validation เท่านั้นและบันทึกวิธี
 
-## 7. กราฟและผลลัพธ์ที่มีอยู่
+- Regression: MAE, RMSE, R²; ใช้ MAPE เฉพาะเมื่อพิสูจน์ว่าเหมาะกับ target
+- Classification: Accuracy, Precision, Recall, F1, ROC-AUC, PR-AUC และ Confusion Matrix; ห้ามสรุปจาก Accuracy อย่างเดียว
+- รายงาน metrics แยก Full Test, Non-Spike Test Segment และ Spike-Affected Test Segment
 
-| ไฟล์กราฟ/ผลลัพธ์ | แสดงอะไร | ใช้พิจารณาอะไร | สถานะ |
-| ---------------- | -------- | -------------- | ----- |
-| `01_missing_values_before_after.png` | Missing values ของ Raw/Clean | Data quality ก่อน–หลัง cleaning | ✅ มีไฟล์และตรงกับ count = 0 |
-| `02_close_price_over_time.png` | Close history ทั้งช่วง | Descriptive price history | ✅ มีไฟล์; descriptive only |
-| `03_daily_return_over_time.png` | Daily return ตามเวลา | เหตุการณ์ return ผันผวน | ✅ มีไฟล์; descriptive only |
-| `04_daily_return_distribution.png` | Distribution ของ daily returns | รูปร่าง distribution/outliers | ✅ มีไฟล์; descriptive only |
-| `05_historical_volatility.png` | 5-day/20-day historical volatility | เปรียบเทียบความไวของ windows | ✅ มีไฟล์; descriptive only |
-| `06_feature_distributions.png` | Distribution ของ 8 features | Train-only modeling diagnostics | ✅ มีไฟล์และ label ครบ |
-| `07_train_feature_correlation.png` | Correlation ของ features กับ Regression target | Train-only multicollinearity/association | ✅ มีไฟล์และค่าอ่านได้ |
-| `08_train_regression_target_distribution.png` | Distribution ของ `target_volatility_5d` | Train-only target shape | ✅ มีไฟล์ |
-| `09_train_target_with_q75.png` | Regression target พร้อม Q75 = 25.31% | ตรวจ classification cutoff | ✅ มีไฟล์และตรงกับ report |
-| `10_time_series_split.png` | Train/Gap/Validation/Gap/Test timeline | ตรวจลำดับตามเวลา | 🟡 ถูกต้อง แต่ gap 5 แถวมองเห็นยากเมื่อ plot ทั้ง 10 ปี |
-| `11_class_distribution_by_split.png` | Normal/High counts แต่ละ split | Class imbalance/distribution shift | ✅ มีไฟล์และ counts ตรงกับ report |
-| `12_modeling_data_quality.png` | NaN/Infinity ของ model splits | ความพร้อมก่อน modeling | ✅ มีไฟล์และ count = 0 |
-| `cleaning_report.json` | Cleaning counts และ date bounds | Audit data cleaning | ✅ มีไฟล์ |
-| `feature_report.json` | Feature NaN/Infinity/min/max | Audit feature construction | ✅ มีไฟล์ |
-| `data_split_report.json` | Filtering, splits, gaps และ checksum | Audit modeling preparation | ✅ มีไฟล์ |
-| `classification_threshold.json` | Q75, labels distribution และ source checksums | Audit classification labeling | ✅ มีไฟล์ |
-| Regression target report | Target rows/date/NaN/formula metadata | Audit target artifact โดยไม่อ่าน CSV ใหม่ | ⬜ ยังไม่พบว่าดำเนินการ |
-| Model metrics / fitted models | ผลประเมินและ deployable artifacts | Model comparison/deployment | ⬜ ยังไม่พบว่าดำเนินการ |
+สำหรับ tabular models ช่องว่างวันที่ใน Non-Spike Train ยอมรับได้เพราะ features/targets สร้างก่อนกรอง หากเพิ่ม sequence model เช่น LSTM ภายหลัง ต้องห้ามสร้าง sequence ข้ามช่องว่าง
 
-ตรวจเปิดไฟล์ PNG ทั้ง 12 ไฟล์แล้ว ทุกไฟล์เป็นภาพที่อ่านได้และสอดคล้องกับ code cells ที่บันทึกภาพใน Notebook 01/02
+### 7.2 Planned artifacts — ยังไม่สร้าง
 
-## 8. ปัญหา ความเสี่ยง และสิ่งที่ต้องตรวจสอบ
+```text
+src/detect_spikes.py
+src/build_experiment_datasets.py
+tests/test_spike_detection.py
+tests/test_experiment_datasets.py
 
-### Critical
+data/processed/experiments/with_spikes/train.csv
+data/processed/experiments/non_spike/train.csv
 
-- **ยังไม่พบ Critical leakage/correctness issue ใน Data Preparation ปัจจุบัน** — หลักฐาน: causal feature tests, forward-target tests, 5-row purging gaps, train-only threshold tests และการตรวจ artifact alignment รอบนี้ทั้งหมดผ่าน อย่างไรก็ตามยังประเมิน leakage ของ model preprocessing/hyperparameter tuning ไม่ได้เพราะยังไม่มี implementation
+outputs/reports/spike_analysis.json
+outputs/reports/experiment_dataset_report.json
 
-### Important
+outputs/figures/spike_analysis/daily_return_spikes.png
+outputs/figures/spike_analysis/volatility_spike_effect.png
+outputs/figures/spike_analysis/threshold_comparison.png
+outputs/figures/spike_analysis/dataset_comparison.png
+```
 
-1. **ยังไม่มี Regression/Classification models และ evaluation**
-   - หลักฐาน: `src/models/*.py` มีเพียง docstring, Notebook 03/04 มี 0 cells, `outputs/models` และ `outputs/metrics` ไม่มี artifacts
-   - ผลกระทบ: โปรเจกต์ยังไม่ตอบโจทย์การ forecast หรือเปรียบเทียบ model
-   - แนะนำ: ยืนยัน model/metric requirements แล้วสร้าง baseline, candidates, validation workflow และ final test evaluation
+`spike_analysis.json` และ `experiment_dataset_report.json` ต้องเก็บ detection variable, formula, multiplier, Q1/Q3/IQR, threshold, source split, strict comparison rule, direct count/dates, affected-row count, before/after rows, date ranges, class distribution, source checksums และ generated artifact paths
 
-2. **ไม่พบ Project Description, Project List และ README ใช้งานไม่ได้เพราะว่าง**
-   - หลักฐาน: พบ Markdown เฉพาะ `README.md` ขนาด 0 bytes ก่อนสร้างรายงานนี้
-   - ผลกระทบ: ยืนยัน algorithms, acceptance criteria และ deliverables ภายนอกไม่ได้
-   - แนะนำ: เพิ่ม requirement ต้นฉบับและ runbook ก่อนตัดสินใจเรื่อง models
+## 8. Problems และ Risks
 
-3. **Fresh clone ยังสร้าง artifacts ซ้ำไม่ได้โดยตัวมันเอง**
-   - หลักฐาน: `.gitignore` ไม่ track `data/**` และ generated `outputs/**`; `git ls-files` มีเพียง `.gitkeep`; ไม่มี data acquisition script หรือ orchestrator
-   - ผลกระทบ: ผู้รับงานต่อไม่มี raw data/artifacts จาก Git และไม่ทราบแหล่งข้อมูล/checksum
-   - แนะนำ: จัดทำ data provenance และวิธีวาง raw file อย่างถูกกฎหมาย พร้อม script/command orchestration และ checksum/schema validation
-
-4. **มี stale empty artifact ที่ชื่อชวนสับสน**
-   - หลักฐาน: `data/processed/qqq_features_target.csv` ขนาด 0 bytes ขณะที่ path จริงคือ `data/interim/qqq_regression_target.csv`
-   - ผลกระทบ: ผู้ใช้หรือ Notebook ใหม่อาจอ่านไฟล์ผิด
-   - แนะนำ: ยืนยันว่าไม่ใช่ deliverable แล้วลบหรือแทนด้วย artifact ที่มี contract ชัดเจน
-
-5. **ไม่มี Regression target report**
-   - หลักฐาน: `run_regression_target_pipeline()` บันทึก CSV และ verify แต่ไม่บันทึก JSON report
-   - ผลกระทบ: audit target ต้องอ่าน CSV/โค้ดและไม่มี metadata/checksum แบบ pipeline ขั้นอื่น
-   - แนะนำ: เพิ่ม strict JSON report พร้อม formula metadata, counts, date bounds และ source checksum
-
-6. **ยังไม่มี end-to-end integration test/runner**
-   - หลักฐาน: tests แยกตาม module; ไม่มี script ที่รัน Clean → Features → Target → Split → Labels ใน temporary paths
-   - ผลกระทบ: contract ระหว่างขั้นอาจ drift ในอนาคตแม้ unit tests ผ่าน
-   - แนะนำ: เพิ่ม integration test ที่ใช้ fixture data และ runner ที่ fail fast โดยไม่ overwrite raw
-
-### Minor
-
-1. `requirements.txt` ไม่ pin versions ทำให้ reproducibility ข้าม environment ไม่แน่นอน; ควรเพิ่ม lock/constraints หลังเลือก modeling libraries
-2. `tests/test_cleaning.py` มีเพียง docstring และซ้ำเชิงชื่อกับ `tests/test_clean_data.py`; ควรลบหรือรวมเมื่อได้รับอนุญาต
-3. Reports บางไฟล์บันทึก absolute Windows paths; ควรใช้ project-relative paths เพื่อย้ายเครื่องได้ง่าย
-4. `10_time_series_split.png` แสดง gaps ถูกต้องแต่แถบแคบมาก; ควรมี inset หรือ boundary annotations ใน presentation
-5. `src/build_targets.py::main()` รันเฉพาะ Regression target; Classification pipeline ต้องเรียกผ่าน import จึงควรมี CLI/runner ที่ชัดเจน
+| ความเสี่ยง | ผลกระทบ | วิธีป้องกัน |
+| --- | --- | --- |
+| Threshold leakage | Threshold ดูข้อมูลอนาคตและให้ผล optimistic | Fit จาก Original Train เท่านั้น; test ว่าแก้ Validation/Test แล้ว threshold ไม่เปลี่ยน |
+| ลบ Raw rows ก่อนคำนวณ return | `pct_change()` เชื่อมราคาข้ามวันที่และเปลี่ยนความหมายข้อมูล | สร้าง features/targets บน complete timeline ก่อนกรอง modeling copy |
+| ลบเฉพาะ direct spike | Rolling features/forward target ยังปนผล spike | ใช้ affected window `s-5` ถึง `s+19` และ test boundaries |
+| Class imbalance หลังกรอง | Class 1 ลดจาก 433 เป็น 280 ตาม audit ทำให้ classifier เอนเอียง | รายงาน distribution ก่อนตัดสินใจ; class weights/sampling ต้อง fit เฉพาะ Train |
+| เปรียบเทียบคนละ Test set | Metrics ไม่สามารถเทียบกันอย่างยุติธรรม | ใช้ Original Validation/Test เดียวกันทั้ง cases; segments เป็น diagnostics เท่านั้น |
+| Re-split หลังกรอง | เปลี่ยนช่วงเวลาและอาจนำข้อมูลอนาคตย้อนเข้า Train | Freeze boundaries/gaps เดิมและ filter เฉพาะ Train |
+| ใช้ Q75 คนละค่า | นิยาม class แตกต่างระหว่าง cases | ใช้ Original With-Spike Train Q75 ค่าเดิม |
+| เลือก spike threshold หลังเห็น Test | Test leakage และ overfitting ต่อ benchmark | Freeze detector/config ก่อน model training; Test ใช้ final evaluation เท่านั้น |
+| Sample size ลดลง | Non-Spike model มีข้อมูลน้อยกว่าและ variance สูงขึ้น | รายงานจำนวน/ช่วงวันที่/checksum และตีความ trade-off กับ event coverage |
+| Sequence ข้ามช่องว่าง | LSTM อาจถือวันไม่ต่อเนื่องว่าเป็น sequence ต่อเนื่อง | หากใช้ sequence model ให้สร้าง contiguous-segment rule และ tests เพิ่ม |
+| Recursive RSI เกิน 20 แถว | Window `s-5:s+19` ไม่ได้กำจัดอิทธิพลของ spike ต่อ Wilder RSI ทั้งหมด | ระบุเป็น operational approximation และ freeze decay policy/affected rule ก่อนสร้าง artifact |
+| Spike เป็นเหตุการณ์ตลาดจริง | การกรองอาจลดความสามารถรับมือ crisis regime | รักษา With-Spike baseline และประเมิน Spike-Affected Test เป็น stress test |
+| Saved figures ไม่อยู่ในเครื่องปัจจุบัน | หลักฐานภาพไม่ reproducible จาก working directory นี้ | Regenerate ตาม pipeline ที่กำหนดและตรวจ artifact paths/checksums |
 
 ## 9. งานที่ต้องทำต่อ
 
-### Phase 1 — ตรวจสอบและเตรียมข้อมูล
+### Phase 1 — Baseline Data Preparation Hardening
 
-- [ ] **ยืนยัน requirement ต้นฉบับและ data provenance** — สร้าง/แก้ `README.md` และเอกสาร requirement; ระบุ source, license, retrieval date, schema, algorithms/metrics ที่ต้องส่ง; DoD: ผู้รับงานใหม่ตอบได้ว่าข้อมูลมาจากไหนและต้องส่งอะไร; dependency: ไม่มี
-- [ ] **จัดการ stale artifact และเพิ่ม Regression target report** — แก้ `config.py`, `src/build_targets.py`, tests และพิจารณา `data/processed/qqq_features_target.csv`; คาดหวัง JSON report/checksum และไม่มีไฟล์กำกวม; DoD: test ครอบคลุมและ report strict JSON ตรงกับ CSV; dependency: requirement review
-- [ ] **สร้าง end-to-end data runner** — สร้างเช่น `src/run_data_pipeline.py`; รัน Load → Clean → Features → Regression Target → Split → Classification Labels แบบ fail fast; DoD: รันจาก project root ได้และ outputs ตรงกับ module contracts; dependency: path/report contract ข้างต้น
-- [ ] **เพิ่ม integration test** — สร้าง `tests/test_data_pipeline.py` ด้วย `tmp_path`; คาดหวังตรวจ schema, chronology, checksums และ no-overwrite; DoD: test ผ่านโดยไม่แตะข้อมูลจริง; dependency: runner
+- [x] Snapshot verification, baseline cleaning/features/targets/splits/labels และ unit tests
+- [ ] เพิ่ม end-to-end data runner และ integration test โดยไม่เขียนทับ Raw/Snapshot
+- [ ] เพิ่ม Regression target report และปรับ report paths ให้ portable
+- [ ] **อัปเดต `README.md` เป็นงานสุดท้ายของ Phase 1** — ทำหลังจาก end-to-end runner, integration test และ Regression target report เสร็จและผ่านการตรวจทั้งหมดแล้ว; เพิ่มคำสั่งรัน pipeline ตั้งแต่ Snapshot verification ถึง labeled splits, อธิบาย input/output artifacts, safety rule ที่ห้ามเขียนทับ Raw/Snapshot และผลทดสอบที่คาดหวัง; dependency: งาน Phase 1 ก่อนหน้าทั้งหมด; DoD: ผู้ใช้ใหม่สามารถทำตาม README จาก project root และได้ผลตรงกับ pipeline contract
 
-### Phase 2 — Regression Models
+### Phase 2 — Spike Analysis และ Experiment Dataset Preparation
 
-- [ ] **กำหนด Regression baseline และ metrics** — แก้ `README.md`/config และสร้าง tests; อย่างน้อยกำหนด naive/mean baseline กับ MAE, RMSE และ R² ตาม requirement ที่ยืนยัน; DoD: metric contracts และ baseline behavior มี tests; dependency: requirement ต้นฉบับ
-- [ ] **Implement training pipeline** — แก้ `src/models/regression.py`; fit preprocessing เฉพาะ Train, เลือก hyperparameters ด้วย Validation เท่านั้น; DoD: deterministic seed/config, ไม่มี Test leakage และคืน predictions/metrics; dependency: baseline/metrics
-- [ ] **สร้าง Regression Notebook** — เติม `notebooks/03_regression.ipynb`; แสดง baseline, candidates, validation selection และ final Test evaluation; DoD: run top-to-bottom และบันทึก outputs/figures; dependency: training pipeline
+| # | Task | ไฟล์ที่ควรสร้าง/แก้ | Input | Output | Dependency | Definition of Done |
+| ---: | --- | --- | --- | --- | --- | --- |
+| 1 | ยืนยัน data contract และ split boundaries | `config.py`, `tests/test_experiment_datasets.py` | Original splits, current reports | Frozen schema/boundary spec | Baseline artifacts | Checksums, rows, dates, gaps และ columns ถูก assert โดยไม่แก้ source |
+| 2 | Implement Extreme-IQR detector | `src/detect_spikes.py`, `tests/test_spike_detection.py` | Train `return_1d` | Pure detector API | Task 1 | รองรับ strict `>`, Train-only fit และ deterministic result |
+| 3 | คำนวณ threshold จาก Train | `src/detect_spikes.py` | Original Train | Threshold metadata | Task 2 | ได้ Q1/Q3/IQR/threshold จาก Train เท่านั้นและไม่ hard-code |
+| 4 | สร้าง Direct Spike report | `outputs/reports/spike_analysis.json` | Threshold + Original Train | Count, dates, formulas, checksum | Task 3 | Strict JSON ตรงกับ detector และ rerun เหมือนเดิม |
+| 5 | ตรวจ spike dates กับ OHLCV/source | report/notebook ที่กำหนดภายหลัง | Spike dates + Clean/Raw OHLCV | Audited event table/notes | Task 4 | ทุก date trace กลับ source ได้; แยก market event ออกจาก data error |
+| 6 | สร้าง spike-affected mask | `src/detect_spikes.py`, tests | Direct flags + horizon/lookback config | `is_spike_affected` | Tasks 3–4 | ครอบคลุม `s-5:s+19`, clip ขอบ และผ่าน boundary tests |
+| 7 | สร้าง With-Spike/Non-Spike Train | `src/build_experiment_datasets.py`, experiment CSV paths | Original Train + affected mask | แยก Train สอง cases | Task 6 | Original Train/checksum ไม่เปลี่ยน; kept values ตรง baseline |
+| 8 | สร้าง Validation/Test diagnostic flags | `src/build_experiment_datasets.py` | Original Val/Test + Train threshold | Full/non-spike/affected flags | Tasks 3, 6 | ใช้ threshold เดียวจาก Train และไม่เขียนทับ main splits |
+| 9 | ตรวจ class distribution | `outputs/reports/experiment_dataset_report.json` | Labeled splits + experiment masks | Before/after counts/ratios | Tasks 7–8 | รายงานทุก split/case และประเมิน imbalance ก่อนเลือก strategy |
+| 10 | เพิ่ม spike/experiment tests | `tests/test_spike_detection.py`, `tests/test_experiment_datasets.py` | Pure APIs + fixtures | Automated contract suite | Tasks 2–9 | ครอบคลุม checklist 20 ข้อด้านล่างและ full suite ผ่าน |
+| 11 | สร้าง figures/reports | `outputs/figures/spike_analysis/`, reports | Verified flags/datasets | 4 figures + 2 reports | Tasks 4, 7–10 | Figures trace ถึง data; reports strict JSON และ counts ตรง CSV |
+| 12 | Freeze experiment configuration | `config.py` และเอกสาร | Approved detector/protocol | Versioned config + checksums | Tasks 9–11 | multiplier, windows, paths, seeds, metrics และ target contract ชัดเจน |
+| 13 | อนุญาตให้เริ่ม model training | `src/models/`, Notebook 03/04 ใน phase ถัดไป | Frozen experiment datasets/config | Training-ready gate | Tasks 1–12 | Spike phase artifacts/tests/review ครบก่อนเริ่ม Train |
 
-### Phase 3 — Classification Models
+Spike-specific test checklist สำหรับ Task 10:
 
-- [ ] **กำหนด Classification baseline และ metrics** — ระบุ majority baseline, Precision/Recall/F1, ROC-AUC, PR-AUC และ confusion matrix ตาม requirement; DoD: ระบุ positive class และ policy เรื่อง imbalance ชัดเจน; dependency: requirement ต้นฉบับ
-- [ ] **Implement classification training** — แก้ `src/models/classification.py`; ใช้ labeled Train/Validation, fit preprocessing เฉพาะ Train และห้ามปรับ Q75 ด้วย Validation/Test; DoD: tests ยืนยัน threshold/data boundaries และ reproducible predictions; dependency: metrics contract
-- [ ] **สร้าง Classification Notebook** — เติม `notebooks/04_classification.ipynb`; เปรียบเทียบ baseline/candidates และประเมิน Test ครั้งสุดท้าย; DoD: run top-to-bottom พร้อม saved outputs; dependency: classifier pipeline
+1. Threshold fit จาก Train เท่านั้น
+2. การเปลี่ยน Validation/Test ไม่ทำให้ threshold เปลี่ยน
+3. ใช้ threshold เดียวกันทุก split
+4. Direct flag ตรง `abs(return_1d) > threshold`
+5. Equality boundary ไม่ถูก flag
+6. Affected window ครอบคลุม `s-5` ถึง `s+19`
+7. Window clip ถูกต้องที่ต้น/ท้าย split
+8. Non-Spike Train ไม่มี affected rows
+9. Original Train ไม่ถูกแก้
+10. Raw/Clean/Feature/Target artifacts ไม่ถูกแก้
+11. Features/targets ของ kept rows ตรง baseline
+12. Dates เรียงตามเวลา
+13. Split boundaries ไม่เปลี่ยน
+14. Purging gaps เดิมถูกต้อง
+15. ไม่มี NaN/Infinity ใน model columns
+16. Classification Q75 เดิมไม่เปลี่ยน
+17. Labels ตรง Original Train Q75
+18. Report counts ตรง CSV artifacts
+19. Pipeline rerun ให้ผลเดิม
+20. ไม่มี return ข้ามวันที่จากการลบ Raw rows
 
-### Phase 4 — Evaluation และ Model Comparison
+### Phase 3 — Regression Models
 
-- [ ] **บันทึก metrics, predictions และ models** — ใช้ `outputs/metrics/`, `outputs/models/`, `outputs/reports/`; เก็บ model version, feature order, parameters, seed และ data checksum; DoD: artifact โหลดซ้ำแล้วให้ผลเดิม; dependency: Regression/Classification pipelines
-- [ ] **สร้าง comparison report และ diagnostic figures** — เปรียบเทียบกับ baseline, residual/error-by-time, confusion matrix, ROC/PR และ calibration ตามความเหมาะสม; DoD: ทุกกราฟอ้างอิง split/metric ถูกต้องและเลือก model จาก Validation ไม่ใช่ Test; dependency: saved predictions
+- [ ] กำหนด baseline/candidate algorithms และใช้ paired protocol กับทั้งสอง Train cases
+- [ ] Implement/test `src/models/regression.py`; เลือกด้วย Validation และประเมิน Test หลัง freeze
+- [ ] เติม `notebooks/03_regression.ipynb` พร้อม Full/Non-Spike/Spike-Affected metrics
 
-### Phase 5 — Documentation และ Presentation
+### Phase 4 — Classification Models
 
-- [ ] **เขียน README/runbook** — อธิบาย setup, data placement, commands, artifact map, limitations และ leakage controls; DoD: ผู้ใช้ใหม่ทำตามจาก clean environment ได้; dependency: pipeline/CLI เสถียร
-- [ ] **จัดทำ final presentation** — สรุป problem, data, methods, baseline comparison, results, limitations และ next steps; DoD: ตัวเลขทั้งหมด trace กลับไปยัง reports/metrics ได้; dependency: final evaluation
+- [ ] กำหนด majority baseline, imbalance policy และ prediction-threshold policy
+- [ ] Implement/test `src/models/classification.py` ด้วย Original Train Q75 เดียวกันทั้ง cases
+- [ ] เติม `notebooks/04_classification.ipynb` และ metrics ที่ไม่พึ่ง Accuracy อย่างเดียว
 
-## 10. ลำดับงานแนะนำสำหรับรอบถัดไป
+### Phase 5 — Evaluation, Documentation และ Presentation
 
-1. ขอและบันทึก Project Description/Project List หรือ requirement ต้นฉบับให้ครบ
-2. ระบุ data provenance และวิธีเตรียม `qqq_daily.csv` สำหรับ fresh clone
-3. แก้ความกำกวมของ `qqq_features_target.csv` และเพิ่ม Regression target report
-4. สร้าง end-to-end data pipeline runner
-5. เพิ่ม integration test ที่รัน pipeline ใน `tmp_path`
-6. กำหนด Regression baseline, candidate models และ metrics
-7. Implement/test `src/models/regression.py`
-8. เติมและ execute `notebooks/03_regression.ipynb`
-9. กำหนด Classification baseline/metrics แล้ว Implement/test `src/models/classification.py`
-10. เติม `notebooks/04_classification.ipynb` และสร้าง model-comparison outputs
+- [ ] บันทึก models, predictions, metrics, configs, seeds และ data checksums
+- [ ] สร้าง paired comparison report พร้อม trade-off interpretation
+- [ ] อัปเดต README/runbook และ final presentation ให้ trace ตัวเลขกลับ artifacts ได้
 
-## 11. Definition of Done ของทั้งโปรเจกต์
+## 10. ลำดับงานรอบถัดไป
 
-- [ ] Data pipeline รันได้ตั้งแต่ raw input จนถึง labeled splits ด้วย documented command ใน clean environment
-- [ ] ยืนยันไม่มี data leakage ครอบคลุม feature/target/split รวมทั้ง scaling, tuning และ model selection
-- [ ] Regression models ครบตาม requirement และมี baseline
-- [ ] Classification models ครบตาม requirement และมี baseline
-- [ ] มี model comparison โดยเลือก model จาก Validation และใช้ Test สำหรับ final evaluation
-- [ ] ใช้ Regression/Classification metrics ที่เหมาะสมและระบุ positive class/units ชัดเจน
-- [ ] มีกราฟผลลัพธ์ระดับ model นอกเหนือจาก data-preparation figures
-- [ ] บันทึก models, metrics, predictions, configuration, seed และ data checksums ที่จำเป็น
-- [ ] Notebook 01–04 สามารถรันซ้ำจากต้นจนจบตามลำดับที่ documented
-- [ ] README, Project Description/List และ presentation ครบ
-- [ ] ไฟล์ส่งงานตรงตาม requirement ต้นฉบับที่ได้รับการยืนยัน
+1. Freeze baseline input checksums, schema, rows, dates และ split boundaries ใน experiment contract
+2. Implement pure Extreme-IQR detector พร้อม Train-only/equality/leakage tests
+3. สร้าง `spike_analysis.json` และตรวจ 19 spike dates กับ Raw/Clean OHLCV
+4. Implement/test affected mask `s-5` ถึง `s+19`
+5. สร้าง experiment Train artifacts แยก path โดยไม่แก้ Original Train
+6. Flag Original Validation/Test ด้วย Train threshold และสร้าง diagnostic segment definitions
+7. สร้าง `experiment_dataset_report.json` พร้อม class distributions/checksums
+8. สร้างและตรวจ spike-analysis figures จาก verified artifacts
+9. Freeze experiment config/protocol แล้วจึงเริ่ม paired model training
 
-สถานะปัจจุบัน: Data Preparation ผ่านการตรวจและมีหลักฐานค่อนข้างครบ แต่ Definition of Done ระดับทั้งโปรเจกต์ยังไม่สำเร็จเพราะ modeling/evaluation/documentation ส่วนสำคัญยังไม่มี
+## 11. Definition of Done
 
-## 12. ไฟล์สำคัญของโปรเจกต์
+### Spike phase
 
-| Path | หน้าที่ | สถานะ/ข้อสังเกต |
-| ---- | ------- | --------------- |
-| `config.py` | รวม paths ของ pipeline artifacts | ใช้งานจริง; paths อิง project root |
-| `src/load_data.py` | Load/validate Raw CSV | เสร็จและมี tests |
-| `src/clean_data.py` | Cleaning และ cleaning report | เสร็จ; ไม่มี explicit Infinity rule |
-| `src/build_features.py` | สร้าง 8 causal features | เสร็จและมี leakage tests |
-| `src/build_targets.py` | Regression/Classification targets | เสร็จด้าน target; ยังไม่มี Regression JSON report/Classification CLI หลัก |
-| `src/split_data.py` | Modeling preparation และ chronological split | เสร็จ; gap 5 แถวสองช่วง |
-| `src/models/regression.py` | Regression models | ยังไม่มี implementation |
-| `src/models/classification.py` | Classification models | ยังไม่มี implementation |
-| `notebooks/01_data_cleaning.ipynb` | Cleaning audit/EDA | Executed พร้อม saved outputs |
-| `notebooks/02_eda_and_features.ipynb` | EDA, features, targets และ splits | Executed พร้อม saved outputs |
-| `notebooks/03_regression.ipynb` | Regression analysis | Empty Notebook, 0 cells |
-| `notebooks/04_classification.ipynb` | Classification analysis | Empty Notebook, 0 cells |
-| `outputs/reports/*.json` | Cleaning/feature/split/classification audit | มี 4 reports; ขาด Regression target report |
-| `outputs/figures/data_preparation/` | Data-preparation figures | มี 12 PNG และตรวจเปิดได้ทั้งหมด |
-| `outputs/models/`, `outputs/metrics/` | Model/metric artifacts | มีเพียง `.gitkeep` |
-| `requirements.txt` | Python dependencies | ครอบคลุม Data Preparation; ไม่ pin versions และยังไม่มี modeling library เช่น scikit-learn |
-| `tests/` | Unit/leakage tests | 143 tests ผ่าน; ยังขาด end-to-end integration test |
-| `README.md` | Project overview/runbook | ไฟล์ว่าง ต้องจัดทำ |
-| `.gitignore` | Ignore caches, data และ generated outputs | ช่วยกัน artifact ขนาดใหญ่ แต่ทำให้ fresh clone ไม่มี raw/generated data |
+- [ ] Threshold fit จาก Original Train เท่านั้นและมี report พิสูจน์
+- [ ] With-Spike และ Non-Spike datasets สร้างซ้ำได้จาก documented command
+- [ ] Original Raw/Clean/Features/Targets/Splits และ checksums ไม่เปลี่ยน
+- [ ] ไม่มี leakage จาก threshold, preprocessing, tuning หรือ selection
+- [ ] Split boundaries และ purging gaps เหมือน baseline
+- [ ] Feature/target formulas และ Original Train Q75 เหมือนกันทั้ง cases
+- [ ] Main Validation/Test เป็น Original splits เดียวกัน
+- [ ] Reports, figures และ spike-specific tests ครบและตรงกับ artifacts
+
+### Modeling และโครงการทั้งหมด
+
+- [ ] Paired models ใช้ algorithms, search space, seed, preprocessing policy และ metrics เดียวกัน
+- [ ] Regression รายงาน MAE/RMSE/R² และ Classification รายงาน Accuracy/Precision/Recall/F1/ROC-AUC/PR-AUC/Confusion Matrix
+- [ ] Metrics แยก Full/Non-Spike/Spike-Affected Test โดย Full Test เป็นผลหลัก
+- [ ] Model selection ใช้ Validation เท่านั้น; Test ใช้ final evaluation
+- [ ] ผลเปรียบเทียบอธิบาย trade-off ระหว่าง normal-period performance, crisis robustness และ sample-size reduction ได้
+- [ ] Notebook 01–04, runbook และ saved artifacts รัน/ตรวจซ้ำได้จาก clean environment
+
+## 12. Design Decisions และ Open Questions
+
+### Decisions ที่กำหนดแล้ว
+
+- Detection variable คือ `abs(return_1d)`; ไม่ OR ด้วย volatility/target
+- Main detector คือ Train-only `Q3 + 3 × IQR`, strict `>`
+- Affected window คือ `s-5` ถึง `s+19`
+- Features/targets สร้างจาก complete timeline ก่อนกรอง
+- Filter เฉพาะ Train modeling copy; ไม่แก้ baseline artifacts
+- With-Spike ใช้ Original Train; Non-Spike ตัด affected Train rows
+- ทั้งสอง cases ใช้ Original Validation/Test และ Original Train Q75 เดียวกัน
+- Test segments เป็น diagnostics; Full Test เป็นผลหลัก
+- Model/preprocessing protocol ต้อง paired และ fit จาก Train case ของตนเอง
+
+### Open questions ที่ต้องยืนยันก่อน freeze config
+
+1. จะยอมรับ `s-5:s+19` เป็น operational window แม้ Wilder RSI มี recursive decay ต่อเนื่อง หรือจะกำหนด decay tolerance/affected rule เพิ่มเติม
+2. Robust Z-score จะยืนยันสูตร modified z-score และ cutoff `3.5` ตาม sensitivity audit นี้หรือไม่
+3. ชื่อ/format ของ diagnostic flags จะเก็บเป็น columns ใน derived artifact หรือเป็น report/sidecar file
+4. จะใช้ model algorithms และ hyperparameter search spaces ใดตาม requirement ต้นฉบับ
+5. หลังเห็น class distribution จริง จะใช้ class weights หรือ Train-only sampler หรือไม่
+6. MAPE เหมาะกับ `target_volatility_5d` หรือควรงดเพราะค่าต่ำอาจทำให้ metric บิดเบือน
+7. จะ regenerate exported data-preparation PNG ที่หายจาก working directory ปัจจุบันในขั้นใด
+
+สถานะสรุป: Baseline Data Preparation และ snapshot reproducibility พร้อมใช้งานและ tests ผ่าน แต่ Spike workflow ยังอยู่ในสถานะ **Planned** ต้องทำ Phase 2 ให้ครบก่อนเริ่ม Regression/Classification model training
