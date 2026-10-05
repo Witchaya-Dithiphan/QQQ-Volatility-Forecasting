@@ -4,9 +4,9 @@
 >
 > ขอบเขตการตรวจ: source code, tests, notebooks, datasets และ saved reports ใน working directory โดยใช้การตรวจแบบ read-only ยกเว้นการอัปเดตไฟล์สถานะนี้
 >
-> Git ก่อนแก้เอกสาร: branch `main`, commit `115a054`; tracked working tree สะอาด
+> ฐานของการสำรวจเดิมก่อน Phase 1: branch `main`, commit `115a054`; tracked working tree สะอาด
 >
-> ผลทดสอบล่าสุด: `167 passed` จาก `.venv\Scripts\python.exe -B -m pytest -q -p no:cacheprovider`
+> ผลทดสอบล่าสุดหลัง Phase 1: `192 passed, 1 skipped` จาก `.venv\Scripts\python.exe -m coverage run --branch -m pytest -q` (symlink case ข้ามบน Windows ที่ไม่มีสิทธิ์สร้าง symlink)
 
 ## 1. ภาพรวมโปรเจกต์
 
@@ -48,8 +48,8 @@ Historical snapshot สำหรับผลปัจจุบันคือ `d
 | Paired model comparison | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/*.py` ยังมีเพียง module docstring | ต้องควบคุม protocol ให้เหมือนกันทั้งสอง cases |
 | Regression model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/regression.py`, `notebooks/03_regression.ipynb` | Notebook มี 0 cells |
 | Classification model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/classification.py`, `notebooks/04_classification.ipynb` | Notebook มี 0 cells |
-| Automated tests ของ baseline data pipeline | ✅ เสร็จแล้ว | `tests/`, `pytest.ini` | 167 tests ผ่าน; ยังไม่มี spike-specific tests |
-| Project runbook/data provenance | 🟡 ทำบางส่วน | `README.md`, Manifest, config และ notebooks | มีคำสั่ง baseline pipeline แล้ว แต่ยังไม่มี end-to-end runner และ spike workflow |
+| Automated tests ของ baseline data pipeline | ✅ เสร็จแล้ว | `tests/`, `pytest.ini` | 192 tests ผ่าน, 1 symlink test ข้ามบน Windows; ยังไม่มี spike-specific tests |
+| Project runbook/data provenance | 🟡 ทำบางส่วน | `README.md`, Manifest, config, runner และ notebooks | มีคำสั่ง end-to-end baseline pipeline แล้ว; spike workflow ยังไม่เริ่ม |
 
 ## 3. Data Pipeline
 
