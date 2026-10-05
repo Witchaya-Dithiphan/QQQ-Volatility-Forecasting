@@ -1,6 +1,8 @@
 """Tests for the fixed five-row forward regression target."""
 
+import hashlib
 import inspect
+import json
 from pathlib import Path
 
 import numpy as np
@@ -41,9 +43,9 @@ def _direct_expected_target(
     annualization_factor: int = 252,
 ) -> float:
     """Calculate a target directly without pandas rolling operations."""
-    future_returns = data["return_1d"].iloc[
-        position + 1 : position + FORWARD_HORIZON + 1
-    ].to_numpy()
+    future_returns = (
+        data["return_1d"].iloc[position + 1 : position + FORWARD_HORIZON + 1].to_numpy()
+    )
     return float(np.std(future_returns, ddof=1) * np.sqrt(annualization_factor))
 
 
@@ -61,7 +63,7 @@ def test_regression_target_excludes_current_return() -> None:
     baseline = add_regression_target(data)[TARGET_COLUMN].iloc[position]
 
     modified = data.copy(deep=True)
-    modified.loc[modified.index[position]:, "Close"] *= 10
+    modified.loc[modified.index[position] :, "Close"] *= 10
     modified["return_1d"] = modified["Close"].pct_change(fill_method=None)
     assert modified["return_1d"].iloc[position] != data["return_1d"].iloc[position]
     pd.testing.assert_series_equal(
@@ -199,12 +201,100 @@ def test_save_does_not_overwrite_source_files(protected_path: str) -> None:
 def test_pipeline_parses_dates_saves_and_verifies_output(tmp_path: Path) -> None:
     input_path = tmp_path / "features.csv"
     output_path = tmp_path / "targets" / "regression.csv"
+    report_path = tmp_path / "reports" / "regression_target_report.json"
     _feature_data().to_csv(input_path, index=False, date_format="%Y-%m-%d")
 
-    result = run_regression_target_pipeline(input_path, output_path)
+    result = run_regression_target_pipeline(
+        input_path, output_path, report_path=report_path
+    )
     saved = pd.read_csv(output_path)
 
     assert str(result["Date"].dtype) == "datetime64[ns]"
     assert len(saved) == len(result)
     assert saved[TARGET_COLUMN].tail(FORWARD_HORIZON).isna().all()
     assert "target_high_volatility" not in saved.columns
+    assert report_path.is_file()
+
+
+def test_regression_target_report_matches_saved_csv_and_is_repeatable(
+    tmp_path: Path,
+) -> None:
+    """Report counts, statistics, and checksums describe persisted bytes."""
+    input_path = tmp_path / "features.csv"
+    output_path = tmp_path / "regression.csv"
+    report_path = tmp_path / "regression_target_report.json"
+    _feature_data().to_csv(input_path, index=False, date_format="%Y-%m-%d")
+    input_hash = hashlib.sha256(input_path.read_bytes()).hexdigest().upper()
+
+    run_regression_target_pipeline(input_path, output_path, report_path=report_path)
+    saved = pd.read_csv(output_path)
+    report_bytes = report_path.read_bytes()
+    report = json.loads(
+        report_bytes,
+        parse_constant=lambda value: (_ for _ in ()).throw(ValueError(value)),
+    )
+    valid = saved[TARGET_COLUMN].dropna()
+
+    assert report["target_column"] == TARGET_COLUMN
+    assert report["horizon_trading_days"] == FORWARD_HORIZON
+    assert report["annualization_factor"] == 252
+    assert "t+1 through t+5" in report["future_returns_description"]
+    assert "ddof=1" in report["formula"]
+    assert report["unit"] == "annualized decimal volatility (0.20 = 20%)"
+    assert report["input_rows"] == report["output_rows"] == len(saved) == 30
+    assert report["valid_target_count"] == len(valid) == 25
+    assert report["target_nan_count"] == report["boundary_nan_count"] == 5
+    assert report["other_nan_count"] == 0
+    assert saved[TARGET_COLUMN].tail(5).isna().all()
+    assert saved[TARGET_COLUMN].iloc[:-5].notna().all()
+    for key, expected in {
+        "min": valid.min(),
+        "max": valid.max(),
+        "mean": valid.mean(),
+        "median": valid.median(),
+        "std": valid.std(ddof=1),
+    }.items():
+        assert report["statistics"][key] == pytest.approx(expected)
+    for label, quantile in {
+        "p05": 0.05,
+        "p25": 0.25,
+        "p50": 0.50,
+        "p75": 0.75,
+        "p95": 0.95,
+    }.items():
+        assert report["statistics"]["quantiles"][label] == pytest.approx(
+            valid.quantile(quantile)
+        )
+    assert report["paths_relative_to"] == "report_directory"
+    assert report["input_path"] == "features.csv"
+    assert report["output_path"] == "regression.csv"
+    assert report["report_path"] == "regression_target_report.json"
+    assert (
+        report["input_checksum_before"] == report["input_checksum_after"] == input_hash
+    )
+    assert report["source_input_unchanged"] is True
+    assert (
+        report["output_checksum"]
+        == hashlib.sha256(output_path.read_bytes()).hexdigest().upper()
+    )
+    assert hashlib.sha256(input_path.read_bytes()).hexdigest().upper() == input_hash
+
+    run_regression_target_pipeline(input_path, output_path, report_path=report_path)
+    assert report_path.read_bytes() == report_bytes
+
+
+@pytest.mark.parametrize("collision", ["input", "output"])
+def test_regression_report_refuses_source_or_target_path(
+    tmp_path: Path,
+    collision: str,
+) -> None:
+    """A report cannot overwrite its source CSV or target CSV."""
+    input_path = tmp_path / "features.csv"
+    output_path = tmp_path / "regression.csv"
+    _feature_data().to_csv(input_path, index=False)
+    source_hash = hashlib.sha256(input_path.read_bytes()).hexdigest()
+    report_path = input_path if collision == "input" else output_path
+    with pytest.raises(ValueError, match="report path must differ"):
+        run_regression_target_pipeline(input_path, output_path, report_path=report_path)
+    assert hashlib.sha256(input_path.read_bytes()).hexdigest() == source_hash
+    assert not output_path.exists()

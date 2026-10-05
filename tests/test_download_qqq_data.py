@@ -347,6 +347,8 @@ def test_refresh_uses_mock_response_and_writes_report(
     assert saved_report["workflow"] == "refresh_latest"
     assert saved_report["dataset"]["row_count"] == 2
     assert saved_report["snapshot_modified"] is False
+    assert saved_report["paths_relative_to"] == "report_directory"
+    assert saved_report["output_path"] == "qqq_daily_latest.csv"
     with output.open(encoding="utf-8", newline="") as output_file:
         assert next(csv.reader(output_file)) == [
             "Date",

@@ -270,6 +270,18 @@ def test_saved_files_match_and_report_is_strict_json(tmp_path: Path) -> None:
     )
     assert "NaN" not in report_text
     assert report["threshold_source"] == "train_only"
+    assert report["paths_relative_to"] == "report_directory"
+    assert report["input_paths"] == {
+        "train": "train.csv",
+        "validation": "validation.csv",
+        "test": "test.csv",
+    }
+    assert report["output_paths"] == {
+        "train": "train_labeled.csv",
+        "validation": "validation_labeled.csv",
+        "test": "test_labeled.csv",
+        "report": "classification_threshold.json",
+    }
     assert all(
         values["before"] == values["after"] and values["unchanged"]
         for values in report["source_checksums"].values()

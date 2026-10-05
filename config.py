@@ -19,6 +19,9 @@ FEATURE_REPORT_PATH = PROJECT_ROOT / "outputs" / "reports" / "feature_report.jso
 REGRESSION_TARGET_DATA_PATH = (
     PROJECT_ROOT / "data" / "interim" / "qqq_regression_target.csv"
 )
+REGRESSION_TARGET_REPORT_PATH = (
+    PROJECT_ROOT / "outputs" / "reports" / "regression_target_report.json"
+)
 TRAIN_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "train.csv"
 VALIDATION_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "validation.csv"
 TEST_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "test.csv"

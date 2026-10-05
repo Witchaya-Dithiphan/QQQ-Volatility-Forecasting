@@ -20,8 +20,10 @@ from config import (
     CLASSIFICATION_THRESHOLD_REPORT_PATH,
     CLEAN_DATA_PATH,
     FEATURE_DATA_PATH,
+    RAW_DATA_MANIFEST_PATH,
     RAW_DATA_PATH,
     REGRESSION_TARGET_DATA_PATH,
+    REGRESSION_TARGET_REPORT_PATH,
     TEST_DATA_PATH,
     TEST_LABELED_DATA_PATH,
     TRAIN_DATA_PATH,
@@ -31,6 +33,7 @@ from config import (
 )
 from src.build_features import FEATURE_COLUMNS
 from src.load_data import load_qqq_data
+from src.report_paths import report_relative_path
 
 
 TARGET_COLUMN = "target_volatility_5d"
@@ -54,7 +57,12 @@ def _same_path(first: str | Path, second: str | Path) -> bool:
 def _ensure_safe_target_output(path: str | Path) -> Path:
     """Reject destinations that would overwrite any source dataset."""
     output_path = Path(path)
-    for protected_path in (RAW_DATA_PATH, CLEAN_DATA_PATH, FEATURE_DATA_PATH):
+    for protected_path in (
+        RAW_DATA_PATH,
+        RAW_DATA_MANIFEST_PATH,
+        CLEAN_DATA_PATH,
+        FEATURE_DATA_PATH,
+    ):
         if _same_path(output_path, protected_path):
             raise ValueError(f"Refusing to overwrite source data file: {output_path}")
     return output_path
@@ -233,15 +241,104 @@ def _verify_saved_target_data(
         raise ValueError("Saved target data must end with five NaN target values")
 
 
+def _file_sha256(path: str | Path) -> str:
+    """Return the uppercase SHA-256 checksum of one artifact."""
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as source_file:
+        for chunk in iter(lambda: source_file.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest().upper()
+
+
+def _create_regression_target_report(
+    saved: pd.DataFrame,
+    *,
+    input_rows: int,
+    annualization_factor: int,
+    input_path: str | Path,
+    output_path: str | Path,
+    report_path: str | Path,
+    input_checksum_before: str,
+    input_checksum_after: str,
+) -> dict[str, Any]:
+    """Describe the persisted target without fitting a model or threshold."""
+    target = saved[TARGET_COLUMN]
+    valid = target.dropna()
+    boundary_nan_count = min(FORWARD_HORIZON, len(saved))
+    quantiles = {
+        f"p{int(q * 100):02d}": float(valid.quantile(q))
+        for q in (0.05, 0.25, 0.50, 0.75, 0.95)
+    }
+    statistics: dict[str, Any] = {
+        "min": float(valid.min()) if not valid.empty else None,
+        "max": float(valid.max()) if not valid.empty else None,
+        "mean": float(valid.mean()) if not valid.empty else None,
+        "median": float(valid.median()) if not valid.empty else None,
+        "std": float(valid.std(ddof=1)) if len(valid) > 1 else None,
+        "quantiles": quantiles if not valid.empty else {},
+    }
+    return {
+        "target_column": TARGET_COLUMN,
+        "horizon_trading_days": FORWARD_HORIZON,
+        "annualization_factor": annualization_factor,
+        "formula": "sample_std(return_1d at t+1 through t+5, ddof=1) * sqrt(annualization_factor)",
+        "future_returns_description": (
+            "The target at trading row t uses return_1d from t+1 through t+5."
+        ),
+        "unit": "annualized decimal volatility (0.20 = 20%)",
+        "input_rows": input_rows,
+        "output_rows": len(saved),
+        "valid_target_count": int(target.notna().sum()),
+        "target_nan_count": int(target.isna().sum()),
+        "boundary_nan_count": boundary_nan_count,
+        "other_nan_count": int(target.isna().sum()) - boundary_nan_count,
+        "nan_reason": (
+            "The final five trading rows lack a complete t+1 through t+5 "
+            "return window."
+        ),
+        "statistics": statistics,
+        "paths_relative_to": "report_directory",
+        "input_path": report_relative_path(input_path, report_path),
+        "output_path": report_relative_path(output_path, report_path),
+        "report_path": report_relative_path(report_path, report_path),
+        "input_checksum_before": input_checksum_before,
+        "input_checksum_after": input_checksum_after,
+        "source_input_unchanged": input_checksum_before == input_checksum_after,
+        "output_checksum": _file_sha256(output_path),
+    }
+
+
+def save_regression_target_report(
+    report: dict[str, Any],
+    report_path: str | Path = REGRESSION_TARGET_REPORT_PATH,
+) -> None:
+    """Save a strict JSON report without overwriting configured source files."""
+    path = _ensure_safe_target_output(report_path)
+    if _same_path(path, REGRESSION_TARGET_DATA_PATH):
+        raise ValueError(f"Refusing to overwrite regression target data file: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", encoding="utf-8") as report_file:
+        json.dump(report, report_file, ensure_ascii=False, indent=2, allow_nan=False)
+        report_file.write("\n")
+
+
 def run_regression_target_pipeline(
     input_path: str | Path = FEATURE_DATA_PATH,
     output_path: str | Path = REGRESSION_TARGET_DATA_PATH,
     annualization_factor: int = DEFAULT_ANNUALIZATION_FACTOR,
+    report_path: str | Path = REGRESSION_TARGET_REPORT_PATH,
 ) -> pd.DataFrame:
-    """Load feature CSV data, add the regression target, save, and verify it."""
+    """Save and verify regression target data, then report its provenance."""
     if _same_path(input_path, output_path):
         raise ValueError("Input and output paths must refer to different files")
+    if _same_path(input_path, report_path) or _same_path(output_path, report_path):
+        raise ValueError("Regression report path must differ from input and output")
     _ensure_safe_target_output(output_path)
+    _ensure_safe_target_output(report_path)
+    if _same_path(report_path, REGRESSION_TARGET_DATA_PATH):
+        raise ValueError("Regression report must not overwrite target data")
+
+    input_checksum_before = _file_sha256(input_path)
 
     feature_df = load_qqq_data(input_path)
     try:
@@ -255,6 +352,21 @@ def run_regression_target_pipeline(
     result = add_regression_target(feature_df, annualization_factor)
     save_regression_target_data(result, output_path)
     _verify_saved_target_data(result, output_path)
+    input_checksum_after = _file_sha256(input_path)
+    if input_checksum_after != input_checksum_before:
+        raise RuntimeError("Feature input checksum changed during target pipeline")
+    saved = pd.read_csv(output_path)
+    report = _create_regression_target_report(
+        saved,
+        input_rows=len(feature_df),
+        annualization_factor=annualization_factor,
+        input_path=input_path,
+        output_path=output_path,
+        report_path=report_path,
+        input_checksum_before=input_checksum_before,
+        input_checksum_after=input_checksum_after,
+    )
+    save_regression_target_report(report, report_path)
     return result
 
 
@@ -365,11 +477,7 @@ def add_classification_target(
 
 def _classification_sha256(path: str | Path) -> str:
     """Return the uppercase SHA-256 checksum of a classification source file."""
-    digest = hashlib.sha256()
-    with Path(path).open("rb") as source_file:
-        for chunk in iter(lambda: source_file.read(1024 * 1024), b""):
-            digest.update(chunk)
-    return digest.hexdigest().upper()
+    return _file_sha256(path)
 
 
 def _load_classification_split(path: str | Path, split_name: str) -> pd.DataFrame:
@@ -523,15 +631,20 @@ def run_classification_target_pipeline(
         "validation": _classification_stats(validation_labeled),
         "test": _classification_stats(test_labeled),
         "input_paths": {
-            name: str(Path(path))
+            name: report_relative_path(path, threshold_report_path)
             for name, path in zip(split_names, source_paths, strict=True)
         },
         "output_paths": {
-            "train": str(Path(train_output_path)),
-            "validation": str(Path(validation_output_path)),
-            "test": str(Path(test_output_path)),
-            "report": str(Path(threshold_report_path)),
+            "train": report_relative_path(train_output_path, threshold_report_path),
+            "validation": report_relative_path(
+                validation_output_path, threshold_report_path
+            ),
+            "test": report_relative_path(test_output_path, threshold_report_path),
+            "report": report_relative_path(
+                threshold_report_path, threshold_report_path
+            ),
         },
+        "paths_relative_to": "report_directory",
         "source_checksums": checksum_report,
     }
     report_path = Path(threshold_report_path)
