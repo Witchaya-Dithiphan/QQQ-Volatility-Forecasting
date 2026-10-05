@@ -5,6 +5,13 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "qqq_daily.csv"
+RAW_DATA_MANIFEST_PATH = (
+    PROJECT_ROOT / "data" / "manifests" / "qqq_daily_snapshot.json"
+)
+LATEST_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "qqq_daily_latest.csv"
+RAW_DATA_DOWNLOAD_REPORT_PATH = (
+    PROJECT_ROOT / "outputs" / "reports" / "qqq_download_report.json"
+)
 CLEAN_DATA_PATH = PROJECT_ROOT / "data" / "interim" / "qqq_clean.csv"
 CLEANING_REPORT_PATH = PROJECT_ROOT / "outputs" / "reports" / "cleaning_report.json"
 FEATURE_DATA_PATH = PROJECT_ROOT / "data" / "interim" / "qqq_features.csv"

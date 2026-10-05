@@ -1,0 +1,31 @@
+{
+  "manifest_version": 1,
+  "source": "Nasdaq QQQ Historical Data",
+  "source_page": "https://www.nasdaq.com/market-activity/etf/qqq/historical",
+  "symbol": "QQQ",
+  "purpose": "Immutable historical snapshot used by the committed notebooks and reports",
+  "dataset": {
+    "path": "data/raw/qqq_daily.csv",
+    "date_min": "2016-08-31",
+    "date_max": "2026-08-28",
+    "row_count": 2512,
+    "columns": ["Date", "Close", "Volume", "Open", "High", "Low"],
+    "duplicate_dates": 0,
+    "missing_ohlcv": 0,
+    "byte_length": 124154,
+    "sha256": "649e1db1b79c0990ea947a4ea162d6836b9bbdda2af24bc5ab6ae66cb83b6b13"
+  },
+  "provenance": {
+    "retrieved_at": null,
+    "retrieved_at_note": "The exact original retrieval timestamp is not recorded in the repository.",
+    "archive_entry_modified_at": "2026-08-31T04:34:02+07:00",
+    "archive_name": "QQQ-forcasting.zip",
+    "archive_sha256": "b95a4c8222632b80c579ca45366851b9b2c10e0f9fc1e5a805605b137f4ac6a1",
+    "verified_on": "2026-10-05"
+  },
+  "notes": [
+    "Nasdaq is a rolling historical source, so the live API may not reproduce this date range in the future.",
+    "Do not combine a current rolling download with older rows and describe the result as this snapshot.",
+    "The committed notebook output shows the same SHA-256 prefix, 649E1DB1."
+  ]
+}
