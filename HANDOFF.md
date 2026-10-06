@@ -34,7 +34,7 @@ Historical volatility features เช่น `historical_volatility_5d` และ
 - **ข้อมูลพร้อม แต่โค้ดโมเดลยังไม่มี:** Original/With-Spike Train,
   Validation และ Test พร้อมเป็น tabular inputs แต่ `src/models/` ยังไม่มี model
   implementation
-- **วางแผนไว้:** M7 runner, paired model training, evaluation, forecast และ persisted
+- **วางแผนไว้:** paired model training, evaluation, forecast และ persisted
   model/metric artifacts
 
 คำว่า **With-Spike** ในเอกสารนี้หมายถึง Original Train ที่ยังเก็บ extreme events
@@ -56,9 +56,9 @@ model training หรือผลเปรียบเทียบ
 | Chronological split 70/15/15 + gaps | **Implemented / Verified** | `src/split_data.py`, `outputs/reports/data_split_report.json` |
 | Train-only Q75 classification labels | **Implemented / Verified** | `src/build_targets.py`, `outputs/reports/classification_threshold.json` |
 | End-to-end data runner | **Implemented / Verified** | `src/run_data_pipeline.py`; isolated run รอบนี้สำเร็จและสร้าง 14 artifacts |
-| Tests | **Implemented / Verified** | `tests/`; รอบนี้ `317 passed, 1 skipped`; M1/M5 file 49 tests และ M5 module coverage 91% |
+| Tests | **Implemented / Verified** | `tests/`; รอบนี้ `334 passed, 2 skipped`; M7 runner tests 11 passed, 1 symlink test skipped และ coverage 96% |
 | Regression/Classification models | **Planned** | `src/models/regression.py` และ `classification.py` มีเพียง module docstring |
-| Spike/Non-Spike pipeline | **Partially implemented** | M1–M6 verified รวม event audit, experiment CSVs, reports และ primary figures; M7 ยังไม่เสร็จ |
+| Spike/Non-Spike pipeline | **Implemented / Verified through M7** | event audit, experiment CSVs, reports, primary figures และ separate runner พร้อม |
 | Model results/figures | **Not recorded** | มี M4/M6 spike-analysis figures แล้ว แต่ยังไม่มี model/metric artifacts |
 
 **Phase 1 - Baseline Data Preparation:** implementation ใช้งานได้และผ่าน isolated
@@ -67,7 +67,7 @@ validation รอบนี้ อย่างไรก็ตาม generated rep
 `classification_threshold.json` ยังเก็บ absolute paths แม้ runner ปัจจุบันสร้าง
 report-relative paths ได้แล้ว
 
-**Phase 2 - Spike Analysis/Experiment Dataset Preparation:** **M1–M5 verified / M6–M7 planned** มี input contract, detector, affected mask, direct-spike audit, With-Spike/Non-Spike Train และ diagnostic Validation/Test copies แล้ว แต่ยังไม่มี complete Phase 2 reports/runner ห้ามถือว่า Phase 2 หรือ model training เสร็จ ดูหลักฐานที่ `PHASE2_SPIKE_READINESS.md`
+**Phase 2 - Spike Analysis/Experiment Dataset Preparation:** **M1–M7 verified** มี input contract, detector, affected mask, direct-spike audit, With-Spike/Non-Spike Train, diagnostic Validation/Test copies, reports, figures และ separate runner แล้ว แต่ยังไม่มี model training/evaluation ดูหลักฐานที่ `PHASE2_SPIKE_READINESS.md`
 
 ## 3. แผนผังโครงสร้างไฟล์
 
@@ -464,7 +464,8 @@ directories สำหรับ figures/models/metrics
 - `.venv/Scripts/python.exe -m pip check` - `No broken requirements found.`
 - `.venv/Scripts/python.exe -m src.audit_spikes --output-root <isolated-temp-root>` - สำเร็จ; 23 events trace ครบ, ไม่มี finding
 - `.venv/Scripts/python.exe -m src.build_experiment_datasets --output-root <isolated-temp-root>` - สำเร็จ; สร้าง 4 CSV โดยไม่แก้ protected inputs
+- `.venv/Scripts/python.exe -m src.run_spike_analysis --output-root tmp/phase2-m7-validation-20261007` - สำเร็จ; สร้าง 11 declared Phase 2 artifacts โดยอ่าน baseline จาก project root
 - `.venv/Scripts/python.exe -m pytest -q` - ดูผลล่าสุดใน `PHASE2_SPIKE_READINESS.md`
 
-สถานะปลายทาง: Phase 1 และ Phase 2 M1–M5 **Implemented / Verified**; M6/M7,
+สถานะปลายทาง: Phase 1 และ Phase 2 M1–M7 **Implemented / Verified**;
 model train/evaluate และ forecast ยังเป็น **Planned**

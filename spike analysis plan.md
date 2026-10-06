@@ -403,25 +403,26 @@
 
 **Checklist:**
 
-- [ ] สร้าง `SpikePipelinePaths` หรือโครง path contractเทียบเท่า
-- [ ] รองรับ default project paths
-- [ ] รองรับ isolated `--output-root`
-- [ ] อ่าน labeled splits เป็น protected inputs
-- [ ] ตรวจ baseline contract ก่อน write ใด ๆ
-- [ ] ตรวจ input checksums ก่อน run
-- [ ] Preflight generated output paths
-- [ ] ป้องกัน path alias กับทุก protected baseline artifact
-- [ ] ป้องกัน duplicate output destinations
-- [ ] ป้องกัน output หลุดจาก allowed roots
-- [ ] ไม่ overwrite โดย default
-- [ ] รองรับ `--overwrite-generated` เฉพาะ declared Phase 2 outputs
-- [ ] ปฏิเสธ symlink/hard-link overwrite
-- [ ] เรียก detector → mask → audit → datasets → reports → figures ตามลำดับ
-- [ ] ตรวจ protected checksums ซ้ำเมื่อสำเร็จและเมื่อ stage ล้มเหลว
-- [ ] ระบุ stage ใน error message
-- [ ] แจ้งว่า partial generated outputs อาจเหลือหาก stage ล้มเหลว
-- [ ] พิมพ์ summary paths/counts/checksums
-- [ ] ห้ามเรียก model training
+- [x] สร้าง `SpikePipelinePaths` หรือโครง path contractเทียบเท่า
+- [x] รองรับ default project paths
+- [x] รองรับ isolated `--output-root` โดยไม่ remap inputs
+- [x] รองรับ `--input-root` แยกเมื่อต้องการเปลี่ยน accepted baseline
+- [x] อ่าน labeled splits เป็น protected inputs
+- [x] ตรวจ baseline contract ก่อน write ใด ๆ
+- [x] ตรวจ input checksums ก่อน run
+- [x] Preflight generated output paths
+- [x] ป้องกัน path alias กับทุก protected baseline artifact
+- [x] ป้องกัน duplicate output destinations
+- [x] ป้องกัน output หลุดจาก allowed roots
+- [x] ไม่ overwrite โดย default
+- [x] รองรับ `--overwrite-generated` เฉพาะ declared Phase 2 outputs
+- [x] ปฏิเสธ symlink/hard-link overwrite
+- [x] เรียก M1 → M4 → M5 → M6 ตามลำดับ โดย M2/M3 เป็น canonical APIs ที่ stages เหล่านี้ reuse
+- [x] ตรวจ protected checksums ซ้ำเมื่อสำเร็จและเมื่อ stage ล้มเหลว
+- [x] ระบุ stage ใน error message
+- [x] แจ้งว่า partial generated outputs อาจเหลือหาก stage ล้มเหลว
+- [x] พิมพ์ summary paths/counts/checksums
+- [x] ห้ามเรียก Phase 1 rebuild, network download หรือ model training
 
 **Artifacts:**
 
@@ -431,22 +432,23 @@
 
 **Tests:**
 
-- [ ] End-to-end run ใต้ temporary output root
-- [ ] Default no-overwrite behavior
-- [ ] Explicit overwrite จำกัดเฉพาะ Phase 2 outputs
-- [ ] Protected-input alias tests
-- [ ] Duplicate-output tests
-- [ ] Symlink/hard-link safety testsตาม platform capability
-- [ ] Failure-stage reporting
-- [ ] Source checksum verification หลัง failure
-- [ ] Offline execution test
-- [ ] Deterministic rerun test
+- [x] End-to-end run ใต้ temporary output root
+- [x] Default no-overwrite behavior
+- [x] Explicit overwrite จำกัดเฉพาะ Phase 2 outputs
+- [x] Protected-input alias tests
+- [x] Duplicate-output tests
+- [x] Symlink/hard-link safety testsตาม platform capability
+- [x] Failure-stage reporting
+- [x] Source checksum verification หลัง failure
+- [x] Offline execution test
+- [x] Deterministic rerun test
+- [x] `--input-root` และ `--output-root` ไม่ remap กันโดยปริยาย
 
 **Definition of Done:**
 
-- [ ] Phase 2 reproduce ได้ด้วย documented command เดียว
-- [ ] Runner ไม่แก้หรือ rebuild Phase 1 inputs
-- [ ] Integration tests ผ่าน
+- [x] Phase 2 reproduce ได้ด้วย documented command เดียว
+- [x] Runner ไม่แก้หรือ rebuild Phase 1 inputs
+- [x] Integration tests ผ่าน
 
 ## M8. Verification และ Documentation Gate
 

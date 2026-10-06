@@ -107,7 +107,21 @@ python -m src.build_experiment_datasets --output-root tmp/phase2-m5-datasets
 
 ผล pinned M5 คือ With-Spike 1,733 แถวและ byte-identical กับ Original Train, Non-Spike 1,520 แถว (class 0/1 = 1,240/280), Validation diagnostics 371 Full/0 affected และ Test diagnostics 373 Full/54 affected Full Validation/Test สำหรับ model evaluation ยังคงเป็น Original labeled splits ไม่ใช่ flagged copies
 
-M6 implement แล้วใน `src/build_spike_reports.py`: validate/aggregate ผล M1–M5, reuse `spike_analysis.json` และ `daily_return_spikes.png` จาก M4 แบบ read-only และสร้าง `experiment_dataset_report.json`, `volatility_spike_effect.png`, `dataset_comparison.png` โดยไม่เขียนสูตร detector/window/filtering ซ้ำ รองรับ isolated `--output-root` และ default ไม่ overwrite generated M6 artifacts ปัจจุบันยังไม่มี complete Phase 2 runner หรือ model training
+M6 implement แล้วใน `src/build_spike_reports.py`: validate/aggregate ผล M1–M5, reuse `spike_analysis.json` และ `daily_return_spikes.png` จาก M4 แบบ read-only และสร้าง `experiment_dataset_report.json`, `volatility_spike_effect.png`, `dataset_comparison.png` โดยไม่เขียนสูตร detector/window/filtering ซ้ำ รองรับ isolated `--output-root` และ default ไม่ overwrite generated M6 artifacts
+
+M7 runner implement แล้วใน `src/run_spike_analysis.py` สำหรับ reproduce M1–M6 แบบ offline ด้วยคำสั่งเดียว โดยไม่ rebuild Phase 1 และไม่ train model คำสั่งแนะนำจาก project root คือ:
+
+```powershell
+python -m src.run_spike_analysis --output-root tmp/phase2-run
+```
+
+`--output-root` เปลี่ยนเฉพาะ generated Phase 2 destinations ใต้ `data/processed/experiments`, `outputs/reports` และ `outputs/figures/spike_analysis`; baseline inputs ยังคงอ่านจาก project root หากต้องการใช้ baseline tree อื่นต้องระบุ `--input-root` แยกอย่างชัดเจน:
+
+```powershell
+python -m src.run_spike_analysis --input-root path/to/accepted-baseline --output-root tmp/phase2-run
+```
+
+Prerequisites คือ Phase 1 Snapshot/Manifest, interim data, labeled splits, split/classification reports และ accepted Phase 1 reproduction ที่ผ่าน M1 แล้ว Default จะ fail ก่อนเริ่ม stage หาก declared output ใดมีอยู่; `--overwrite-generated` เขียนทับได้เฉพาะ 11 artifacts ที่ประกาศไว้และไม่แตะไฟล์อื่นใน output root Full Validation/Test สำหรับ evaluation ยังคงเป็น Original labeled splits ส่วน flagged copies ใช้ diagnostics เท่านั้น
 
 ## Original Course Requirements
 
@@ -344,9 +358,9 @@ metric ผลหลักต้องรายงาน metrics ครบ ไม
 
 With-Spike ใช้ Original Train ส่วน Non-Spike ตัดเฉพาะ Train modeling rows ที่
 `is_spike_affected == True` หลังสร้าง features/targets แล้ว โดยไม่เปลี่ยน Original
-Validation/Test หรือ classification Q75 ปัจจุบัน M1–M5 และ experiment datasets
-implement/verify แล้ว แต่ M6 reports, complete Phase 2 runner, models, metrics และ
-search protocol ยังเป็น `Planned` จึงยังอ้างว่า workflow ทั้งชุดหรือผลโมเดลเสร็จไม่ได้
+Validation/Test หรือ classification Q75 ปัจจุบัน M1–M7, experiment datasets,
+reports, figures และ separate Phase 2 runner implement/verify แล้ว แต่ models,
+metrics และ search protocol ยังเป็น `Planned` จึงยังอ้างว่าผลโมเดลเสร็จไม่ได้
 
 ## Model Selection Risks and Open Questions
 

@@ -7,7 +7,7 @@ import os
 import sys
 import tempfile
 from collections.abc import Mapping, Sequence
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any, Final
 
@@ -326,7 +326,12 @@ def run_spike_report_pipeline(
         name: load_labeled_split(path, name)
         for name, path in paths.labeled_inputs().items()
     }
-    m5_paths = ExperimentDatasetPaths.defaults()
+    m5_paths = replace(
+        ExperimentDatasetPaths.defaults(),
+        train_labeled=paths.train_labeled,
+        validation_labeled=paths.validation_labeled,
+        test_labeled=paths.test_labeled,
+    )
     _validate_m1_contract(frames, m5_paths, contract)
     for name in (
         "train_labeled",

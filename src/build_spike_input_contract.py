@@ -147,6 +147,7 @@ class SpikeInputContractPaths:
     classification_report: Path
     reproduced_root: Path
     output_report: Path
+    experiment_root: Path = SPIKE_EXPERIMENT_ROOT
 
     @classmethod
     def defaults(cls, reproduced_root: str | Path) -> SpikeInputContractPaths:
@@ -796,7 +797,7 @@ def run_spike_input_contract_pipeline(
         "contract_version": CONTRACT_VERSION,
         "paths_relative_to": "report_directory",
         "experiment_root": report_relative_path(
-            SPIKE_EXPERIMENT_ROOT, paths.output_report
+            paths.experiment_root, paths.output_report
         ),
         "frozen_rules": {
             "detection_variable": "abs(return_1d)",
