@@ -2,11 +2,11 @@
 
 > ตรวจสอบล่าสุด: 2026-10-06
 >
-> ขอบเขต M1: อ่าน baseline inputs และ saved reports โดยไม่แก้ไข; เขียนเฉพาะ generated `outputs/reports/spike_input_contract.json` รวมถึง source/tests/docs ของ M1
+> ขอบเขตล่าสุด: M1 อ่าน baseline inputs และเขียนเฉพาะ generated contract; M2 เป็น pure in-memory detector ไม่มี filesystem side effect
 >
 > ฐานของการสำรวจเดิมก่อน Phase 1: branch `main`, commit `115a054`; tracked working tree สะอาด
 >
-> ผลทดสอบล่าสุดหลังทำ M1: `245 passed, 1 skipped` จาก `.venv\Scripts\python.exe -m pytest -q -rs` (symlink case ข้ามบน Windows ที่ไม่มีสิทธิ์สร้าง symlink)
+> ผลทดสอบล่าสุดหลังทำ M2: `279 passed, 1 skipped` จาก `.venv\Scripts\python.exe -m pytest -q -rs` (symlink case ข้ามบน Windows ที่ไม่มีสิทธิ์สร้าง symlink)
 
 ## 1. ภาพรวมโปรเจกต์
 
@@ -24,7 +24,7 @@ Data Preparation เดิมทำเสร็จถึงขั้นสร้
 - **With-Spike Case:** ใช้ Original Train ทั้งหมด เป็น baseline experiment
 - **Non-Spike Case:** ตัดเฉพาะ modeling rows ใน Train ที่ `is_spike_affected == True` ออก เพื่อวัด sensitivity ต่อ extreme daily-return events
 
-Requirement นี้เพิ่มภายหลัง Data Preparation เดิม ปัจจุบัน M1 Baseline Input Contract และ frozen pure rule primitives พร้อม synthetic tests แล้ว แต่ยังไม่มี experiment datasets, direct spike audit, Phase 2 experiment runner/reports/figures หรือ model artifacts จึง **ยังไม่ถือว่าเสร็จ**
+Requirement นี้เพิ่มภายหลัง Data Preparation เดิม ปัจจุบัน M1 Baseline Input Contract และ M2 pure primary detector พร้อม tests แล้ว แต่ยังไม่มี experiment datasets, market-event/data-quality audit, Phase 2 experiment runner/reports/figures หรือ model artifacts จึง **ยังไม่ถือว่าเสร็จ**
 
 Historical snapshot สำหรับผลปัจจุบันคือ `data/raw/qqq_daily.csv` จำนวน 2,512 แถว ช่วง 2016-08-31 ถึง 2026-08-28 และ SHA-256 `649e1db1b79c0990ea947a4ea162d6836b9bbdda2af24bc5ab6ae66cb83b6b13` ตรงกับ `data/manifests/qqq_daily_snapshot.json`
 
@@ -40,15 +40,15 @@ Historical snapshot สำหรับผลปัจจุบันคือ `d
 | Chronological split พร้อม purging gap | ✅ เสร็จแล้ว | `src/split_data.py`, `tests/test_split_data.py` | 70/15/15 และ gap 5 แถวสองช่วง |
 | Classification target จาก Original Train Q75 | ✅ เสร็จแล้ว | `src/build_targets.py`, `outputs/reports/classification_threshold.json` | strict `>`; threshold `0.2530580184684854` |
 | Data Preparation notebooks | ✅ เสร็จแล้ว | `notebooks/01_data_cleaning.ipynb`, `notebooks/02_eda_and_features.ipynb` | มี saved cell outputs; working directory ปัจจุบันไม่มี exported PNG ใต้ `outputs/figures/` |
-| Spike analysis | 🟡 ทำบางส่วน | `src/build_spike_input_contract.py`, `src/spike_contract.py`, tests, `PHASE2_SPIKE_READINESS.md` และ Notebook 02 | M1 input contract และ rule/boundary primitives พร้อมแล้ว; ยังไม่มี experiment datasets หรือ saved spike figures |
-| Train-only spike threshold | 🟡 Contract only | Pure fit/apply API และ synthetic tests | ยังไม่มี Phase 2 detector runner/report; ตัวเลข audit ไม่ถูก hard-code |
+| Spike analysis | 🟡 ทำบางส่วน | `src/build_spike_input_contract.py`, `src/detect_spikes.py`, `src/spike_contract.py`, tests และ `PHASE2_SPIKE_READINESS.md` | M1/M2 พร้อมแล้ว; ยังไม่มี experiment datasets หรือ saved spike figures |
+| Train-only spike threshold | ✅ Pure detector verified | `src/detect_spikes.py`, `tests/test_spike_detection.py` | Q1/Q3/IQR/threshold derive จาก Original Train; ยังไม่มี saved spike-analysis report |
 | With-Spike experiment dataset | ⬜ ยังไม่พบว่าดำเนินการ | Original split มีอยู่ แต่ยังไม่มี experiment copy/manifest | ต้องสร้าง artifact แยกและยืนยัน checksum |
 | Non-Spike experiment dataset | ⬜ ยังไม่พบว่าดำเนินการ | ไม่มี affected mask หรือ filtered artifact | ห้ามแก้ Original Train |
 | Full/Non-Spike/Spike-Affected evaluation | ⬜ ยังไม่พบว่าดำเนินการ | ไม่มี diagnostic segment artifacts/metrics | Full Test ต้องเป็นผลหลัก |
 | Paired model comparison | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/*.py` ยังมีเพียง module docstring | ต้องควบคุม protocol ให้เหมือนกันทั้งสอง cases |
 | Regression model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/regression.py`, `notebooks/03_regression.ipynb` | Notebook มี 0 cells |
 | Classification model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/classification.py`, `notebooks/04_classification.ipynb` | Notebook มี 0 cells |
-| Automated tests | ✅ Baseline + contract verified | `tests/`, `pytest.ini` | 245 tests ผ่าน, 1 symlink test ข้ามบน Windows; รวม spike-boundary 14 tests และ M1 input-contract 39 tests |
+| Automated tests | ✅ Baseline + contracts verified | `tests/`, `pytest.ini` | 279 tests ผ่าน, 1 symlink test ข้ามบน Windows; M2 detector 33 tests, boundary/audit 15 tests และ M1 39 tests |
 | Project runbook/data provenance | 🟡 ทำบางส่วน | `README.md`, `PHASE2_SPIKE_READINESS.md`, Manifest, config และ runners | M1 contract และ isolated reproduction verified; Phase 2 experiment runner ยังไม่เริ่ม |
 
 ## 3. Data Pipeline
@@ -281,7 +281,7 @@ outputs/figures/spike_analysis/dataset_comparison.png
 | 3 | คำนวณ threshold จาก Train | `src/detect_spikes.py` | Original Train | Threshold metadata | Task 2 | ได้ Q1/Q3/IQR/threshold จาก Train เท่านั้นและไม่ hard-code |
 | 4 | สร้าง Direct Spike report | `outputs/reports/spike_analysis.json` | Threshold + Original Train | Count, dates, formulas, checksum | Task 3 | Strict JSON ตรงกับ detector และ rerun เหมือนเดิม |
 | 5 | ตรวจ spike dates กับ OHLCV/source | report/notebook ที่กำหนดภายหลัง | Spike dates + Clean/Raw OHLCV | Audited event table/notes | Task 4 | ทุก date trace กลับ source ได้; แยก market event ออกจาก data error |
-| 6 | สร้าง spike-affected mask | `src/detect_spikes.py`, tests | Direct flags + horizon/lookback config | `is_spike_affected` | Tasks 3–4 | ครอบคลุม `s-5:s+19`, clip ขอบ และผ่าน boundary tests |
+| 6 | สร้าง spike-affected mask | `src/spike_contract.py`, `tests/test_spike_contract.py` | Direct flags + horizon/lookback config | `is_spike_affected` | Tasks 3–4 | ครอบคลุม `s-5:s+19`, clip ขอบ และผ่าน boundary tests |
 | 7 | สร้าง With-Spike/Non-Spike Train | `src/build_experiment_datasets.py`, experiment CSV paths | Original Train + affected mask | แยก Train สอง cases | Task 6 | Original Train/checksum ไม่เปลี่ยน; kept values ตรง baseline |
 | 8 | สร้าง Validation/Test diagnostic flags | `src/build_experiment_datasets.py` | Original Val/Test + Train threshold | Full/non-spike/affected flags | Tasks 3, 6 | ใช้ threshold เดียวจาก Train และไม่เขียนทับ main splits |
 | 9 | ตรวจ class distribution | `outputs/reports/experiment_dataset_report.json` | Labeled splits + experiment masks | Before/after counts/ratios | Tasks 7–8 | รายงานทุก split/case และประเมิน imbalance ก่อนเลือก strategy |
@@ -334,9 +334,9 @@ Spike-specific test checklist สำหรับ Task 10:
 ## 10. ลำดับงานรอบถัดไป
 
 1. Freeze baseline input checksums, schema, rows, dates และ split boundaries ใน experiment contract
-2. Implement pure Extreme-IQR detector พร้อม Train-only/equality/leakage tests
-3. สร้าง `spike_analysis.json` และตรวจ 19 spike dates กับ Raw/Clean OHLCV
-4. Implement/test affected mask `s-5` ถึง `s+19`
+2. ใช้ pure Extreme-IQR detector ขั้น M2 ที่ผ่าน Train-only/equality/leakage tests แล้ว
+3. Implement/test affected mask integration ขั้น M3 สำหรับ `s-5` ถึง `s+19`
+4. สร้าง `spike_analysis.json` และตรวจ 19 spike dates กับ Raw/Clean OHLCV
 5. สร้าง experiment Train artifacts แยก path โดยไม่แก้ Original Train
 6. Flag Original Validation/Test ด้วย Train threshold และสร้าง diagnostic segment definitions
 7. สร้าง `experiment_dataset_report.json` พร้อม class distributions/checksums
@@ -389,4 +389,4 @@ Spike-specific test checklist สำหรับ Task 10:
 6. MAPE เหมาะกับ `target_volatility_5d` หรือควรงดเพราะค่าต่ำอาจทำให้ metric บิดเบือน
 7. จะ regenerate exported data-preparation PNG ที่หายจาก working directory ปัจจุบันในขั้นใด
 
-สถานะสรุป: Baseline Data Preparation และ snapshot reproducibility พร้อมใช้งานและ tests ผ่าน ส่วน Spike rule/boundary contract ตรวจแล้วแต่ experiment artifacts และ runner ยังเป็น **Planned** ต้องทำ Phase 2 ที่เหลือให้ครบก่อนเริ่ม Regression/Classification model training
+สถานะสรุป: Baseline Data Preparation, snapshot reproducibility, M1 input contract และ M2 direct detector พร้อมใช้งานและ tests ผ่าน ส่วน experiment artifacts และ runner ยังเป็น **Planned** ต้องทำ Phase 2 ที่เหลือให้ครบก่อนเริ่ม Regression/Classification model training

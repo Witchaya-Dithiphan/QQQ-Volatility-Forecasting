@@ -1,8 +1,16 @@
-"""Synthetic contract tests for Phase 2 spike and boundary policies."""
+"""Synthetic and read-only audit tests for Phase 2 affected-window policies."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+from pathlib import Path
 
 import pandas as pd
 import pytest
 
+from config import SPIKE_INPUT_CONTRACT_REPORT_PATH, TRAIN_LABELED_DATA_PATH
+from src.detect_spikes import apply_spike_detector, fit_primary_spike_detector
 from src.spike_contract import (
     affected_windows,
     build_affected_mask,
@@ -10,6 +18,10 @@ from src.spike_contract import (
     fit_extreme_iqr_threshold,
     flag_direct_spikes,
 )
+
+
+def _sha256(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest().upper()
 
 
 def _direct_mask(length: int, *spike_positions: int) -> pd.Series:
@@ -75,16 +87,53 @@ def test_every_direct_spike_is_affected() -> None:
     assert affected.loc[direct].all()
 
 
+def test_primary_train_audit_has_213_affected_rows_and_contains_all_spikes() -> None:
+    if not TRAIN_LABELED_DATA_PATH.is_file():
+        pytest.skip("Ignored production Train CSV is unavailable")
+    if not SPIKE_INPUT_CONTRACT_REPORT_PATH.is_file():
+        pytest.skip("Generated M1 input contract is unavailable")
+
+    contract = json.loads(SPIKE_INPUT_CONTRACT_REPORT_PATH.read_text(encoding="utf-8"))
+    expected_hash = contract["inputs"]["train"]["sha256"]
+    assert _sha256(TRAIN_LABELED_DATA_PATH) == expected_hash
+    train = pd.read_csv(TRAIN_LABELED_DATA_PATH)
+
+    fitted = fit_primary_spike_detector(train)
+    direct = apply_spike_detector(train, fitted)
+    affected = build_affected_mask(direct)
+
+    assert int(affected.sum()) == 213
+    assert affected.loc[direct].all()
+
+
 def test_split_masks_do_not_propagate_across_gaps_or_boundaries() -> None:
+    train = pd.Series(
+        False,
+        index=pd.date_range("2024-01-01", periods=10, freq="B"),
+        dtype=bool,
+    )
+    train.iloc[-1] = True
+    validation = pd.Series(
+        False,
+        index=pd.date_range("2024-03-01", periods=10, freq="B"),
+        dtype=bool,
+    )
+    test = pd.Series(
+        False,
+        index=pd.date_range("2024-06-03", periods=10, freq="B"),
+        dtype=bool,
+    )
     direct_by_split = {
-        "train": _direct_mask(10, 9),
-        "validation": _direct_mask(10),
-        "test": _direct_mask(10),
+        "train": train,
+        "validation": validation,
+        "test": test,
     }
     masks = build_split_affected_masks(direct_by_split)
     assert int(masks["train"].sum()) == 6
     assert not masks["validation"].any()
     assert not masks["test"].any()
+    pd.testing.assert_index_equal(masks["validation"].index, validation.index)
+    pd.testing.assert_index_equal(masks["test"].index, test.index)
 
 
 def test_original_positions_are_used_before_filtering() -> None:

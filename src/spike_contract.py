@@ -1,40 +1,39 @@
-"""Pure Phase 2 spike-rule primitives shared by tests and future pipelines.
+"""Pure Phase 2 affected-window primitives and detector compatibility exports.
 
-This module freezes the primary rule mechanics without creating experiment
-datasets or writing artifacts. Thresholds remain fitted from caller-supplied
-Original Train returns and must never be hard-coded from an audit result.
+Affected-window and split-clipping logic lives only in this module. Direct
+detector calculation lives in :mod:`src.detect_spikes`; its established Series
+APIs are re-exported here so existing callers do not duplicate or break logic.
 """
 
 from __future__ import annotations
 
 from collections.abc import Mapping
 from dataclasses import dataclass
-from numbers import Real
 
 import numpy as np
 import pandas as pd
 from numpy.typing import NDArray
-from pandas.api.types import is_bool_dtype, is_numeric_dtype
+from pandas.api.types import is_bool_dtype
 
 from config import (
-    PRIMARY_SPIKE_IQR_MULTIPLIER,
     SPIKE_FEATURE_FORWARD_REACH,
     SPIKE_TARGET_BACKWARD_REACH,
 )
+from src.detect_spikes import (
+    ExtremeIQRThreshold,
+    fit_extreme_iqr_threshold,
+    flag_direct_spikes,
+)
 
-
-@dataclass(frozen=True, slots=True)
-class ExtremeIQRThreshold:
-    """Train-fitted metadata for one strict Extreme-IQR threshold."""
-
-    q1: float
-    q3: float
-    iqr: float
-    multiplier: float
-    threshold: float
-    quantile_method: str = "linear"
-    comparison_rule: str = "abs(return_1d) > threshold"
-    source_split: str = "original_train"
+__all__ = [
+    "AffectedWindow",
+    "ExtremeIQRThreshold",
+    "affected_windows",
+    "build_affected_mask",
+    "build_split_affected_masks",
+    "fit_extreme_iqr_threshold",
+    "flag_direct_spikes",
+]
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,72 +47,6 @@ class AffectedWindow:
     clipped_end: int
     left_clipped: bool
     right_clipped: bool
-
-
-def _finite_numeric_series(values: pd.Series, *, name: str) -> pd.Series:
-    """Return a float copy after validating one non-empty numeric Series."""
-    if not isinstance(values, pd.Series):
-        raise TypeError(f"{name} must be a pandas Series")
-    if values.empty:
-        raise ValueError(f"{name} must not be empty")
-    if not is_numeric_dtype(values):
-        raise ValueError(f"{name} must have a numeric dtype")
-    numeric = values.astype(float).copy()
-    if not np.isfinite(numeric.to_numpy()).all():
-        raise ValueError(f"{name} must contain only finite values")
-    return numeric
-
-
-def fit_extreme_iqr_threshold(
-    original_train_returns: pd.Series,
-    *,
-    multiplier: float = PRIMARY_SPIKE_IQR_MULTIPLIER,
-) -> ExtremeIQRThreshold:
-    """Fit the frozen Extreme-IQR rule from Original Train returns only.
-
-    Args:
-        original_train_returns: ``return_1d`` from the complete Original Train
-            split, before any spike-affected rows are filtered.
-        multiplier: Positive IQR multiplier. Phase 2 primary analysis uses 3.0.
-
-    Returns:
-        Immutable fitted threshold metadata.
-
-    Raises:
-        TypeError: If the returns are not a Series.
-        ValueError: If returns or the multiplier violate the contract.
-    """
-    if (
-        isinstance(multiplier, bool)
-        or not isinstance(multiplier, Real)
-        or not np.isfinite(multiplier)
-        or multiplier <= 0
-    ):
-        raise ValueError("multiplier must be a finite positive number")
-
-    abs_return = _finite_numeric_series(
-        original_train_returns, name="original_train_returns"
-    ).abs()
-    q1 = float(abs_return.quantile(0.25, interpolation="linear"))
-    q3 = float(abs_return.quantile(0.75, interpolation="linear"))
-    iqr = q3 - q1
-    threshold = q3 + float(multiplier) * iqr
-    return ExtremeIQRThreshold(
-        q1=q1,
-        q3=q3,
-        iqr=iqr,
-        multiplier=float(multiplier),
-        threshold=threshold,
-    )
-
-
-def flag_direct_spikes(
-    returns: pd.Series,
-    fitted: ExtremeIQRThreshold,
-) -> pd.Series:
-    """Flag direct spikes with the fitted strict ``>`` comparison."""
-    numeric = _finite_numeric_series(returns, name="returns")
-    return numeric.abs().gt(fitted.threshold).rename("is_spike")
 
 
 def affected_windows(

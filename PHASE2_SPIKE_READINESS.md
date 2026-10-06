@@ -164,15 +164,37 @@ Expected row/count/threshold values ใช้เป็น audit regression check
 
 Contract ไม่อนุญาต overwrite โดย default; `--overwrite-generated` เปลี่ยนได้เฉพาะ declared `spike_input_contract.json` และปฏิเสธ output ที่ alias protected baseline input
 
+### M2 canonical direct detector
+
+`src/detect_spikes.py` เป็น single source of truth สำหรับ immutable fitted metadata, validation, `abs(return_1d)`, linear Q1/Q3, IQR, `Q3 + multiplier × IQR`, fit/apply APIs และ strict `>` ส่วน `src/spike_contract.py` re-export Series API เดิมเพื่อ compatibility โดยไม่มี threshold arithmetic ซ้ำ
+
+Public DataFrame APIs:
+
+- `fit_primary_spike_detector(original_train, multiplier=3.0)` — caller ต้องส่ง M1-verified Original Train; pure API ไม่สามารถพิสูจน์ provenance ของ DataFrame ได้เอง
+- `apply_spike_detector(data, fitted)` — ใช้ fitted threshold เดิมกับ Train/Validation/Test โดยไม่ refitและไม่แก้ input
+
+Read-only production audit จาก `train_labeled.csv` ผ่าน M1 contract:
+
+| Field | Derived value |
+| --- | ---: |
+| Q1 | `0.0029797377830751` |
+| Q3 | `0.0138707144726510` |
+| IQR | `0.0108909766895759` |
+| Multiplier | `3.0` |
+| Threshold | `0.0465436445413787` |
+| Quantile method | `linear` |
+| Direct Train spikes | `19` |
+
+ตัวเลขเหล่านี้เป็น regression checks ไม่ใช่ detector inputs ไม่มี CSV/JSON/figure ถูกเขียนโดย M2
+
 ## 4. Frozen boundary-policy implementation และ synthetic tests
 
-เพิ่ม pure primitives ใน `src/spike_contract.py`:
+`src/spike_contract.py` เป็น single source of truth สำหรับ window/mask primitives:
 
-- Fit Extreme-IQR metadata จาก caller-supplied Original Train returns
-- Direct flags ใช้ strict `abs(return_1d) > threshold`
 - Affected-window metadata เก็บ requested/clipped positions
 - Affected mask รวม overlapping windowsแบบไม่ double-count
 - Split-map API สร้าง mask แยกแต่ละ splitและไม่ propagate ข้าม gap
+- Compatibility exports delegate detector fit/apply ไป `src/detect_spikes.py`
 
 เพิ่ม `tests/test_spike_contract.py` ด้วย synthetic fixtures:
 
@@ -182,12 +204,10 @@ Contract ไม่อนุญาต overwrite โดย default; `--overwrite-g
 - direct spike ทุกแถวต้องเป็น affected
 - Train spike ใกล้ boundary ไม่ flag Validation/Test
 - ใช้ original positions ก่อนกรอง
-- strict equality ไม่เป็น direct spike
-- absolute-return symmetry
-- invalid/empty/non-finite inputs
 - invalid/non-boolean/missing direct flags
+- read-only production regression คำนวณ Train affected 213 แถว และยืนยัน direct spikes เป็น subset ของ affected mask
 
-Contract นี้ยังไม่สร้าง experiment CSV และไม่ถือว่า full detector/Phase 2 runner เสร็จ
+M2 detector และ window primitives ยังไม่สร้าง experiment CSV และไม่ถือว่า M3–M7 หรือ Phase 2 runner เสร็จ
 
 ## 5. Supplementary 1.5×IQR Test boundary audit
 
@@ -258,22 +278,26 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 
 ```powershell
 .venv\Scripts\python.exe -m pytest tests\test_spike_contract.py -q
+.venv\Scripts\python.exe -m pytest tests\test_spike_detection.py -q
 .venv\Scripts\python.exe -m pytest tests\test_experiment_datasets.py -q
 .venv\Scripts\python.exe -m pytest -q -rs
-.venv\Scripts\python.exe -m ruff check config.py src\spike_contract.py src\build_spike_input_contract.py tests\test_spike_contract.py tests\test_experiment_datasets.py
+.venv\Scripts\python.exe -m ruff check config.py src\detect_spikes.py src\spike_contract.py tests\test_spike_detection.py tests\test_spike_contract.py
+.venv\Scripts\python.exe -m mypy --follow-imports=skip src\detect_spikes.py src\spike_contract.py
 ```
 
 ผลล่าสุดหลังแก้ source:
 
-- Spike contract tests: 14 passed
+- Spike contract tests: 15 passed
+- M2 detector tests: 33 passed
 - M1 input-contract tests: 39 passed
-- Full suite: 245 passed, 1 skipped
+- Full suite: 279 passed, 1 skipped
+- Detector/window branch coverage: 92% total (`detect_spikes.py` 93%, `spike_contract.py` 91%)
 - Skipped: Windows symlink privilege (`WinError 1314`), ไม่ใช่ test failure
-- Ruff สำหรับไฟล์ในขอบเขต M1 ตามคำสั่งข้างต้น: all checks passed
+- Targeted Ruff และ mypy สำหรับไฟล์ในขอบเขต M2: all checks passed
 
 ### Known issue: repository-wide Ruff
 
-คำสั่ง `.venv\Scripts\python.exe -m ruff check . --output-format concise` ยังไม่ผ่าน โดยพบ **21 errors** ในไฟล์เดิมนอกขอบเขต M1 และยังไม่ได้ใช้ `--fix`:
+คำสั่ง `.venv\Scripts\python.exe -m ruff check . --output-format concise` ยังไม่ผ่าน โดยพบ **21 errors** ในไฟล์เดิมนอกขอบเขต M1/M2 และยังไม่ได้ใช้ `--fix`:
 
 | File | Errors จริงจาก Ruff |
 | --- | --- |
@@ -285,7 +309,7 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 | `src/load_data.py` | `I001` import block 1 จุด |
 | `src/split_data.py` | `I001` import block 2 จุด; `RUF046` redundant integer casts 5 จุด |
 
-สถานะนี้เป็น known issue ของ repository-wide lint ไม่ใช่ M1 failure: targeted Ruff ของ `config.py`, M1 source และ tests ผ่านทั้งหมด และรอบนี้ไม่ขยาย scope ไปแก้ Phase 1 modules/notebooks เหล่านี้
+สถานะนี้เป็น known issue ของ repository-wide lint ไม่ใช่ M1/M2 failure: targeted Ruff ของไฟล์ใน scope ผ่านทั้งหมด และรอบนี้ไม่ขยาย scope ไปแก้ Phase 1 modules/notebooks เหล่านี้
 
 ## 8. Readiness decision
 
@@ -295,7 +319,7 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 - Current และ reproduced labeled CSVs byte-identical
 - Authoritative Phase 2 inputs และ hashesระบุชัด
 - Snapshot/Manifest ไม่เปลี่ยน
-- Primary rule และ boundary policyมี executable synthetic tests
+- M2 primary detector และ boundary policyมี executable tests
 
 งานที่ยังไม่เสร็จและห้ามอ้างว่าเสร็จ:
 

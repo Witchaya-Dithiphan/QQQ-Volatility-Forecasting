@@ -1,6 +1,7 @@
 """Filesystem paths used by the QQQ volatility project."""
 
 from pathlib import Path
+from typing import Final
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "qqq_daily.csv"
@@ -41,7 +42,10 @@ SPIKE_INPUT_CONTRACT_REPORT_PATH = (
     PROJECT_ROOT / "outputs" / "reports" / "spike_input_contract.json"
 )
 PRIMARY_SPIKE_IQR_MULTIPLIER = 3.0
+SPIKE_RETURN_COLUMN: Final = "return_1d"
+SPIKE_QUANTILE_METHOD: Final = "linear"
 SPIKE_TARGET_BACKWARD_REACH = 5
 SPIKE_FEATURE_FORWARD_REACH = 19
 SPIKE_COMPARISON_RULE = "strict_greater_than"
+SPIKE_COMPARISON_FORMULA: Final = "abs(return_1d) > threshold"
 SPIKE_RSI_POLICY = "operational_window_s_minus_5_to_s_plus_19"

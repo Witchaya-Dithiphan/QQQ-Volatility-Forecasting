@@ -2,7 +2,7 @@
 
 ## สถานะและขอบเขต
 
-เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบัน M1 Baseline Input Contract และ frozen rule primitives ใน `src/spike_contract.py` พร้อม synthetic tests เสร็จแล้ว แต่ยังไม่มี experiment datasets, direct spike audit, Phase 2 experiment runner/reports/figures หรือ model artifacts ดังนั้นงาน **Spike Analysis / experiment dataset preparation ยังไม่เสร็จ** และยังไม่มีการ train หรือประเมินโมเดลจาก Phase 2
+เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบัน M1 Baseline Input Contract และ M2 pure primary detector เสร็จแล้ว โดย `src/detect_spikes.py` เป็นเจ้าของ direct-detector logic และ `src/spike_contract.py` เป็นเจ้าของ affected-window logic แต่ยังไม่มี experiment datasets, market-event/data-quality audit, Phase 2 experiment runner/reports/figures หรือ model artifacts ดังนั้นงาน **Spike Analysis / experiment dataset preparation ยังไม่เสร็จ** และยังไม่มีการ train หรือประเมินโมเดลจาก Phase 2
 
 คำว่า Non-Spike ในโครงการนี้หมายถึงสำเนาของ Original Train ที่ตัดแถวตาม operational affected window ออก ไม่ได้หมายความว่าข้อมูลปราศจากอิทธิพลของ spike ในทุก feature อย่างสมบูรณ์
 
@@ -147,42 +147,42 @@
 
 **Checklist:**
 
-- [ ] สร้าง immutable/config metadata สำหรับ fitted detector
-- [ ] Validate ว่า input มี `return_1d`
-- [ ] Validate `return_1d` เป็น numeric และ finite
-- [ ] ปฏิเสธ empty input
-- [ ] ปฏิเสธ invalid multiplier
-- [ ] คำนวณ `abs(return_1d)` โดยไม่แก้ input
-- [ ] Fit Q1 จาก Original Train เท่านั้น
-- [ ] Fit Q3 จาก Original Train เท่านั้น
-- [ ] คำนวณ IQR
-- [ ] คำนวณ threshold จาก multiplier 3.0
-- [ ] แยก API `fit` ออกจาก API `apply`
-- [ ] Apply ด้วย strict `>`
-- [ ] ค่าเท่ากับ thresholdต้องเป็น `False`
-- [ ] Negative return ใช้ absolute value อย่างถูกต้อง
-- [ ] ใช้ fitted threshold เดียวกันกับทุก split
-- [ ] คืนผล deterministic
-- [ ] ห้าม hard-code threshold/count/dates
-- [ ] คืน metadata: source split, quantile method, Q1, Q3, IQR, multiplier, threshold และ comparison rule
+- [x] สร้าง immutable/config metadata สำหรับ fitted detector
+- [x] Validate ว่า input มี `return_1d`
+- [x] Validate `return_1d` เป็น numeric และ finite
+- [x] ปฏิเสธ empty input
+- [x] ปฏิเสธ invalid multiplier
+- [x] คำนวณ `abs(return_1d)` โดยไม่แก้ input
+- [x] Fit Q1 จาก Original Train เท่านั้น
+- [x] Fit Q3 จาก Original Train เท่านั้น
+- [x] คำนวณ IQR
+- [x] คำนวณ threshold จาก multiplier 3.0
+- [x] แยก API `fit` ออกจาก API `apply`
+- [x] Apply ด้วย strict `>`
+- [x] ค่าเท่ากับ thresholdต้องเป็น `False`
+- [x] Negative return ใช้ absolute value อย่างถูกต้อง
+- [x] ใช้ fitted threshold เดียวกันกับทุก split
+- [x] คืนผล deterministic
+- [x] ห้าม hard-code threshold/count/dates
+- [x] คืน metadata: source split, quantile method, Q1, Q3, IQR, multiplier, threshold และ comparison rule
 
 **Tests:**
 
-- [ ] Train-only fit test
-- [ ] Validation mutation ไม่เปลี่ยน threshold
-- [ ] Test mutation ไม่เปลี่ยน threshold
-- [ ] Strict equality boundary test
-- [ ] Positive/negative symmetry test
-- [ ] NaN/Infinity/nonnumeric/empty input tests
-- [ ] Input immutability test
-- [ ] Deterministic rerun test
-- [ ] Expected audit values ใช้ `pytest.approx`/assert count เป็น regression checks เท่านั้น
+- [x] Train-only fit test
+- [x] Validation mutation ไม่เปลี่ยน threshold
+- [x] Test mutation ไม่เปลี่ยน threshold
+- [x] Strict equality boundary test
+- [x] Positive/negative symmetry test
+- [x] NaN/Infinity/nonnumeric/empty input tests
+- [x] Input immutability test
+- [x] Deterministic rerun test
+- [x] Expected audit values ใช้ `pytest.approx`/assert count เป็น regression checks เท่านั้น
 
 **Definition of Done:**
 
-- [ ] Detector เป็น pure API และไม่มี filesystem side effect
-- [ ] Primary audit ได้ค่าตรง expected checks โดยไม่ hard-code
-- [ ] Unit tests ผ่าน
+- [x] Detector เป็น pure API และไม่มี filesystem side effect
+- [x] Primary audit ได้ค่าตรง expected checks โดยไม่ hard-code
+- [x] Unit tests ผ่าน
 
 ## M3. Implement Affected Mask และ Boundary Policy
 
@@ -190,8 +190,8 @@
 
 **Artifacts:**
 
-- `src/detect_spikes.py`
-- `tests/test_spike_detection.py`
+- `src/spike_contract.py`
+- `tests/test_spike_contract.py`
 - Boundary metadata ใน `spike_analysis.json`
 
 **Checklist:**

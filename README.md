@@ -89,7 +89,7 @@ python -m src.build_spike_input_contract --reproduced-root tmp/phase2-m1-baselin
 
 ผลอยู่ที่ `outputs/reports/spike_input_contract.json` และถูก ignore โดย Git คำสั่งจะไม่ overwrite โดย default; หากตั้งใจสร้าง contract ซ้ำใช้ `--overwrite-generated` ซึ่งอนุญาตเฉพาะไฟล์ contract ที่ประกาศไว้
 
-ปัจจุบัน `src/spike_contract.py` freeze pure rule mechanics สำหรับ primary `Q3 + 3 × IQR`, strict `>` และ affected window `[s-5, s+19]` พร้อม synthetic boundary tests แล้ว แต่ยังไม่มี With-Spike/Non-Spike datasets, direct spike audit, Phase 2 experiment runner/reports/figures หรือ model training
+M2 direct detector implement แล้วใน `src/detect_spikes.py`: fit Q1/Q3/IQR/threshold จาก M1-verified Original Train และ apply fitted threshold เดิมกับ split ใดก็ได้แบบ strict `>` โดยไม่ refitหรือแก้ input ส่วน `src/spike_contract.py` เป็นเจ้าของ affected window `[s-5, s+19]` เพียงแห่งเดียวและ re-export Series API เดิมเพื่อ compatibility ปัจจุบันยังไม่มี With-Spike/Non-Spike datasets, market-event/data-quality audit, Phase 2 experiment runner/reports/figures หรือ model training
 
 ## Original Course Requirements
 
@@ -327,9 +327,9 @@ metric ผลหลักต้องรายงาน metrics ครบ ไม
 With-Spike ใช้ Original Train ส่วน Non-Spike จะตัดเฉพาะ Train modeling rows ที่
 `is_spike_affected == True` หลังสร้าง features/targets แล้ว โดยไม่เปลี่ยน Original
 Validation/Test, classification Q75, models, metrics หรือ search protocol ปัจจุบัน
-workflow นี้เป็น `Planned`: ยังไม่มี detector, experiment datasets หรือ saved
-spike/model metrics จึงยังใช้คำว่า `Implemented` หรือ `Verified by saved results`
-ไม่ได้
+workflow โดยรวมยังเป็น `Planned`: direct detector มี implementation แล้ว แต่ยังไม่มี
+experiment datasets หรือ saved spike/model metrics จึงยังใช้คำว่า `Implemented`
+กับ workflow ทั้งชุดหรือ `Verified by saved results` กับผลโมเดลไม่ได้
 
 ## Model Selection Risks and Open Questions
 
