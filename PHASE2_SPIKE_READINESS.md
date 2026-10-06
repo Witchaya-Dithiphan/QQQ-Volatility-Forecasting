@@ -4,7 +4,9 @@
 
 ## Scope และสถานะ
 
-รอบนี้ตรวจ Phase 1 provenance, freeze กลไก primary spike/boundary contract, ทำ M1 Baseline Input Contract และทำ M4 direct-spike/data-quality audit แล้ว ยังไม่ได้สร้าง With-Spike/Non-Spike datasets, complete Phase 2 experiment runner หรือ model artifacts ดังนั้น **Phase 2 ยังไม่เสร็จ**
+รอบนี้ตรวจ Phase 1 provenance และทำ Phase 2 M1–M6 แล้ว รวม input contract, detector, affected mask, direct-spike audit, primary experiment/diagnostic datasets และ reports/primary figures แต่ยังไม่มี M7 complete Phase 2 experiment runner หรือ model artifacts ดังนั้น **Phase 2 ยังไม่เสร็จ**
+
+M6 ใช้ `src/build_spike_reports.py` เพื่อ validate และ aggregate ผลเดิม ไม่เขียน detector/window/filtering ซ้ำ โดย reuse M4 `spike_analysis.json` และ `daily_return_spikes.png` แบบ read-only แล้วสร้าง `experiment_dataset_report.json`, `volatility_spike_effect.png` และ `dataset_comparison.png` พร้อม strict JSON, portable paths, direct SHA-256, Original Q75 label checks และ RSI/split-boundary limitations
 
 M1 มี implementation ที่ `src/build_spike_input_contract.py`, tests ที่ `tests/test_experiment_datasets.py` และ generated evidence ที่ `outputs/reports/spike_input_contract.json` (ignored by Git) Contract อ่าน baseline inputs โดยไม่แก้ไข, ตรวจ schema/values/splits/gaps/Q75/labels/checksums และเขียนเฉพาะ generated contract report ที่ประกาศไว้ โดยไม่แก้ saved reports เดิม
 
@@ -222,7 +224,7 @@ Primary read-only diagnostic ที่ใช้ threshold จาก Train ค่
 | Validation | 0 | 0 | 0 | 0 / 0 |
 | Test | 4 | 54 | 25 | 0 / 0 |
 
-M3 ไม่อ่าน/เขียนไฟล์จาก production APIและไม่กรองแถว M4 ใน `src/audit_spikes.py` เป็นผู้เรียก M2/M3 APIs และ serialize metadata โดยไม่เขียนสูตร detector/window ซ้ำ ส่วน experiment datasets ยังเป็น M5
+M3 ไม่อ่าน/เขียนไฟล์จาก production API และไม่กรองแถว M4 ใน `src/audit_spikes.py` เป็นผู้เรียก M2/M3 APIs และ serialize metadata โดยไม่เขียนสูตร detector/window ซ้ำ ส่วน M5 ใน `src/build_experiment_datasets.py` ใช้ผล M1/M4 เป็น dependency gates และ reuse M2/M3 เพื่อสร้าง experiment datasets
 
 ### M4 direct-spike/data-quality audit
 
@@ -233,6 +235,25 @@ M3 ไม่อ่าน/เขียนไฟล์จาก production APIแ�
 ```
 
 Artifacts ที่สร้างมีเพียง `spike_analysis.json`, `spike_event_audit.csv` และ `daily_return_spikes.png` คำสั่งไม่ overwrite โดย default และ `--overwrite-generated` จำกัดเฉพาะสามไฟล์นี้ ผล pinned audit มี 23 events: Train 19, Validation 0 และ Test 4 ทุก event trace ได้หนึ่งแถวใน labeled/target/feature/clean/raw, raw-derived return ตรงกับ labeled return ภายใน tolerance และถูกจัดเป็น `market_movement` ทั้งหมด ไม่พบ `suspected_data_error`, `needs_review` หรือ audit finding และไม่ได้อ้างเหตุการณ์ตลาดภายนอก Source checksums ก่อน/หลังไม่เปลี่ยน
+
+### M5 primary experiment datasets
+
+รันจาก project root ไปยัง isolated output root:
+
+```powershell
+.venv\Scripts\python.exe -m src.build_experiment_datasets --output-root tmp/phase2-m5-datasets
+```
+
+M5 ตรวจ M1 contract และ M4 audit/checksums ก่อนเขียน จากนั้น fit detector จาก Original Train ครั้งเดียวและเรียก M2/M3 APIs เดิม โดยไม่ recompute features, targets, Q75 หรือ labels
+
+| Artifact | Rows | รายละเอียด |
+| --- | ---: | --- |
+| With-Spike Train | 1,733 | byte-identical กับ Original Train; SHA-256 `424F1BDA5C4211AC58546DA992408D373D874A0F65A509965B06D8224194E64C` |
+| Non-Spike Train | 1,520 | class 0/1 = 1,240/280; SHA-256 `34FC39D92EEEC76B1671741FAFBE66E448767536BF80DFAD1FA5CB39E0CE34F2` |
+| Validation flagged | 371 | 371 non-affected / 0 affected; SHA-256 `F6F520B4A3D6C943BE62626ABD7855E3DF5CC957CAEF9D54A3618945904CF583` |
+| Test flagged | 373 | 319 non-affected / 54 affected; SHA-256 `51FCBE40ABB3CFE4C73DD80EE51A5ED5CB4BF2BC8441489B78703B55C236C006` |
+
+Full model-evaluation inputs ยังคงเป็น Original `validation_labeled.csv` และ `test_labeled.csv`; flagged copies เป็น diagnostics เท่านั้น Protected input checksums ก่อน/หลังไม่เปลี่ยน
 
 ## 5. Supplementary 1.5×IQR Test boundary audit
 
@@ -306,9 +327,10 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 .venv\Scripts\python.exe -m pytest tests\test_spike_detection.py -q
 .venv\Scripts\python.exe -m pytest tests\test_experiment_datasets.py -q
 .venv\Scripts\python.exe -m pytest tests\test_spike_audit.py -q
+.venv\Scripts\python.exe -m pytest tests\test_experiment_datasets.py --cov=src.build_experiment_datasets --cov-report=term-missing -q
 .venv\Scripts\python.exe -m pytest -q -rs
-.venv\Scripts\python.exe -m ruff check config.py src\audit_spikes.py tests\test_spike_audit.py
-.venv\Scripts\python.exe -m mypy --follow-imports=skip src\audit_spikes.py tests\test_spike_audit.py
+.venv\Scripts\ruff.exe check src\build_experiment_datasets.py tests\test_experiment_datasets.py config.py
+.venv\Scripts\mypy.exe --follow-imports=skip src\build_experiment_datasets.py
 ```
 
 ผลล่าสุดหลังแก้ source:
@@ -317,16 +339,18 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 - M2 detector tests: 33 passed
 - M1 input-contract tests: 39 passed
 - M4 audit tests: 7 passed
-- Full suite: 307 passed, 1 skipped
+- M1/M5 experiment-dataset tests: 49 passed; M5 module coverage 91%
+- M6 report/figure tests: 6 passed; M6 module coverage 92%
+- Full suite: 323 passed, 1 skipped
 - Detector/window branch coverage: 92% total (`detect_spikes.py` 93%, `spike_contract.py` 91%)
 - Skipped: Windows symlink privilege (`WinError 1314`), ไม่ใช่ test failure
-- Targeted Ruff และ mypy สำหรับไฟล์ในขอบเขต M4: all checks passed
+- Targeted Ruff และ mypy สำหรับไฟล์ในขอบเขต M6: all checks passed
 
 Mypy แบบตาม imports ยังพบ known issue เดิมที่ `src/build_targets.py:447` (`Series.quantile` รับ interpolation จากค่าคงที่ชนิด `str`) จึงไม่ขยาย scope ของ M4 ไปแก้ Phase 1 module นี้
 
 ### Known issue: repository-wide Ruff
 
-คำสั่ง `.venv\Scripts\python.exe -m ruff check . --output-format concise` ยังไม่ผ่าน โดยพบ **21 errors** ในไฟล์เดิมนอกขอบเขต M1–M3 และยังไม่ได้ใช้ `--fix`:
+คำสั่ง `.venv\Scripts\python.exe -m ruff check . --output-format concise` ยังไม่ผ่าน โดยพบ **21 errors** ในไฟล์เดิมนอกขอบเขต M1–M5 และยังไม่ได้ใช้ `--fix`:
 
 | File | Errors จริงจาก Ruff |
 | --- | --- |
@@ -338,7 +362,7 @@ Mypy แบบตาม imports ยังพบ known issue เดิมที�
 | `src/load_data.py` | `I001` import block 1 จุด |
 | `src/split_data.py` | `I001` import block 2 จุด; `RUF046` redundant integer casts 5 จุด |
 
-สถานะนี้เป็น known issue ของ repository-wide lint ไม่ใช่ M1–M3 failure: targeted Ruff ของไฟล์ใน scope ผ่านทั้งหมด และรอบนี้ไม่ขยาย scope ไปแก้ Phase 1 modules/notebooks เหล่านี้
+สถานะนี้เป็น known issue ของ repository-wide lint ไม่ใช่ M1–M5 failure: targeted Ruff ของไฟล์ใน scope ผ่านทั้งหมด และรอบนี้ไม่ขยาย scope ไปแก้ Phase 1 modules/notebooks เหล่านี้
 
 ## 8. Readiness decision
 
@@ -348,12 +372,10 @@ Mypy แบบตาม imports ยังพบ known issue เดิมที�
 - Current และ reproduced labeled CSVs byte-identical
 - Authoritative Phase 2 inputs และ hashesระบุชัด
 - Snapshot/Manifest ไม่เปลี่ยน
-- M2 primary detector, M3 affected-mask/boundary metadata และ M4 audit มี executable tests
+- M2 primary detector, M3 affected-mask/boundary metadata, M4 audit และ M5 datasets มี executable tests
 
 งานที่ยังไม่เสร็จและห้ามอ้างว่าเสร็จ:
 
-- With-Spike/Non-Spike datasets
-- Validation/Test diagnostic artifacts
 - Complete Phase 2 runner, dataset reports และ figures ที่เหลือ
 - Optional sensitivity report artifact
 - Model training/evaluation

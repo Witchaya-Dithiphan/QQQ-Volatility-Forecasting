@@ -6,7 +6,7 @@
 >
 > ฐานของการสำรวจเดิมก่อน Phase 1: branch `main`, commit `115a054`; tracked working tree สะอาด
 >
-> ผลทดสอบล่าสุดหลังทำ M3: `300 passed, 1 skipped` จาก `.venv\Scripts\python.exe -m pytest -q` (symlink case ข้ามบน Windows ที่ไม่มีสิทธิ์สร้าง symlink)
+> ผลทดสอบล่าสุดหลังทำ M6 บันทึกไว้ใน `PHASE2_SPIKE_READINESS.md`; M6 targeted tests, lint และ type checks ผ่าน และยังไม่รวม model training
 
 ## 1. ภาพรวมโปรเจกต์
 
@@ -24,7 +24,7 @@ Data Preparation เดิมทำเสร็จถึงขั้นสร้
 - **With-Spike Case:** ใช้ Original Train ทั้งหมด เป็น baseline experiment
 - **Non-Spike Case:** ตัดเฉพาะ modeling rows ใน Train ที่ `is_spike_affected == True` ออก เพื่อวัด sensitivity ต่อ extreme daily-return events
 
-Requirement นี้เพิ่มภายหลัง Data Preparation เดิม ปัจจุบัน M1 Baseline Input Contract, M2 pure primary detector, M3 affected-mask/boundary metadata API และ M4 direct-spike/data-quality audit พร้อม tests แล้ว แต่ยังไม่มี With-Spike/Non-Spike experiment datasets, complete Phase 2 experiment runner หรือ model artifacts จึง **ยังไม่ถือว่าเสร็จ**
+Requirement นี้เพิ่มภายหลัง Data Preparation เดิม ปัจจุบัน M1–M6 รวม primary experiment datasets, reports และ figures พร้อม tests แล้ว แต่ยังไม่มี M7 complete Phase 2 experiment runner หรือ model artifacts จึง **ยังไม่ถือว่าเสร็จ**
 
 Historical snapshot สำหรับผลปัจจุบันคือ `data/raw/qqq_daily.csv` จำนวน 2,512 แถว ช่วง 2016-08-31 ถึง 2026-08-28 และ SHA-256 `649e1db1b79c0990ea947a4ea162d6836b9bbdda2af24bc5ab6ae66cb83b6b13` ตรงกับ `data/manifests/qqq_daily_snapshot.json`
 
@@ -40,15 +40,15 @@ Historical snapshot สำหรับผลปัจจุบันคือ `d
 | Chronological split พร้อม purging gap | ✅ เสร็จแล้ว | `src/split_data.py`, `tests/test_split_data.py` | 70/15/15 และ gap 5 แถวสองช่วง |
 | Classification target จาก Original Train Q75 | ✅ เสร็จแล้ว | `src/build_targets.py`, `outputs/reports/classification_threshold.json` | strict `>`; threshold `0.2530580184684854` |
 | Data Preparation notebooks | ✅ เสร็จแล้ว | `notebooks/01_data_cleaning.ipynb`, `notebooks/02_eda_and_features.ipynb` | มี saved cell outputs; working directory ปัจจุบันไม่มี exported PNG ใต้ `outputs/figures/` |
-| Spike analysis | 🟡 ทำบางส่วน | `src/build_spike_input_contract.py`, `src/detect_spikes.py`, `src/spike_contract.py`, `src/audit_spikes.py`, tests และ `PHASE2_SPIKE_READINESS.md` | M1–M4 พร้อมแล้ว; ยังไม่มี experiment datasets |
+| Spike analysis | 🟡 ทำบางส่วน | Phase 2 modules, tests และ `PHASE2_SPIKE_READINESS.md` | M1–M5 พร้อมแล้ว; M6/M7 ยังไม่เสร็จ |
 | Train-only spike threshold | ✅ Detector/audit verified | `src/detect_spikes.py`, `src/audit_spikes.py`, tests | Q1/Q3/IQR/threshold derive จาก Original Train; M4 saved audit report/CSV/figure reproduce ได้ |
-| With-Spike experiment dataset | ⬜ ยังไม่พบว่าดำเนินการ | Original split มีอยู่ แต่ยังไม่มี experiment copy/manifest | ต้องสร้าง artifact แยกและยืนยัน checksum |
-| Non-Spike experiment dataset | ⬜ ยังไม่พบว่าดำเนินการ | มี in-memory affected mask API แล้ว แต่ยังไม่มี filtered artifact | ห้ามแก้ Original Train |
-| Full/Non-Spike/Spike-Affected evaluation | ⬜ ยังไม่พบว่าดำเนินการ | ไม่มี diagnostic segment artifacts/metrics | Full Test ต้องเป็นผลหลัก |
+| With-Spike experiment dataset | ✅ M5 verified | `data/processed/experiments/with_spikes/train.csv` | 1,733 แถว; byte-identical กับ Original Train |
+| Non-Spike experiment dataset | ✅ M5 verified | `data/processed/experiments/non_spike/train.csv` | 1,520 แถว; class 0/1 = 1,240/280; source values เดิม |
+| Full/Non-Spike/Spike-Affected evaluation | 🟡 Diagnostic datasets พร้อม | `data/processed/experiments/diagnostics/` | Full Validation/Test ยังชี้ Original splits; metrics ยังไม่ทำ |
 | Paired model comparison | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/*.py` ยังมีเพียง module docstring | ต้องควบคุม protocol ให้เหมือนกันทั้งสอง cases |
 | Regression model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/regression.py`, `notebooks/03_regression.ipynb` | Notebook มี 0 cells |
 | Classification model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/classification.py`, `notebooks/04_classification.ipynb` | Notebook มี 0 cells |
-| Automated tests | ✅ Baseline + contracts verified | `tests/`, `pytest.ini` | 307 tests ผ่าน, 1 symlink test ข้ามบน Windows; รวม M4 synthetic/integration/safety tests 7 tests |
+| Automated tests | ✅ Baseline + contracts verified | `tests/`, `pytest.ini` | 317 tests ผ่าน, 1 symlink test ข้ามบน Windows; M1/M5 file 49 tests และ M5 coverage 91% |
 | Project runbook/data provenance | 🟡 ทำบางส่วน | `README.md`, `PHASE2_SPIKE_READINESS.md`, Manifest, config และ runners | M1 contract และ isolated reproduction verified; Phase 2 experiment runner ยังไม่เริ่ม |
 
 ## 3. Data Pipeline
@@ -192,18 +192,18 @@ Sensitivity check แบบ read-only:
 
 Robust Z-score formula/cutoff ด้านบนเป็นวิธี sensitivity ที่เสนอไว้ ต้อง freeze ใน experiment config และ report ก่อนถือเป็น contract
 
-เมื่อนำ main Train threshold ไปตรวจแบบ read-only พบ Validation มี 0 direct spike; Test มี 4 direct spikes และ 54 spike-affected rows (319 non-affected rows) ตัวเลขนี้เป็น diagnostic estimate ยังไม่มี segment artifact
+เมื่อนำ main Train threshold ไปตรวจพบ Validation มี 0 direct spike; Test มี 4 direct spikes และ 54 spike-affected rows (319 non-affected rows) M5 สร้าง flagged diagnostic artifacts ที่ยืนยันตัวเลขเหล่านี้แล้ว
 
-### 6.3 Planned experiment datasets
+### 6.3 Verified primary experiment datasets
 
 | Dataset | Train | Validation | Test | จุดประสงค์ |
 | --- | --- | --- | --- | --- |
 | With-Spike | Original Train 1,733 rows | Original Validation | Original Test | Baseline |
-| Non-Spike | Filter `is_spike_affected == True` ออกจาก Train; audit ปัจจุบันคาด 1,520 rows | Original Validation | Original Test | Sensitivity experiment |
+| Non-Spike | Filter `is_spike_affected == True` ออกจาก Train; verified 1,520 rows | Original Validation | Original Test | Sensitivity experiment |
 
 ห้าม re-split, shuffle, ย้าย Validation/Test เข้า Train, เปลี่ยน purging gaps หรือ recompute features/targets หลังกรอง
 
-Planned Test diagnostics ซึ่งแยกจาก Main Test:
+M5 Test diagnostics ซึ่งแยกจาก Main Test:
 
 1. **Full Test:** Original Test ทั้งหมด เป็น final evaluation หลัก
 2. **Non-Spike Test Segment:** แถว Test ที่ `is_spike_affected == False`
@@ -388,4 +388,4 @@ Spike-specific test checklist สำหรับ Task 10:
 5. MAPE เหมาะกับ `target_volatility_5d` หรือควรงดเพราะค่าต่ำอาจทำให้ metric บิดเบือน
 6. จะ regenerate exported data-preparation PNG ที่หายจาก working directory ปัจจุบันในขั้นใด
 
-สถานะสรุป: Baseline Data Preparation, snapshot reproducibility และ Phase 2 M1–M4 พร้อมใช้งานและ tests ผ่าน ส่วน M5–M7 experiment datasets/runner ยังเป็น **Planned** ต้องทำ Phase 2 ที่เหลือให้ครบก่อนเริ่ม Regression/Classification model training
+สถานะสรุป: Baseline Data Preparation, snapshot reproducibility และ Phase 2 M1–M5 พร้อมใช้งานและ tests ผ่าน ส่วน M6–M7 reports/runner ยังเป็น **Planned** ต้องทำ Phase 2 ที่เหลือให้ครบก่อนเริ่ม Regression/Classification model training

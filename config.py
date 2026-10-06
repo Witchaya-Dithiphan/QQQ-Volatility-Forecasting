@@ -5,9 +5,7 @@ from typing import Final
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "qqq_daily.csv"
-RAW_DATA_MANIFEST_PATH = (
-    PROJECT_ROOT / "data" / "manifests" / "qqq_daily_snapshot.json"
-)
+RAW_DATA_MANIFEST_PATH = PROJECT_ROOT / "data" / "manifests" / "qqq_daily_snapshot.json"
 LATEST_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "qqq_daily_latest.csv"
 RAW_DATA_DOWNLOAD_REPORT_PATH = (
     PROJECT_ROOT / "outputs" / "reports" / "qqq_download_report.json"
@@ -47,6 +45,19 @@ SPIKE_ANALYSIS_REPORT_PATH = (
 SPIKE_EVENT_AUDIT_PATH = PROJECT_ROOT / "outputs" / "reports" / "spike_event_audit.csv"
 SPIKE_DAILY_RETURN_FIGURE_PATH = (
     PROJECT_ROOT / "outputs" / "figures" / "spike_analysis" / "daily_return_spikes.png"
+)
+EXPERIMENT_DATASET_REPORT_PATH = (
+    PROJECT_ROOT / "outputs" / "reports" / "experiment_dataset_report.json"
+)
+SPIKE_VOLATILITY_EFFECT_FIGURE_PATH = (
+    PROJECT_ROOT
+    / "outputs"
+    / "figures"
+    / "spike_analysis"
+    / "volatility_spike_effect.png"
+)
+SPIKE_DATASET_COMPARISON_FIGURE_PATH = (
+    PROJECT_ROOT / "outputs" / "figures" / "spike_analysis" / "dataset_comparison.png"
 )
 WITH_SPIKES_TRAIN_PATH = SPIKE_EXPERIMENT_ROOT / "with_spikes" / "train.csv"
 NON_SPIKE_TRAIN_PATH = SPIKE_EXPERIMENT_ROOT / "non_spike" / "train.csv"

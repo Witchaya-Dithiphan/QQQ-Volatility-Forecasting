@@ -97,7 +97,17 @@ M4 audit implement แล้วใน `src/audit_spikes.py` โดย reuse M2/M
 python -m src.audit_spikes --output-root tmp/phase2-m4-audit
 ```
 
-ผล pinned audit คือ Train 19 direct/213 affected, Validation 0/0 และ Test 4/54 รวม 23 events ที่ trace ครบและมีสถานะ `market_movement`; ไม่พบ data-quality finding จากหลักฐานภายใน repository และไม่ได้อ้างเหตุการณ์ตลาดภายนอก Default จะไม่ overwrite; ใช้ `--overwrite-generated` เฉพาะเมื่อตั้งใจแทนที่สาม M4 artifacts ปัจจุบันยังไม่มี With-Spike/Non-Spike datasets, complete Phase 2 experiment runner หรือ model training
+ผล pinned audit คือ Train 19 direct/213 affected, Validation 0/0 และ Test 4/54 รวม 23 events ที่ trace ครบและมีสถานะ `market_movement`; ไม่พบ data-quality finding จากหลักฐานภายใน repository และไม่ได้อ้างเหตุการณ์ตลาดภายนอก Default จะไม่ overwrite; ใช้ `--overwrite-generated` เฉพาะเมื่อตั้งใจแทนที่สาม M4 artifacts
+
+M5 primary experiment datasets implement แล้วใน `src/build_experiment_datasets.py` โดยใช้ M1/M4 เป็น dependency gates และเรียก M2/M3 APIs เดิม ไม่คำนวณ features, targets หรือ labels ใหม่:
+
+```powershell
+python -m src.build_experiment_datasets --output-root tmp/phase2-m5-datasets
+```
+
+ผล pinned M5 คือ With-Spike 1,733 แถวและ byte-identical กับ Original Train, Non-Spike 1,520 แถว (class 0/1 = 1,240/280), Validation diagnostics 371 Full/0 affected และ Test diagnostics 373 Full/54 affected Full Validation/Test สำหรับ model evaluation ยังคงเป็น Original labeled splits ไม่ใช่ flagged copies
+
+M6 implement แล้วใน `src/build_spike_reports.py`: validate/aggregate ผล M1–M5, reuse `spike_analysis.json` และ `daily_return_spikes.png` จาก M4 แบบ read-only และสร้าง `experiment_dataset_report.json`, `volatility_spike_effect.png`, `dataset_comparison.png` โดยไม่เขียนสูตร detector/window/filtering ซ้ำ รองรับ isolated `--output-root` และ default ไม่ overwrite generated M6 artifacts ปัจจุบันยังไม่มี complete Phase 2 runner หรือ model training
 
 ## Original Course Requirements
 
@@ -332,12 +342,11 @@ metric ผลหลักต้องรายงาน metrics ครบ ไม
 | Classification | Logistic Regression | Required | Required |
 | Classification | AdaBoost | Required | Required |
 
-With-Spike ใช้ Original Train ส่วน Non-Spike จะตัดเฉพาะ Train modeling rows ที่
+With-Spike ใช้ Original Train ส่วน Non-Spike ตัดเฉพาะ Train modeling rows ที่
 `is_spike_affected == True` หลังสร้าง features/targets แล้ว โดยไม่เปลี่ยน Original
-Validation/Test, classification Q75, models, metrics หรือ search protocol ปัจจุบัน
-workflow โดยรวมยังเป็น `Planned`: direct detector มี implementation แล้ว แต่ยังไม่มี
-experiment datasets หรือ saved spike/model metrics จึงยังใช้คำว่า `Implemented`
-กับ workflow ทั้งชุดหรือ `Verified by saved results` กับผลโมเดลไม่ได้
+Validation/Test หรือ classification Q75 ปัจจุบัน M1–M5 และ experiment datasets
+implement/verify แล้ว แต่ M6 reports, complete Phase 2 runner, models, metrics และ
+search protocol ยังเป็น `Planned` จึงยังอ้างว่า workflow ทั้งชุดหรือผลโมเดลเสร็จไม่ได้
 
 ## Model Selection Risks and Open Questions
 
@@ -352,8 +361,8 @@ experiment datasets หรือ saved spike/model metrics จึงยังใ
   implementation
 - ต้อง freeze hyperparameter search spaces, random seeds, scaling policy และ
   prediction-threshold policy ก่อนใช้ Test
-- With-Spike/Non-Spike workflow และ model implementations ยังเป็น `Planned` และยัง
-  ไม่มี performance claims
+- With-Spike/Non-Spike datasets พร้อมแล้ว แต่ model implementations ยังเป็น `Planned`
+  และยังไม่มี performance claims
 
 ### Traceable sources
 

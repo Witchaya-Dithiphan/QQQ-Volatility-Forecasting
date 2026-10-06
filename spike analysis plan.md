@@ -2,7 +2,7 @@
 
 ## สถานะและขอบเขต
 
-เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบัน M1 Baseline Input Contract, M2 pure primary detector, M3 affected-mask/boundary metadata API และ M4 direct-spike/data-quality audit เสร็จแล้ว โดย `src/detect_spikes.py` เป็นเจ้าของ direct-detector logic, `src/spike_contract.py` เป็นเจ้าของ affected-window logic และ `src/audit_spikes.py` reuse API ทั้งสองชุดเพื่อสร้าง audit artifacts แต่ยังไม่มี With-Spike/Non-Spike experiment datasets, M5–M7 runner หรือ model artifacts ดังนั้นงาน **Spike Analysis / experiment dataset preparation ยังไม่เสร็จ** และยังไม่มีการ train หรือประเมินโมเดลจาก Phase 2
+เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบัน M1–M5 เสร็จแล้ว โดย `src/detect_spikes.py` เป็นเจ้าของ direct-detector logic, `src/spike_contract.py` เป็นเจ้าของ affected-window logic, `src/audit_spikes.py` สร้าง M4 audit และ `src/build_experiment_datasets.py` สร้าง With-Spike/Non-Spike กับ diagnostic copies โดย reuse contracts เดิม แต่ยังไม่มี M6 reports, M7 complete runner หรือ model artifacts ดังนั้นงาน **Spike Analysis / experiment dataset preparation ยังไม่เสร็จ** และยังไม่มีการ train หรือประเมินโมเดลจาก Phase 2
 
 คำว่า Non-Spike ในโครงการนี้หมายถึงสำเนาของ Original Train ที่ตัดแถวตาม operational affected window ออก ไม่ได้หมายความว่าข้อมูลปราศจากอิทธิพลของ spike ในทุก feature อย่างสมบูรณ์
 
@@ -298,52 +298,56 @@
 
 **With-Spike checklist:**
 
-- [ ] สร้างจาก Original Train แบบ deep copy
-- [ ] เก็บ Original Train ครบทุกแถว
-- [ ] รักษา schema, Date, order และค่าทุกคอลัมน์
-- [ ] บันทึก checksum ของ source และ output
+- [x] สร้างจาก Original Train แบบ deep copy
+- [x] เก็บ Original Train ครบทุกแถว
+- [x] รักษา schema, Date, order และค่าทุกคอลัมน์
+- [x] บันทึก checksum ของ source และ output
 
 **Non-Spike checklist:**
 
-- [ ] เริ่มจาก Original Train ก่อนกรอง
-- [ ] Attach primary `is_spike` และ `is_spike_affected`
-- [ ] Filter เฉพาะ `is_spike_affected == True` ออกจากสำเนา Train
-- [ ] ห้าม recompute `return_1d` หรือ `return_5d`
-- [ ] ห้าม recompute volatility, RSI, SMA หรือ volume features
-- [ ] ห้าม recompute regression target
-- [ ] ห้าม recompute Classification Q75 หรือ labels
-- [ ] รักษาค่าทุก source column ของ kept rows แบบ exact/defined tolerance
-- [ ] รักษาลำดับ Date
-- [ ] ตรวจว่าไม่มี affected row เหลือใน filtered artifact
-- [ ] ตรวจ expected rows 1,520 และ class 0/1 = 1,240/280 โดยไม่ hard-codeเป็น logic
+- [x] เริ่มจาก Original Train ก่อนกรอง
+- [x] Attach primary `is_spike` และ `is_spike_affected` ในหน่วยความจำ
+- [x] Filter เฉพาะ `is_spike_affected == True` ออกจากสำเนา Train
+- [x] ห้าม recompute `return_1d` หรือ `return_5d`
+- [x] ห้าม recompute volatility, RSI, SMA หรือ volume features
+- [x] ห้าม recompute regression target
+- [x] ห้าม recompute Classification Q75 หรือ labels
+- [x] รักษาค่าทุก source column ของ kept rows แบบ exact/defined tolerance
+- [x] รักษาลำดับ Date
+- [x] ตรวจว่าไม่มี affected row เหลือใน filtered artifact
+- [x] ตรวจ expected rows 1,520 และ class 0/1 = 1,240/280 โดยไม่ hard-codeเป็น logic
 
 **Validation/Test checklist:**
 
-- [ ] Full Validation/Test ยังคงเป็น Original labeled splits
-- [ ] สร้าง flagged copies แยกเพื่อ diagnostics เท่านั้น
-- [ ] ใช้ primary Train threshold ค่าเดียวกัน
-- [ ] ไม่ filter หรือ overwrite Original Validation/Test
-- [ ] ระบุ Full, Non-Spike และ Spike-Affected segment membership
-- [ ] Primary expected diagnostic counts: Validation 371/0 affected, Test 319/54 non-affected/affected
+- [x] Full Validation/Test ยังคงเป็น Original labeled splits
+- [x] สร้าง flagged copies แยกเพื่อ diagnostics เท่านั้น
+- [x] ใช้ primary Train threshold ค่าเดียวกัน
+- [x] ไม่ filter หรือ overwrite Original Validation/Test
+- [x] ระบุ Full, Non-Spike และ Spike-Affected segment membership
+- [x] Primary expected diagnostic counts: Validation 371/0 affected, Test 319/54 non-affected/affected
 
 **Tests:**
 
-- [ ] Original inputs ไม่เปลี่ยน checksum
-- [ ] With-Spike values ตรง Original Train
-- [ ] Non-Spike เป็น subset ตาม Date ที่ถูกต้อง
-- [ ] Kept source-column values ตรง Original Train
-- [ ] ไม่มี return ข้ามวันที่จากการกรอง
-- [ ] Labels ตรง Original Q75 เดิม
-- [ ] Full Validation/Test row count และ checksumไม่เปลี่ยน
-- [ ] Diagnostic copies ไม่ถูกใช้แทน Full split โดย API contract
+- [x] Original inputs ไม่เปลี่ยน checksum
+- [x] With-Spike values ตรง Original Train
+- [x] Non-Spike เป็น subset ตาม Date ที่ถูกต้อง
+- [x] Kept source-column values ตรง Original Train
+- [x] ไม่มี return ข้ามวันที่จากการกรอง
+- [x] Labels ตรง Original Q75 เดิม
+- [x] Full Validation/Test row count และ checksumไม่เปลี่ยน
+- [x] Diagnostic copies ไม่ถูกใช้แทน Full split โดย API contract
 
 **Definition of Done:**
 
-- [ ] Primary With-Spike/Non-Spike artifacts สร้างซ้ำได้
-- [ ] Original artifacts ไม่เปลี่ยน
-- [ ] Full Validation/Test ยังคงเดิมทั้งสอง experiment cases
+- [x] Primary With-Spike/Non-Spike artifacts สร้างซ้ำได้
+- [x] Original artifacts ไม่เปลี่ยน
+- [x] Full Validation/Test ยังคงเดิมทั้งสอง experiment cases
+
+ผล pinned M5: With-Spike 1,733 แถวและ byte-identical กับ Original Train; Non-Spike 1,520 แถว (class 0/1 = 1,240/280); Validation diagnostics 371 Full/371 non-affected/0 affected; Test diagnostics 373 Full/319 non-affected/54 affected
 
 ## M6. Reports และ Primary Figures
+
+**สถานะที่ตรวจแล้ว:** Implemented / Verified ใน `src/build_spike_reports.py` และ `tests/test_spike_reports.py`; reuse M4 report/daily-return figure โดยไม่ overwrite และสร้าง dataset report กับกราฟใหม่ 2 ภาพจาก verified M1–M5 artifacts
 
 **Dependencies:** M1–M5
 
@@ -357,37 +361,37 @@
 
 **Checklist:**
 
-- [ ] ใช้ strict JSON และ portable relative paths
-- [ ] บันทึก detector formula/configuration
-- [ ] บันทึก Q1, Q3, IQR, multiplier และ threshold
-- [ ] บันทึก source split และ strict comparison rule
-- [ ] บันทึก direct count/dates
-- [ ] บันทึก requested/clipped affected bounds
-- [ ] บันทึก affected union counts
-- [ ] บันทึก before/after rows และ date ranges
-- [ ] บันทึก class counts/ratios ก่อนและหลังกรอง
-- [ ] บันทึก Full/Non-Spike/Spike-Affected diagnostic segment counts
-- [ ] บันทึก source/output checksums
-- [ ] บันทึก Original Q75 และยืนยันว่าไม่ได้ recompute
-- [ ] บันทึก RSI operational-definition limitation
-- [ ] ใช้ถ้อยคำว่า `operationally non-spike-affected` เมื่อสรุป Non-Spike Train
-- [ ] ห้ามใช้ถ้อยคำว่า “ปราศจาก spike influence ทุก feature”
-- [ ] Figures ต้อง trace กลับ verified data และ report values ได้
-- [ ] ตรวจ title, axes, units, legend และ date coverage
+- [x] ใช้ strict JSON และ portable relative paths
+- [x] บันทึก detector formula/configuration
+- [x] บันทึก Q1, Q3, IQR, multiplier และ threshold
+- [x] บันทึก source split และ strict comparison rule
+- [x] บันทึก direct count/dates
+- [x] บันทึก requested/clipped affected bounds
+- [x] บันทึก affected union counts
+- [x] บันทึก before/after rows และ date ranges
+- [x] บันทึก class counts/ratios ก่อนและหลังกรอง
+- [x] บันทึก Full/Non-Spike/Spike-Affected diagnostic segment counts
+- [x] บันทึก source/output checksums
+- [x] บันทึก Original Q75 และยืนยันว่าไม่ได้ recompute
+- [x] บันทึก RSI operational-definition limitation
+- [x] ใช้ถ้อยคำว่า `operationally non-spike-affected` เมื่อสรุป Non-Spike Train
+- [x] ห้ามใช้ถ้อยคำว่า “ปราศจาก spike influence ทุก feature”
+- [x] Figures ต้อง trace กลับ verified data และ report values ได้
+- [x] ตรวจ title, axes, units, legend และ date coverage
 
 **Tests:**
 
-- [ ] Report counts ตรง CSV
-- [ ] Report checksums ตรงไฟล์
-- [ ] Report paths portable
-- [ ] Report rerun deterministic เมื่อ inputs/configเหมือนเดิม
-- [ ] Figures ทั้งหมดถูกสร้างและไม่เป็นไฟล์ว่าง
+- [x] Report counts ตรง CSV
+- [x] Report checksums ตรงไฟล์
+- [x] Report paths portable
+- [x] Report rerun deterministic เมื่อ inputs/configเหมือนเดิม
+- [x] Figures ทั้งหมดถูกสร้างและไม่เป็นไฟล์ว่าง
 
 **Definition of Done:**
 
-- [ ] Reports และ primary figures ครบ
-- [ ] ทุกตัวเลข trace กลับ source artifacts ได้
-- [ ] RSI และ boundary limitations ปรากฏในทั้ง report และ documentation
+- [x] Reports และ primary figures ครบ
+- [x] ทุกตัวเลข trace กลับ source artifacts ได้
+- [x] RSI และ boundary limitations ปรากฏในทั้ง report และ documentation
 
 ## M7. Separate Phase 2 Runner
 
