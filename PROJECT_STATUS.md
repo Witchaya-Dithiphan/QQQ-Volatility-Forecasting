@@ -2,11 +2,11 @@
 
 > ตรวจสอบล่าสุด: 2026-10-06
 >
-> ขอบเขตล่าสุด: M1 อ่าน baseline inputs และเขียนเฉพาะ generated contract; M2 เป็น pure in-memory detector ไม่มี filesystem side effect
+> ขอบเขตล่าสุด: M1 freeze baseline inputs, M2 เป็น pure direct detector และ M3 เป็น pure affected-mask/boundary metadata API
 >
 > ฐานของการสำรวจเดิมก่อน Phase 1: branch `main`, commit `115a054`; tracked working tree สะอาด
 >
-> ผลทดสอบล่าสุดหลังทำ M2: `279 passed, 1 skipped` จาก `.venv\Scripts\python.exe -m pytest -q -rs` (symlink case ข้ามบน Windows ที่ไม่มีสิทธิ์สร้าง symlink)
+> ผลทดสอบล่าสุดหลังทำ M3: `300 passed, 1 skipped` จาก `.venv\Scripts\python.exe -m pytest -q` (symlink case ข้ามบน Windows ที่ไม่มีสิทธิ์สร้าง symlink)
 
 ## 1. ภาพรวมโปรเจกต์
 
@@ -24,7 +24,7 @@ Data Preparation เดิมทำเสร็จถึงขั้นสร้
 - **With-Spike Case:** ใช้ Original Train ทั้งหมด เป็น baseline experiment
 - **Non-Spike Case:** ตัดเฉพาะ modeling rows ใน Train ที่ `is_spike_affected == True` ออก เพื่อวัด sensitivity ต่อ extreme daily-return events
 
-Requirement นี้เพิ่มภายหลัง Data Preparation เดิม ปัจจุบัน M1 Baseline Input Contract และ M2 pure primary detector พร้อม tests แล้ว แต่ยังไม่มี experiment datasets, market-event/data-quality audit, Phase 2 experiment runner/reports/figures หรือ model artifacts จึง **ยังไม่ถือว่าเสร็จ**
+Requirement นี้เพิ่มภายหลัง Data Preparation เดิม ปัจจุบัน M1 Baseline Input Contract, M2 pure primary detector และ M3 affected-mask/boundary metadata API พร้อม tests แล้ว แต่ยังไม่มี experiment datasets, market-event/data-quality audit, Phase 2 experiment runner/reports/figures หรือ model artifacts จึง **ยังไม่ถือว่าเสร็จ**
 
 Historical snapshot สำหรับผลปัจจุบันคือ `data/raw/qqq_daily.csv` จำนวน 2,512 แถว ช่วง 2016-08-31 ถึง 2026-08-28 และ SHA-256 `649e1db1b79c0990ea947a4ea162d6836b9bbdda2af24bc5ab6ae66cb83b6b13` ตรงกับ `data/manifests/qqq_daily_snapshot.json`
 
@@ -40,15 +40,15 @@ Historical snapshot สำหรับผลปัจจุบันคือ `d
 | Chronological split พร้อม purging gap | ✅ เสร็จแล้ว | `src/split_data.py`, `tests/test_split_data.py` | 70/15/15 และ gap 5 แถวสองช่วง |
 | Classification target จาก Original Train Q75 | ✅ เสร็จแล้ว | `src/build_targets.py`, `outputs/reports/classification_threshold.json` | strict `>`; threshold `0.2530580184684854` |
 | Data Preparation notebooks | ✅ เสร็จแล้ว | `notebooks/01_data_cleaning.ipynb`, `notebooks/02_eda_and_features.ipynb` | มี saved cell outputs; working directory ปัจจุบันไม่มี exported PNG ใต้ `outputs/figures/` |
-| Spike analysis | 🟡 ทำบางส่วน | `src/build_spike_input_contract.py`, `src/detect_spikes.py`, `src/spike_contract.py`, tests และ `PHASE2_SPIKE_READINESS.md` | M1/M2 พร้อมแล้ว; ยังไม่มี experiment datasets หรือ saved spike figures |
+| Spike analysis | 🟡 ทำบางส่วน | `src/build_spike_input_contract.py`, `src/detect_spikes.py`, `src/spike_contract.py`, tests และ `PHASE2_SPIKE_READINESS.md` | M1–M3 พร้อมแล้ว; ยังไม่มี experiment datasets หรือ saved spike figures |
 | Train-only spike threshold | ✅ Pure detector verified | `src/detect_spikes.py`, `tests/test_spike_detection.py` | Q1/Q3/IQR/threshold derive จาก Original Train; ยังไม่มี saved spike-analysis report |
 | With-Spike experiment dataset | ⬜ ยังไม่พบว่าดำเนินการ | Original split มีอยู่ แต่ยังไม่มี experiment copy/manifest | ต้องสร้าง artifact แยกและยืนยัน checksum |
-| Non-Spike experiment dataset | ⬜ ยังไม่พบว่าดำเนินการ | ไม่มี affected mask หรือ filtered artifact | ห้ามแก้ Original Train |
+| Non-Spike experiment dataset | ⬜ ยังไม่พบว่าดำเนินการ | มี in-memory affected mask API แล้ว แต่ยังไม่มี filtered artifact | ห้ามแก้ Original Train |
 | Full/Non-Spike/Spike-Affected evaluation | ⬜ ยังไม่พบว่าดำเนินการ | ไม่มี diagnostic segment artifacts/metrics | Full Test ต้องเป็นผลหลัก |
 | Paired model comparison | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/*.py` ยังมีเพียง module docstring | ต้องควบคุม protocol ให้เหมือนกันทั้งสอง cases |
 | Regression model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/regression.py`, `notebooks/03_regression.ipynb` | Notebook มี 0 cells |
 | Classification model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/classification.py`, `notebooks/04_classification.ipynb` | Notebook มี 0 cells |
-| Automated tests | ✅ Baseline + contracts verified | `tests/`, `pytest.ini` | 279 tests ผ่าน, 1 symlink test ข้ามบน Windows; M2 detector 33 tests, boundary/audit 15 tests และ M1 39 tests |
+| Automated tests | ✅ Baseline + contracts verified | `tests/`, `pytest.ini` | 300 tests ผ่าน, 1 symlink test ข้ามบน Windows; M2 detector 33 tests, M3 boundary/audit 36 tests และ M1 39 tests |
 | Project runbook/data provenance | 🟡 ทำบางส่วน | `README.md`, `PHASE2_SPIKE_READINESS.md`, Manifest, config และ runners | M1 contract และ isolated reproduction verified; Phase 2 experiment runner ยังไม่เริ่ม |
 
 ## 3. Data Pipeline
@@ -146,7 +146,7 @@ is_spike = abs_return > spike_threshold
 
 ช่วงนี้มาจาก forward target horizon 5 และ finite rolling windows สูงสุด 20 การลบเฉพาะ direct spike จะยังเหลือผลใน rolling features และ forward targets
 
-**Conflict ที่พบจาก source:** `src/build_features.py::_wilder_average()` คำนวณ `rsi_14` แบบ recursive Wilder average ดังนั้น return spike มีอิทธิพลแบบลดทอนต่อ RSI หลัง `s+19` ได้ในทางคณิตศาสตร์ และคำกล่าวว่า “maximum feature lookback = 20” จึงไม่จริงสำหรับทุก feature อย่างเคร่งครัด ค่า affected 213 แถวด้านล่างเป็นผลตาม window ที่กำหนด `s-5:s+19`; ก่อน freeze config ต้องตัดสินใจว่าจะยอมรับ window นี้เป็น operational definition, กำหนด RSI decay tolerance หรือขยาย affected logic โดยไม่เปลี่ยนสูตร feature เดิม
+**ข้อจำกัดที่ยอมรับแล้ว:** `src/build_features.py::_wilder_average()` คำนวณ `rsi_14` แบบ recursive Wilder average ดังนั้น return spike มีอิทธิพลแบบลดทอนต่อ RSI หลัง `s+19` ได้ในทางคณิตศาสตร์ และคำกล่าวว่า “maximum feature lookback = 20” จึงไม่จริงสำหรับทุก feature อย่างเคร่งครัด M3 คง `[s-5,s+19]` เป็น operational definition ตามมติ และบันทึกข้อจำกัดนี้ใน boundary metadata; ค่า affected 213 แถวด้านล่างเป็นผลตาม window ดังกล่าว ไม่ใช่หลักฐานว่าอิทธิพลต่อ RSI สิ้นสุดที่ `s+19`
 
 ## 6. Dataset, Split และค่าที่ตรวจยืนยัน
 
@@ -335,8 +335,8 @@ Spike-specific test checklist สำหรับ Task 10:
 
 1. Freeze baseline input checksums, schema, rows, dates และ split boundaries ใน experiment contract
 2. ใช้ pure Extreme-IQR detector ขั้น M2 ที่ผ่าน Train-only/equality/leakage tests แล้ว
-3. Implement/test affected mask integration ขั้น M3 สำหรับ `s-5` ถึง `s+19`
-4. สร้าง `spike_analysis.json` และตรวจ 19 spike dates กับ Raw/Clean OHLCV
+3. ใช้ affected-mask/boundary metadata API ขั้น M3 ที่ implement/test แล้ว
+4. ทำ M4: สร้าง `spike_analysis.json` และตรวจ 19 spike dates กับ Raw/Clean OHLCV
 5. สร้าง experiment Train artifacts แยก path โดยไม่แก้ Original Train
 6. Flag Original Validation/Test ด้วย Train threshold และสร้าง diagnostic segment definitions
 7. สร้าง `experiment_dataset_report.json` พร้อม class distributions/checksums
@@ -379,14 +379,13 @@ Spike-specific test checklist สำหรับ Task 10:
 - Test segments เป็น diagnostics; Full Test เป็นผลหลัก
 - Model/preprocessing protocol ต้อง paired และ fit จาก Train case ของตนเอง
 
-### Open questions ที่ต้องยืนยันก่อน freeze config
+### Open questions สำหรับงานหลัง M3
 
-1. จะยอมรับ `s-5:s+19` เป็น operational window แม้ Wilder RSI มี recursive decay ต่อเนื่อง หรือจะกำหนด decay tolerance/affected rule เพิ่มเติม
-2. Robust Z-score จะยืนยันสูตร modified z-score และ cutoff `3.5` ตาม sensitivity audit นี้หรือไม่
-3. ชื่อ/format ของ diagnostic flags จะเก็บเป็น columns ใน derived artifact หรือเป็น report/sidecar file
-4. จะใช้ model algorithms และ hyperparameter search spaces ใดตาม requirement ต้นฉบับ
-5. หลังเห็น class distribution จริง จะใช้ class weights หรือ Train-only sampler หรือไม่
-6. MAPE เหมาะกับ `target_volatility_5d` หรือควรงดเพราะค่าต่ำอาจทำให้ metric บิดเบือน
-7. จะ regenerate exported data-preparation PNG ที่หายจาก working directory ปัจจุบันในขั้นใด
+1. Robust Z-score จะยืนยันสูตร modified z-score และ cutoff `3.5` ตาม sensitivity audit นี้หรือไม่
+2. ชื่อ/format ของ diagnostic flags จะเก็บเป็น columns ใน derived artifact หรือเป็น report/sidecar file
+3. จะใช้ model algorithms และ hyperparameter search spaces ใดตาม requirement ต้นฉบับ
+4. หลังเห็น class distribution จริง จะใช้ class weights หรือ Train-only sampler หรือไม่
+5. MAPE เหมาะกับ `target_volatility_5d` หรือควรงดเพราะค่าต่ำอาจทำให้ metric บิดเบือน
+6. จะ regenerate exported data-preparation PNG ที่หายจาก working directory ปัจจุบันในขั้นใด
 
-สถานะสรุป: Baseline Data Preparation, snapshot reproducibility, M1 input contract และ M2 direct detector พร้อมใช้งานและ tests ผ่าน ส่วน experiment artifacts และ runner ยังเป็น **Planned** ต้องทำ Phase 2 ที่เหลือให้ครบก่อนเริ่ม Regression/Classification model training
+สถานะสรุป: Baseline Data Preparation, snapshot reproducibility และ Phase 2 M1–M3 พร้อมใช้งานและ tests ผ่าน ส่วน M4–M7 experiment artifacts/runner ยังเป็น **Planned** ต้องทำ Phase 2 ที่เหลือให้ครบก่อนเริ่ม Regression/Classification model training

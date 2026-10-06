@@ -2,7 +2,7 @@
 
 ## สถานะและขอบเขต
 
-เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบัน M1 Baseline Input Contract และ M2 pure primary detector เสร็จแล้ว โดย `src/detect_spikes.py` เป็นเจ้าของ direct-detector logic และ `src/spike_contract.py` เป็นเจ้าของ affected-window logic แต่ยังไม่มี experiment datasets, market-event/data-quality audit, Phase 2 experiment runner/reports/figures หรือ model artifacts ดังนั้นงาน **Spike Analysis / experiment dataset preparation ยังไม่เสร็จ** และยังไม่มีการ train หรือประเมินโมเดลจาก Phase 2
+เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบัน M1 Baseline Input Contract, M2 pure primary detector และ M3 affected-mask/boundary metadata API เสร็จแล้ว โดย `src/detect_spikes.py` เป็นเจ้าของ direct-detector logic และ `src/spike_contract.py` เป็นเจ้าของ affected-window logic แต่ยังไม่มี experiment datasets, market-event/data-quality audit, Phase 2 experiment runner/reports/figures หรือ model artifacts ดังนั้นงาน **Spike Analysis / experiment dataset preparation ยังไม่เสร็จ** และยังไม่มีการ train หรือประเมินโมเดลจาก Phase 2
 
 คำว่า Non-Spike ในโครงการนี้หมายถึงสำเนาของ Original Train ที่ตัดแถวตาม operational affected window ออก ไม่ได้หมายความว่าข้อมูลปราศจากอิทธิพลของ spike ในทุก feature อย่างสมบูรณ์
 
@@ -192,53 +192,55 @@
 
 - `src/spike_contract.py`
 - `tests/test_spike_contract.py`
-- Boundary metadata ใน `spike_analysis.json`
+- In-memory boundary metadata ที่ M4/M6 นำไป serialize เป็น `spike_analysis.json`
 
 **Checklist:**
 
-- [ ] รับ direct flags บน Original split positions
-- [ ] สร้าง inclusive window `[s-5, s+19]`
-- [ ] รวม overlapping windows ด้วย boolean OR ก่อนนับ
-- [ ] Clip lower bound ที่ position 0
-- [ ] Clip upper bound ที่ positionสุดท้ายของ split
-- [ ] ห้ามใช้ index ที่เกิดหลัง Non-Spike filtering
-- [ ] ห้ามขยาย Train mask ไป Validation
-- [ ] ห้ามขยาย Validation mask ไป Test
-- [ ] ห้ามขยาย mask ผ่าน purging gaps
-- [ ] สร้าง `is_spike` และ `is_spike_affected` เป็น boolean
-- [ ] ตรวจ direct spike ทุกแถวเป็น affected
-- [ ] บันทึกต่อ spike: original position, event date, requested bounds, clipped bounds และ clipped date range
-- [ ] บันทึกต่อ split: left/right clipping count, overlap count และ union affected count
-- [ ] บันทึก `mask_scope = within_split`
-- [ ] บันทึก `cross_split_propagation = false`
-- [ ] บันทึกข้อจำกัดว่า features/targets ถูกสร้างก่อน split และอาจอ้างข้อมูลก่อนขอบ split
-- [ ] ระบุว่า mask clipping เป็น experimental rule ไม่ใช่หลักฐานว่า cross-boundary influence เป็นศูนย์
+- [x] รับ direct flags บน Original split positions
+- [x] สร้าง inclusive window `[s-5, s+19]`
+- [x] รวม overlapping windows ด้วย boolean OR ก่อนนับ
+- [x] Clip lower bound ที่ position 0
+- [x] Clip upper bound ที่ positionสุดท้ายของ split
+- [x] ใช้ positional values จาก Original split; ไม่ silently align ด้วย index labels
+- [x] ห้ามขยาย Train mask ไป Validation
+- [x] ห้ามขยาย Validation mask ไป Test
+- [x] ห้ามขยาย mask ผ่าน purging gaps
+- [x] คืน `is_spike` และ `is_spike_affected` เป็น boolean โดยไม่เขียนลง CSV
+- [x] ตรวจ direct spike ทุกแถวเป็น affected
+- [x] บันทึกต่อ spike: split, original position, event date, requested bounds, clipped bounds และ clipped date range
+- [x] บันทึกต่อ split: left/right clipping count, overlap-position count และ union affected count
+- [x] บันทึก `mask_scope = within_split`
+- [x] บันทึก `cross_split_propagation = false`
+- [x] บันทึกข้อจำกัดว่า features/targets ถูกสร้างก่อน split และอาจอ้างข้อมูลก่อนขอบ split
+- [x] ระบุว่า mask clipping เป็น experimental rule ไม่ใช่หลักฐานว่า cross-boundary influence เป็นศูนย์
 
 **Boundary-reporting policy:**
 
-- [ ] Full Validation/Test ต้องคงเดิมเสมอ แม้พบ boundary case
-- [ ] Diagnostic flags ใช้ local split positions และแสดง clipped/unclipped bounds
-- [ ] Primary real data ไม่มี clipping case ให้รายงานว่า `observed_clipping = 0`
-- [ ] Synthetic fixtures ต้องพิสูจน์ left clip, right clip, overlap และ cross-split isolation
+- [x] Full Validation/Test ต้องคงเดิมเสมอ แม้พบ boundary case
+- [x] Diagnostic flags ใช้ local split positions และแสดง clipped/unclipped bounds
+- [x] Primary real data ไม่มี clipping case; ผลคำนวณ `observed_clipping = 0` ทุก split
+- [x] Synthetic fixtures พิสูจน์ left clip, right clip, overlap และ cross-split isolation
 - [ ] Optional 1.5×IQR Test right-clipping caseรายงานแยกจาก primary results
 
 **Tests:**
 
-- [ ] Spike ที่ position แรก
-- [ ] Spike ที่ positionสุดท้าย
-- [ ] Spike ก่อนขอบ 5 แถว
-- [ ] Spikeก่อนท้าย 19 แถว
-- [ ] Overlapping windows
-- [ ] หลาย spike ที่ window ไม่ overlap
-- [ ] Empty direct mask
-- [ ] Train/Validation/Test isolation
+- [x] Spike ที่ position แรก
+- [x] Spike ที่ positionสุดท้าย
+- [x] Spike ก่อน/พอดีขอบซ้าย 5 แถว
+- [x] Spike ก่อน/พอดีขอบขวา 19 แถว
+- [x] Overlapping windows
+- [x] หลาย spike ที่ window ไม่ overlap
+- [x] Empty direct mask
+- [x] Train/Validation/Test isolation
 - [ ] Original positions ไม่เปลี่ยนหลังสร้าง Non-Spike copy
+
+บรรทัดสุดท้ายเป็น M5 integration test; M3 พิสูจน์แล้วว่าใช้ Original positional order และไม่แก้ input แต่ยังไม่สร้าง Non-Spike copy
 
 **Definition of Done:**
 
-- [ ] Mask ตรง `[s-5, s+19]` แบบ inclusive
-- [ ] Primary Train affected count ตรง expected 213 โดยไม่ hard-code
-- [ ] Boundary metadata ครบและ Full Validation/Test ไม่เปลี่ยน
+- [x] Mask ตรง `[s-5, s+19]` แบบ inclusive
+- [x] Primary Train affected count ตรง expected 213 โดยไม่ hard-code
+- [x] Boundary metadata ครบและ Full Validation/Test ไม่เปลี่ยน
 
 ## M4. Direct Spike Audit และ Data-quality Review
 

@@ -187,14 +187,20 @@ Read-only production audit จาก `train_labeled.csv` ผ่าน M1 contrac
 
 ตัวเลขเหล่านี้เป็น regression checks ไม่ใช่ detector inputs ไม่มี CSV/JSON/figure ถูกเขียนโดย M2
 
-## 4. Frozen boundary-policy implementation และ synthetic tests
+## 4. M3 affected-mask และ boundary-policy implementation
 
-`src/spike_contract.py` เป็น single source of truth สำหรับ window/mask primitives:
+`src/spike_contract.py` เป็น single source of truth สำหรับ window/mask primitives และ pure in-memory boundary metadata:
 
-- Affected-window metadata เก็บ requested/clipped positions
+- `affected_windows(...)` และ `build_affected_mask(...)` API เดิมยังใช้ได้
+- `build_affected_result(...)` คืนสำเนา boolean `is_spike`/`is_spike_affected`, per-event windows และ per-split summary
+- `build_split_affected_results(...)` คำนวณแต่ละ split แยกกัน โดยไม่ concat หรือ propagate ผ่าน purge gaps
+- Affected-window metadata เก็บ split, original local position, event date, requested/clipped positions และ clipped date range
 - Affected mask รวม overlapping windowsแบบไม่ double-count
-- Split-map API สร้าง mask แยกแต่ละ splitและไม่ propagate ข้าม gap
+- `overlap_position_count` หมายถึงจำนวนตำแหน่งที่ถูกครอบคลุมโดยมากกว่าหนึ่ง window ไม่ใช่จำนวนคู่ window หรือ duplicate flag operations
+- Summary เก็บ direct/union/left-clipped/right-clipped/overlap counts, `mask_scope = within_split`, `cross_split_propagation = false` และ boundary/RSI limitations
+- Dates ต้องมีความยาวและ index ตรงกับ flags แบบ exact; mask ใช้ positional order แม้ index ไม่ใช่ `RangeIndex`
 - Compatibility exports delegate detector fit/apply ไป `src/detect_spikes.py`
+- Window และ summary dataclasses เป็น frozen และแปลงด้วย `dataclasses.asdict()` แล้ว serialize ด้วย strict JSON ได้
 
 เพิ่ม `tests/test_spike_contract.py` ด้วย synthetic fixtures:
 
@@ -206,8 +212,17 @@ Read-only production audit จาก `train_labeled.csv` ผ่าน M1 contrac
 - ใช้ original positions ก่อนกรอง
 - invalid/non-boolean/missing direct flags
 - read-only production regression คำนวณ Train affected 213 แถว และยืนยัน direct spikes เป็น subset ของ affected mask
+- exact/exceeded left/right boundaries, non-overlap, empty mask, non-RangeIndex, input immutability และ Date/index validation
 
-M2 detector และ window primitives ยังไม่สร้าง experiment CSV และไม่ถือว่า M3–M7 หรือ Phase 2 runner เสร็จ
+Primary read-only diagnostic ที่ใช้ threshold จาก Train ค่าเดียว:
+
+| Split | Direct | Affected union | Overlap positions | Left/right clipped windows |
+| --- | ---: | ---: | ---: | ---: |
+| Train | 19 | 213 | 82 | 0 / 0 |
+| Validation | 0 | 0 | 0 | 0 / 0 |
+| Test | 4 | 54 | 25 | 0 / 0 |
+
+M3 ไม่อ่าน/เขียนไฟล์จาก production API, ไม่กรองแถว และไม่สร้าง experiment CSV, `spike_analysis.json` หรือ figures การ serialize metadata ยังเป็นหน้าที่ M4/M6 และ experiment datasets ยังเป็น M5
 
 ## 5. Supplementary 1.5×IQR Test boundary audit
 
@@ -287,17 +302,17 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 
 ผลล่าสุดหลังแก้ source:
 
-- Spike contract tests: 15 passed
+- M3 spike contract tests: 36 passed
 - M2 detector tests: 33 passed
 - M1 input-contract tests: 39 passed
-- Full suite: 279 passed, 1 skipped
+- Full suite: 300 passed, 1 skipped
 - Detector/window branch coverage: 92% total (`detect_spikes.py` 93%, `spike_contract.py` 91%)
 - Skipped: Windows symlink privilege (`WinError 1314`), ไม่ใช่ test failure
-- Targeted Ruff และ mypy สำหรับไฟล์ในขอบเขต M2: all checks passed
+- Targeted Ruff และ mypy สำหรับไฟล์ในขอบเขต M2/M3: all checks passed
 
 ### Known issue: repository-wide Ruff
 
-คำสั่ง `.venv\Scripts\python.exe -m ruff check . --output-format concise` ยังไม่ผ่าน โดยพบ **21 errors** ในไฟล์เดิมนอกขอบเขต M1/M2 และยังไม่ได้ใช้ `--fix`:
+คำสั่ง `.venv\Scripts\python.exe -m ruff check . --output-format concise` ยังไม่ผ่าน โดยพบ **21 errors** ในไฟล์เดิมนอกขอบเขต M1–M3 และยังไม่ได้ใช้ `--fix`:
 
 | File | Errors จริงจาก Ruff |
 | --- | --- |
@@ -309,7 +324,7 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 | `src/load_data.py` | `I001` import block 1 จุด |
 | `src/split_data.py` | `I001` import block 2 จุด; `RUF046` redundant integer casts 5 จุด |
 
-สถานะนี้เป็น known issue ของ repository-wide lint ไม่ใช่ M1/M2 failure: targeted Ruff ของไฟล์ใน scope ผ่านทั้งหมด และรอบนี้ไม่ขยาย scope ไปแก้ Phase 1 modules/notebooks เหล่านี้
+สถานะนี้เป็น known issue ของ repository-wide lint ไม่ใช่ M1–M3 failure: targeted Ruff ของไฟล์ใน scope ผ่านทั้งหมด และรอบนี้ไม่ขยาย scope ไปแก้ Phase 1 modules/notebooks เหล่านี้
 
 ## 8. Readiness decision
 
@@ -319,7 +334,7 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 - Current และ reproduced labeled CSVs byte-identical
 - Authoritative Phase 2 inputs และ hashesระบุชัด
 - Snapshot/Manifest ไม่เปลี่ยน
-- M2 primary detector และ boundary policyมี executable tests
+- M2 primary detector และ M3 affected-mask/boundary metadata มี executable tests
 
 งานที่ยังไม่เสร็จและห้ามอ้างว่าเสร็จ:
 

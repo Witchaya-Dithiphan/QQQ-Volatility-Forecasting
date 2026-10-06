@@ -89,7 +89,7 @@ python -m src.build_spike_input_contract --reproduced-root tmp/phase2-m1-baselin
 
 ผลอยู่ที่ `outputs/reports/spike_input_contract.json` และถูก ignore โดย Git คำสั่งจะไม่ overwrite โดย default; หากตั้งใจสร้าง contract ซ้ำใช้ `--overwrite-generated` ซึ่งอนุญาตเฉพาะไฟล์ contract ที่ประกาศไว้
 
-M2 direct detector implement แล้วใน `src/detect_spikes.py`: fit Q1/Q3/IQR/threshold จาก M1-verified Original Train และ apply fitted threshold เดิมกับ split ใดก็ได้แบบ strict `>` โดยไม่ refitหรือแก้ input ส่วน `src/spike_contract.py` เป็นเจ้าของ affected window `[s-5, s+19]` เพียงแห่งเดียวและ re-export Series API เดิมเพื่อ compatibility ปัจจุบันยังไม่มี With-Spike/Non-Spike datasets, market-event/data-quality audit, Phase 2 experiment runner/reports/figures หรือ model training
+M2 direct detector implement แล้วใน `src/detect_spikes.py`: fit Q1/Q3/IQR/threshold จาก M1-verified Original Train และ apply fitted threshold เดิมกับ split ใดก็ได้แบบ strict `>` โดยไม่ refitหรือแก้ input ส่วน M3 ใน `src/spike_contract.py` เป็นเจ้าของ affected window `[s-5, s+19]`, split-local clipping/union mask และ JSON-safe boundary metadata เพียงแห่งเดียว API ทั้งสองขั้นเป็น pure in-memory computation และไม่แก้ labeled splits ปัจจุบันยังไม่มี With-Spike/Non-Spike datasets, market-event/data-quality audit, Phase 2 experiment runner/reports/figures หรือ model training
 
 ## Original Course Requirements
 
