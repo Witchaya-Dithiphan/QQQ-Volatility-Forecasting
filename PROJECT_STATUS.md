@@ -1,12 +1,12 @@
 # QQQ Volatility Forecasting — Project Status
 
-> ตรวจสอบล่าสุด: 2026-10-05
+> ตรวจสอบล่าสุด: 2026-10-06
 >
 > ขอบเขตการตรวจ: source code, tests, notebooks, datasets และ saved reports ใน working directory โดยใช้การตรวจแบบ read-only ยกเว้นการอัปเดตไฟล์สถานะนี้
 >
 > ฐานของการสำรวจเดิมก่อน Phase 1: branch `main`, commit `115a054`; tracked working tree สะอาด
 >
-> ผลทดสอบล่าสุดหลัง Phase 1: `192 passed, 1 skipped` จาก `.venv\Scripts\python.exe -m coverage run --branch -m pytest -q` (symlink case ข้ามบน Windows ที่ไม่มีสิทธิ์สร้าง symlink)
+> ผลทดสอบล่าสุดหลังเพิ่ม Phase 2 contract tests: `206 passed, 1 skipped` จาก `.venv\Scripts\python.exe -m pytest -q -rs` (symlink case ข้ามบน Windows ที่ไม่มีสิทธิ์สร้าง symlink)
 
 ## 1. ภาพรวมโปรเจกต์
 
@@ -24,7 +24,7 @@ Data Preparation เดิมทำเสร็จถึงขั้นสร้
 - **With-Spike Case:** ใช้ Original Train ทั้งหมด เป็น baseline experiment
 - **Non-Spike Case:** ตัดเฉพาะ modeling rows ใน Train ที่ `is_spike_affected == True` ออก เพื่อวัด sensitivity ต่อ extreme daily-return events
 
-Requirement นี้เพิ่มภายหลัง Data Preparation เดิม ปัจจุบันมีเพียง EDA ที่ช่วยให้เห็น outliers และมีการคำนวณตรวจสอบแบบ read-only เพื่อวางแผน ยังไม่มี spike implementation, tests หรือ experiment artifacts จึง **ยังไม่ถือว่าเสร็จ**
+Requirement นี้เพิ่มภายหลัง Data Preparation เดิม ปัจจุบันมี EDA/read-only audit, frozen pure rule primitives และ synthetic boundary tests แล้ว แต่ยังไม่มี experiment datasets, Phase 2 runner/reports/figures หรือ model artifacts จึง **ยังไม่ถือว่าเสร็จ**
 
 Historical snapshot สำหรับผลปัจจุบันคือ `data/raw/qqq_daily.csv` จำนวน 2,512 แถว ช่วง 2016-08-31 ถึง 2026-08-28 และ SHA-256 `649e1db1b79c0990ea947a4ea162d6836b9bbdda2af24bc5ab6ae66cb83b6b13` ตรงกับ `data/manifests/qqq_daily_snapshot.json`
 
@@ -40,16 +40,16 @@ Historical snapshot สำหรับผลปัจจุบันคือ `d
 | Chronological split พร้อม purging gap | ✅ เสร็จแล้ว | `src/split_data.py`, `tests/test_split_data.py` | 70/15/15 และ gap 5 แถวสองช่วง |
 | Classification target จาก Original Train Q75 | ✅ เสร็จแล้ว | `src/build_targets.py`, `outputs/reports/classification_threshold.json` | strict `>`; threshold `0.2530580184684854` |
 | Data Preparation notebooks | ✅ เสร็จแล้ว | `notebooks/01_data_cleaning.ipynb`, `notebooks/02_eda_and_features.ipynb` | มี saved cell outputs; working directory ปัจจุบันไม่มี exported PNG ใต้ `outputs/figures/` |
-| Spike analysis | 🟡 ทำบางส่วน | Notebook 02 มี daily-return/outlier EDA; มี read-only audit ในการอัปเดตเอกสารนี้ | ยังไม่มี detector, report หรือ saved spike figures |
-| Train-only spike threshold | ⬜ ยังไม่พบว่าดำเนินการ | ไม่มี `src/detect_spikes.py`, config, report หรือ tests | ตัวเลขในหัวข้อ 6 เป็นค่าตรวจยืนยันเพื่อวางแผน ไม่ใช่ artifact |
+| Spike analysis | 🟡 ทำบางส่วน | `src/spike_contract.py`, `tests/test_spike_contract.py`, `PHASE2_SPIKE_READINESS.md` และ Notebook 02 | Freeze rule mechanics/boundary policy แล้ว; ยังไม่มี pipeline report หรือ saved spike figures |
+| Train-only spike threshold | 🟡 Contract only | Pure fit/apply API และ synthetic tests | ยังไม่มี Phase 2 detector runner/report; ตัวเลข audit ไม่ถูก hard-code |
 | With-Spike experiment dataset | ⬜ ยังไม่พบว่าดำเนินการ | Original split มีอยู่ แต่ยังไม่มี experiment copy/manifest | ต้องสร้าง artifact แยกและยืนยัน checksum |
 | Non-Spike experiment dataset | ⬜ ยังไม่พบว่าดำเนินการ | ไม่มี affected mask หรือ filtered artifact | ห้ามแก้ Original Train |
 | Full/Non-Spike/Spike-Affected evaluation | ⬜ ยังไม่พบว่าดำเนินการ | ไม่มี diagnostic segment artifacts/metrics | Full Test ต้องเป็นผลหลัก |
 | Paired model comparison | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/*.py` ยังมีเพียง module docstring | ต้องควบคุม protocol ให้เหมือนกันทั้งสอง cases |
 | Regression model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/regression.py`, `notebooks/03_regression.ipynb` | Notebook มี 0 cells |
 | Classification model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/classification.py`, `notebooks/04_classification.ipynb` | Notebook มี 0 cells |
-| Automated tests ของ baseline data pipeline | ✅ เสร็จแล้ว | `tests/`, `pytest.ini` | 192 tests ผ่าน, 1 symlink test ข้ามบน Windows; ยังไม่มี spike-specific tests |
-| Project runbook/data provenance | 🟡 ทำบางส่วน | `README.md`, Manifest, config, runner และ notebooks | มีคำสั่ง end-to-end baseline pipeline แล้ว; spike workflow ยังไม่เริ่ม |
+| Automated tests | ✅ Baseline + contract verified | `tests/`, `pytest.ini` | 206 tests ผ่าน, 1 symlink test ข้ามบน Windows; รวม synthetic spike-contract tests 14 tests |
+| Project runbook/data provenance | 🟡 ทำบางส่วน | `README.md`, `PHASE2_SPIKE_READINESS.md`, Manifest, config และ runners | Baseline reproduction/portable reports verified; Phase 2 artifact runner ยังไม่เริ่ม |
 
 ## 3. Data Pipeline
 
@@ -63,7 +63,7 @@ Historical snapshot สำหรับผลปัจจุบันคือ `d
 6. Chronological split พร้อม 5-row purging gaps → Original Train/Validation/Test
 7. Fit Classification Q75 จาก Original Train → labeled splits
 
-### 3.2 Spike experiment branch — Planned
+### 3.2 Spike experiment branch — Contract verified; artifacts planned
 
 ```mermaid
 flowchart TD
@@ -389,4 +389,4 @@ Spike-specific test checklist สำหรับ Task 10:
 6. MAPE เหมาะกับ `target_volatility_5d` หรือควรงดเพราะค่าต่ำอาจทำให้ metric บิดเบือน
 7. จะ regenerate exported data-preparation PNG ที่หายจาก working directory ปัจจุบันในขั้นใด
 
-สถานะสรุป: Baseline Data Preparation และ snapshot reproducibility พร้อมใช้งานและ tests ผ่าน แต่ Spike workflow ยังอยู่ในสถานะ **Planned** ต้องทำ Phase 2 ให้ครบก่อนเริ่ม Regression/Classification model training
+สถานะสรุป: Baseline Data Preparation และ snapshot reproducibility พร้อมใช้งานและ tests ผ่าน ส่วน Spike rule/boundary contract ตรวจแล้วแต่ experiment artifacts และ runner ยังเป็น **Planned** ต้องทำ Phase 2 ที่เหลือให้ครบก่อนเริ่ม Regression/Classification model training

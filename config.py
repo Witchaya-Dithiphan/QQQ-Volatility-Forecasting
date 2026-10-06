@@ -2,7 +2,6 @@
 
 from pathlib import Path
 
-
 PROJECT_ROOT = Path(__file__).resolve().parent
 RAW_DATA_PATH = PROJECT_ROOT / "data" / "raw" / "qqq_daily.csv"
 RAW_DATA_MANIFEST_PATH = (
@@ -34,3 +33,9 @@ TEST_LABELED_DATA_PATH = PROJECT_ROOT / "data" / "processed" / "test_labeled.csv
 CLASSIFICATION_THRESHOLD_REPORT_PATH = (
     PROJECT_ROOT / "outputs" / "reports" / "classification_threshold.json"
 )
+
+# Phase 2 spike-analysis contract. Threshold values remain data-derived from the
+# Original Train split; only the frozen rule parameters belong in configuration.
+PRIMARY_SPIKE_IQR_MULTIPLIER = 3.0
+SPIKE_AFFECTED_ROWS_BEFORE = 5
+SPIKE_AFFECTED_ROWS_AFTER = 19

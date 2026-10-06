@@ -2,7 +2,7 @@
 
 ## สถานะและขอบเขต
 
-เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ณ วันที่ตรวจยังไม่พบ source, tests หรือ generated artifacts ของ spike pipeline ดังนั้นงาน **Spike Analysis / experiment dataset preparation ยังไม่เสร็จ** และยังไม่มีการ train หรือประเมินโมเดลจาก Phase 2
+เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบันมีเฉพาะ frozen rule primitives ใน `src/spike_contract.py`, synthetic boundary tests และ readiness evidence ใน `PHASE2_SPIKE_READINESS.md` แต่ยังไม่มี experiment datasets, Phase 2 runner/reports/figures หรือ model artifacts ดังนั้นงาน **Spike Analysis / experiment dataset preparation ยังไม่เสร็จ** และยังไม่มีการ train หรือประเมินโมเดลจาก Phase 2
 
 คำว่า Non-Spike ในโครงการนี้หมายถึงสำเนาของ Original Train ที่ตัดแถวตาม operational affected window ออก ไม่ได้หมายความว่าข้อมูลปราศจากอิทธิพลของ spike ในทุก feature อย่างสมบูรณ์
 
@@ -30,15 +30,15 @@
 
 ### ข้อขัดแย้งหรือข้อควรระวังที่พบ
 
-- [ ] Saved `data_split_report.json` และ `classification_threshold.json` ใน working directory ยังเก็บ absolute paths และไม่มี `paths_relative_to`
-- [ ] โค้ดปัจจุบันใช้ `report_relative_path()` และ tests คาดหวัง portable relative paths แสดงว่า saved reports ดังกล่าวเก่ากว่า implementation ปัจจุบัน
-- [ ] ก่อน freeze Phase 2 contract ต้องตรวจ baseline reproduction ใน isolated output root หรือบันทึกข้อยกเว้นนี้อย่างชัดเจน
-- [ ] ห้ามเปลี่ยนมติ spike เพื่อชดเชยความเก่าของ report
-- [ ] Phase 2 ต้องคำนวณ checksum ของ labeled CSV inputs โดยตรง ไม่อาศัย path หรือ byte checksum ของ report เก่าเพียงอย่างเดียว
-- [ ] Primary 3×IQR ไม่มี direct spike ใกล้ต้นหรือท้าย split ในข้อมูลปัจจุบัน จึงไม่มี real-data clipping case สำหรับกฎหลัก
-- [ ] ต้องใช้ synthetic fixtures ทดสอบ left/right clipping และ cross-split isolation
-- [ ] Sensitivity 1.5×IQR มี Test spike ใกล้ท้าย splitและเกิด right clipping จริง สามารถรายงานเป็นกรณีประกอบได้ แต่ห้ามใช้เปลี่ยน primary rule
-- [ ] Generated data/reports/figures ถูก `.gitignore` ไว้ จึงต้องมีคำสั่ง reproduce และ checksums ที่ตรวจสอบได้
+- [x] Saved `data_split_report.json` และ `classification_threshold.json` ใน working directory ยังเก็บ absolute paths และไม่มี `paths_relative_to`
+- [x] Fresh isolated reproduction พิสูจน์ว่าโค้ดปัจจุบันสร้าง portable relative paths และ links resolve ได้จริง
+- [x] Labeled CSV เดิมและ reproduced CSV มี SHA-256 ตรงกันทุก split จึงจัด discrepancy เป็น artifact provenance ไม่ใช่ data mismatch
+- [x] ไม่เปลี่ยนมติ spike เพื่อชดเชยความเก่าของ report
+- [x] คำนวณ checksum ของ labeled CSV inputs โดยตรงโดยไม่อาศัย saved report เก่าเพียงอย่างเดียว
+- [x] Primary 3×IQR ไม่มี direct spike ใกล้ต้นหรือท้าย split ในข้อมูลปัจจุบัน จึงไม่มี real-data clipping case สำหรับกฎหลัก
+- [x] เพิ่ม synthetic fixtures ทดสอบ left/right clipping, overlap และ cross-split isolation
+- [x] Sensitivity 1.5×IQR มี Test spikes วันที่ 2026-07-30 และ 2026-08-04 ที่ถูก right-clip; บันทึกเป็น supplementary audit โดยไม่เปลี่ยน primary rule
+- [x] Generated data/reports/figures ถูก `.gitignore` ไว้ และ readiness report ระบุคำสั่ง reproduce/checksums แล้ว
 
 ## มติการทดลองที่ Freeze แล้ว
 

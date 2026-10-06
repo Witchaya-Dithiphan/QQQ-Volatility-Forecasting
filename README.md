@@ -76,6 +76,12 @@ Path ภายใน regression target, split และ classification reports �
 python -m pytest -q
 ```
 
+## Phase 2 spike-analysis readiness
+
+ก่อน implement experiment datasets ได้ตรวจ Phase 1 ใหม่ใน isolated output root แล้ว พบว่า reports ที่สร้างจากโค้ดปัจจุบันใช้ portable relative paths และ labeled CSV ทั้งสาม split มี SHA-256 ตรงกับชุดที่ project root แบบ byte-for-byte รายละเอียด hashes, authoritative inputs, boundary policy และคำสั่ง reproduce อยู่ใน `PHASE2_SPIKE_READINESS.md`
+
+ปัจจุบัน `src/spike_contract.py` freeze เฉพาะ pure rule mechanics สำหรับ primary `Q3 + 3 × IQR`, strict `>` และ affected window `[s-5, s+19]` พร้อม synthetic boundary tests ยังไม่มี With-Spike/Non-Spike datasets, Phase 2 runner/reports/figures หรือ model training
+
 ## Original Course Requirements
 
 Model plan ด้านล่างยึด requirement summary ที่ระบุแหล่งอ้างอิงเป็น
