@@ -1,0 +1,622 @@
+# Phase 2 — Spike Analysis Plan
+
+## สถานะและขอบเขต
+
+เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบัน Must-have M1–M8 ผ่าน verification gate แล้ว โดย `src/detect_spikes.py` เป็นเจ้าของ direct-detector logic, `src/spike_contract.py` เป็นเจ้าของ affected-window logic, stages M4–M6 เป็นเจ้าของ audit/datasets/reports และ `src/run_spike_analysis.py` เป็น separate runner ที่ reproduce artifacts ทั้งชุดได้ งานถัดไปเปิดให้เริ่ม paired model training แต่ยังไม่มีการ train, evaluation, metrics หรือ model-performance results
+
+คำว่า Non-Spike ในโครงการนี้หมายถึงสำเนาของ Original Train ที่ตัดแถวตาม operational affected window ออก ไม่ได้หมายความว่าข้อมูลปราศจากอิทธิพลของ spike ในทุก feature อย่างสมบูรณ์
+
+## ผลตรวจความสอดคล้องกับโค้ดและข้อมูลปัจจุบัน
+
+### สิ่งที่สอดคล้องกับมติ
+
+- [x] `return_1d` สร้างจาก `Close.pct_change(1)` บน complete timeline ก่อน split
+- [x] Regression target ที่แถว `t` ใช้ `return_1d` ของ `t+1` ถึง `t+5`
+- [x] `rsi_14` ใช้ Wilder average แบบ recursive จริง จึงอาจได้รับอิทธิพลหลัง `s+19`
+- [x] Baseline split ใช้ลำดับเวลาและ purging gap 5 แถวสองช่วง
+- [x] Classification Q75 fit จาก Original Train และใช้ strict `>`
+- [x] Original labeled splits มี schema เดียวกัน 16 columns
+- [x] Original Train มี 1,733 แถว ช่วง 2016-09-29 ถึง 2023-08-18
+- [x] Original Validation มี 371 แถว ช่วง 2023-08-28 ถึง 2025-02-19
+- [x] Original Test มี 373 แถว ช่วง 2025-02-27 ถึง 2026-08-21
+- [x] Primary 3×IQR audit ให้ threshold `0.0465436445413787`
+- [x] Primary audit พบ Train direct spikes 19 แถว
+- [x] Primary audit พบ Train affected rows 213 แถว
+- [x] Primary audit เหลือ Non-Spike Train 1,520 แถว
+- [x] Primary Non-Spike Train class 0/1 เท่ากับ 1,240/280
+- [x] เมื่อนำ Train threshold ไปใช้กับชุดอื่น Primary audit พบ Validation direct/affected = 0/0 และ Test direct/affected = 4/54
+
+ค่าข้างต้นเป็น observed/expected checks สำหรับ regression testing ห้ามนำไป hard-code เป็นผลลัพธ์ของ detector
+
+### ข้อขัดแย้งหรือข้อควรระวังที่พบ
+
+- [x] Saved `data_split_report.json` และ `classification_threshold.json` ใน working directory ยังเก็บ absolute paths และไม่มี `paths_relative_to`
+- [x] Fresh isolated reproduction พิสูจน์ว่าโค้ดปัจจุบันสร้าง portable relative paths และ links resolve ได้จริง
+- [x] Labeled CSV เดิมและ reproduced CSV มี SHA-256 ตรงกันทุก split จึงจัด discrepancy เป็น artifact provenance ไม่ใช่ data mismatch
+- [x] ไม่เปลี่ยนมติ spike เพื่อชดเชยความเก่าของ report
+- [x] คำนวณ checksum ของ labeled CSV inputs โดยตรงโดยไม่อาศัย saved report เก่าเพียงอย่างเดียว
+- [x] Primary 3×IQR ไม่มี direct spike ใกล้ต้นหรือท้าย split ในข้อมูลปัจจุบัน จึงไม่มี real-data clipping case สำหรับกฎหลัก
+- [x] เพิ่ม synthetic fixtures ทดสอบ left/right clipping, overlap และ cross-split isolation
+- [x] Sensitivity 1.5×IQR มี Test spikes วันที่ 2026-07-30 และ 2026-08-04 ที่ถูก right-clip; บันทึกเป็น supplementary audit โดยไม่เปลี่ยน primary rule
+- [x] Generated data/reports/figures ถูก `.gitignore` ไว้ และ readiness report ระบุคำสั่ง reproduce/checksums แล้ว
+
+## มติการทดลองที่ Freeze แล้ว
+
+### Primary spike rule
+
+- [x] Detection variable คือ `abs(return_1d)`
+- [x] Fit จาก Original Train เท่านั้น
+- [x] `Q1 = percentile 25`
+- [x] `Q3 = percentile 75`
+- [x] `IQR = Q3 - Q1`
+- [x] `threshold = Q3 + 3 × IQR`
+- [x] `is_spike = abs(return_1d) > threshold`
+- [x] ใช้ strict `>`; ค่าเท่ากับ thresholdไม่เป็น spike
+- [x] ห้าม hard-code threshold หรือ expected counts
+- [x] ใช้ Train threshold ค่าเดียวกันตรวจ Validation/Test
+- [x] ห้าม fit threshold ใหม่จาก Validation/Test
+- [x] Freeze rule นี้ก่อนดู model scores
+- [x] ห้ามอ้างว่า 3×IQR เป็นเกณฑ์ที่ดีที่สุดโดยพิสูจน์แล้ว
+
+### Primary affected-window rule
+
+- [x] ใช้ตำแหน่งวันซื้อขายบน Original split ก่อนกรอง
+- [x] สำหรับ spike ตำแหน่ง `s` ใช้ inclusive window `[s-5, s+19]`
+- [x] `s-5` ถึง `s-1` ครอบคลุมแถวที่ target ในอนาคต 5 วันใช้ return ของ spike
+- [x] `s` ถึง `s+19` ครอบคลุม direct return และ rolling features หลักถึง 20 วัน
+- [x] รวม overlapping windows ก่อนนับ affected rows
+- [x] Clip window ภายใน split ที่กำลังวิเคราะห์
+- [x] ห้ามคำนวณ position ใหม่หลังกรอง Non-Spike Train
+- [x] ห้ามขยาย mask ข้าม purging gap หรือข้าม split
+
+### RSI policy
+
+- [x] เลือก Policy A เป็นกฎหลัก
+- [x] ยอมรับ `[s-5, s+19]` เป็น operational definition
+- [x] ไม่ใช้ RSI decay tolerance เป็นกฎหลัก
+- [x] ไม่ขยาย window เพื่อครอบคลุม RSI decay เป็นกฎหลัก
+- [x] Reports และเอกสารต้องระบุว่า Wilder RSI อาจยังได้รับอิทธิพลหลัง `s+19`
+- [x] ห้ามกล่าวว่า Non-Spike Train ปราศจากอิทธิพลของ spike ในทุก featureอย่างสมบูรณ์
+
+### Dataset and evaluation policy
+
+- [x] With-Spike Train คือ Original Train ทุกแถว
+- [x] Non-Spike Train คือ Original Train ที่ลบ `is_spike_affected == True`
+- [x] กรองหลังสร้าง features, regression target และ classification labels แล้วเท่านั้น
+- [x] ห้ามแก้ Raw, Snapshot, Manifest, Clean, Feature, Target หรือ Original splits
+- [x] ห้ามคำนวณ returns, features, targets หรือ Classification Q75 ใหม่หลังกรอง
+- [x] แถวที่เหลือต้องรักษา Date, ลำดับเวลา และค่าทุกคอลัมน์เหมือนต้นฉบับ
+- [x] With-Spike และ Non-Spike ใช้ Full Validation/Test ชุดเดิม
+- [x] ห้าม re-split, shuffle, ย้ายแถว หรือกรอง Validation/Test สำหรับผลหลัก
+- [x] Non-Spike และ Spike-Affected Validation/Test segments เป็น diagnostics เท่านั้น
+
+---
+
+# Must-have สำหรับ Phase 2
+
+## M1. Freeze Baseline Input Contract
+
+**Dependencies:** Phase 1 labeled splits และ saved reports ต้องมีอยู่
+
+**Artifacts:**
+
+- `config.py`
+- `src/build_spike_input_contract.py`
+- `outputs/reports/spike_input_contract.json`
+- `tests/test_experiment_datasets.py`
+
+**Checklist:**
+
+- [x] เพิ่ม Phase 2 input/output paths ใน `config.py`
+- [x] เพิ่มค่าคงที่ primary multiplier `3.0`
+- [x] เพิ่ม target-backward reach `5`
+- [x] เพิ่ม feature-forward reach `19`
+- [x] ระบุ comparison rule เป็น strict `>`
+- [x] ระบุ RSI policy เป็น `operational_window_s_minus_5_to_s_plus_19`
+- [x] อ่าน `train_labeled.csv`, `validation_labeled.csv`, `test_labeled.csv` แบบ read-only
+- [x] Validate required 16-column schema
+- [x] Validate numeric dtypes ของ features, target และ label
+- [x] Validate Date parse, uniqueness และ ascending order
+- [x] Validate ไม่มี NaN/Infinity ใน model columns
+- [x] Validate labels เป็น 0/1 เท่านั้น
+- [x] Validate row counts และ date ranges ปัจจุบัน
+- [x] Validate split ไม่ overlap
+- [x] Validate gap dates/size จาก baseline split report
+- [x] Validate Original Classification Q75 และ label consistency
+- [x] คำนวณ SHA-256 ของ labeled splits โดยตรง
+- [x] บันทึก source checksums ก่อนเริ่มเขียน output
+- [x] บันทึกความไม่สอดคล้องของ saved report portability
+- [x] ตรวจ Phase 1 reproduction ใน isolated output root หรือบันทึกเหตุผลหากยังไม่ทำ
+- [x] ห้าม rewrite baseline artifacts จาก Phase 2 runner
+
+**Definition of Done:**
+
+- [x] Contract JSON เป็น strict JSON และใช้ portable paths
+- [x] Schema, rows, dates, gaps, labels และ checksums ถูก assert
+- [x] ความต่างระหว่าง current code กับ saved reports ถูกบันทึก ไม่ถูกแก้เงียบ ๆ
+- [x] ไม่มี source file ใดเปลี่ยน checksum
+
+## M2. Implement Pure Primary Spike Detector
+
+**Dependencies:** M1
+
+**Artifacts:**
+
+- `src/detect_spikes.py`
+- `tests/test_spike_detection.py`
+
+**Checklist:**
+
+- [x] สร้าง immutable/config metadata สำหรับ fitted detector
+- [x] Validate ว่า input มี `return_1d`
+- [x] Validate `return_1d` เป็น numeric และ finite
+- [x] ปฏิเสธ empty input
+- [x] ปฏิเสธ invalid multiplier
+- [x] คำนวณ `abs(return_1d)` โดยไม่แก้ input
+- [x] Fit Q1 จาก Original Train เท่านั้น
+- [x] Fit Q3 จาก Original Train เท่านั้น
+- [x] คำนวณ IQR
+- [x] คำนวณ threshold จาก multiplier 3.0
+- [x] แยก API `fit` ออกจาก API `apply`
+- [x] Apply ด้วย strict `>`
+- [x] ค่าเท่ากับ thresholdต้องเป็น `False`
+- [x] Negative return ใช้ absolute value อย่างถูกต้อง
+- [x] ใช้ fitted threshold เดียวกันกับทุก split
+- [x] คืนผล deterministic
+- [x] ห้าม hard-code threshold/count/dates
+- [x] คืน metadata: source split, quantile method, Q1, Q3, IQR, multiplier, threshold และ comparison rule
+
+**Tests:**
+
+- [x] Train-only fit test
+- [x] Validation mutation ไม่เปลี่ยน threshold
+- [x] Test mutation ไม่เปลี่ยน threshold
+- [x] Strict equality boundary test
+- [x] Positive/negative symmetry test
+- [x] NaN/Infinity/nonnumeric/empty input tests
+- [x] Input immutability test
+- [x] Deterministic rerun test
+- [x] Expected audit values ใช้ `pytest.approx`/assert count เป็น regression checks เท่านั้น
+
+**Definition of Done:**
+
+- [x] Detector เป็น pure API และไม่มี filesystem side effect
+- [x] Primary audit ได้ค่าตรง expected checks โดยไม่ hard-code
+- [x] Unit tests ผ่าน
+
+## M3. Implement Affected Mask และ Boundary Policy
+
+**Dependencies:** M2
+
+**Artifacts:**
+
+- `src/spike_contract.py`
+- `tests/test_spike_contract.py`
+- In-memory boundary metadata ที่ M4/M6 นำไป serialize เป็น `spike_analysis.json`
+
+**Checklist:**
+
+- [x] รับ direct flags บน Original split positions
+- [x] สร้าง inclusive window `[s-5, s+19]`
+- [x] รวม overlapping windows ด้วย boolean OR ก่อนนับ
+- [x] Clip lower bound ที่ position 0
+- [x] Clip upper bound ที่ positionสุดท้ายของ split
+- [x] ใช้ positional values จาก Original split; ไม่ silently align ด้วย index labels
+- [x] ห้ามขยาย Train mask ไป Validation
+- [x] ห้ามขยาย Validation mask ไป Test
+- [x] ห้ามขยาย mask ผ่าน purging gaps
+- [x] คืน `is_spike` และ `is_spike_affected` เป็น boolean โดยไม่เขียนลง CSV
+- [x] ตรวจ direct spike ทุกแถวเป็น affected
+- [x] บันทึกต่อ spike: split, original position, event date, requested bounds, clipped bounds และ clipped date range
+- [x] บันทึกต่อ split: left/right clipping count, overlap-position count และ union affected count
+- [x] บันทึก `mask_scope = within_split`
+- [x] บันทึก `cross_split_propagation = false`
+- [x] บันทึกข้อจำกัดว่า features/targets ถูกสร้างก่อน split และอาจอ้างข้อมูลก่อนขอบ split
+- [x] ระบุว่า mask clipping เป็น experimental rule ไม่ใช่หลักฐานว่า cross-boundary influence เป็นศูนย์
+
+**Boundary-reporting policy:**
+
+- [x] Full Validation/Test ต้องคงเดิมเสมอ แม้พบ boundary case
+- [x] Diagnostic flags ใช้ local split positions และแสดง clipped/unclipped bounds
+- [x] Primary real data ไม่มี clipping case; ผลคำนวณ `observed_clipping = 0` ทุก split
+- [x] Synthetic fixtures พิสูจน์ left clip, right clip, overlap และ cross-split isolation
+- [ ] Optional 1.5×IQR Test right-clipping caseรายงานแยกจาก primary results
+
+**Tests:**
+
+- [x] Spike ที่ position แรก
+- [x] Spike ที่ positionสุดท้าย
+- [x] Spike ก่อน/พอดีขอบซ้าย 5 แถว
+- [x] Spike ก่อน/พอดีขอบขวา 19 แถว
+- [x] Overlapping windows
+- [x] หลาย spike ที่ window ไม่ overlap
+- [x] Empty direct mask
+- [x] Train/Validation/Test isolation
+- [ ] Original positions ไม่เปลี่ยนหลังสร้าง Non-Spike copy
+
+บรรทัดสุดท้ายเป็น M5 integration test; M3 พิสูจน์แล้วว่าใช้ Original positional order และไม่แก้ input แต่ยังไม่สร้าง Non-Spike copy
+
+**Definition of Done:**
+
+- [x] Mask ตรง `[s-5, s+19]` แบบ inclusive
+- [x] Primary Train affected count ตรง expected 213 โดยไม่ hard-code
+- [x] Boundary metadata ครบและ Full Validation/Test ไม่เปลี่ยน
+
+## M4. Direct Spike Audit และ Data-quality Review
+
+**Dependencies:** M2, M3
+
+**Artifacts:**
+
+- `outputs/reports/spike_analysis.json`
+- `outputs/reports/spike_event_audit.csv`
+- `outputs/figures/spike_analysis/daily_return_spikes.png`
+
+**Checklist:**
+
+- [x] ดึง direct spike dates จาก detector output
+- [x] บันทึก Date, signed return และ absolute return
+- [x] บันทึก Open, High, Low, Close และ Volume
+- [x] Trace event date กลับไปยัง labeled, target, feature, clean และ raw timeline
+- [x] ตรวจค่าระหว่าง stages ว่าสอดคล้องกัน
+- [x] แยกสถานะ `market_movement`, `suspected_data_error` หรือ `needs_review`
+- [x] บันทึก audit note และ source checksum ต่อ artifact
+- [x] บันทึก expected 19 events เป็น verification ไม่ใช่ input
+- [x] หากพบ data error ให้สร้าง finding แยก
+- [x] ห้ามแก้ Raw/Snapshot/Manifest จาก Phase 2 script
+- [x] ห้ามเปลี่ยน baseline หรือ detector rule อัตโนมัติ
+- [x] หากต้องแก้ source data ให้หยุดการสรุปผลและเปิด baseline-reproduction workstream แยก
+
+**Tests:**
+
+- [x] ทุก reported date ตรงกับ detector flags
+- [x] ทุก event trace กลับ source date ได้หนึ่งแถวพอดี
+- [x] Report count ตรง event table
+- [x] Source checksums ก่อน/หลังเหมือนกัน
+- [x] Strict JSON ไม่มี NaN/Infinity
+
+**Definition of Done:**
+
+- [x] Direct spike ทุกแถว trace กลับต้นทางได้
+- [x] Data-quality classification ถูกบันทึกโดยไม่แก้ source
+- [x] Audit artifacts ตรวจซ้ำจาก inputs เดิมได้
+
+ผลจาก pinned inputs: 23 events (Train 19, Validation 0, Test 4) trace ครบและเป็น `market_movement` ทั้งหมดตามหลักฐานภายใน repository; ไม่พบ `suspected_data_error` หรือ `needs_review` และไม่ได้อ้างเหตุการณ์ตลาดภายนอก
+
+## M5. Build Primary Experiment Datasets
+
+**Dependencies:** M1–M4
+
+**Artifacts:**
+
+- `src/build_experiment_datasets.py`
+- `data/processed/experiments/with_spikes/train.csv`
+- `data/processed/experiments/non_spike/train.csv`
+- `data/processed/experiments/diagnostics/validation_flagged.csv`
+- `data/processed/experiments/diagnostics/test_flagged.csv`
+- `tests/test_experiment_datasets.py`
+
+**With-Spike checklist:**
+
+- [x] สร้างจาก Original Train แบบ deep copy
+- [x] เก็บ Original Train ครบทุกแถว
+- [x] รักษา schema, Date, order และค่าทุกคอลัมน์
+- [x] บันทึก checksum ของ source และ output
+
+**Non-Spike checklist:**
+
+- [x] เริ่มจาก Original Train ก่อนกรอง
+- [x] Attach primary `is_spike` และ `is_spike_affected` ในหน่วยความจำ
+- [x] Filter เฉพาะ `is_spike_affected == True` ออกจากสำเนา Train
+- [x] ห้าม recompute `return_1d` หรือ `return_5d`
+- [x] ห้าม recompute volatility, RSI, SMA หรือ volume features
+- [x] ห้าม recompute regression target
+- [x] ห้าม recompute Classification Q75 หรือ labels
+- [x] รักษาค่าทุก source column ของ kept rows แบบ exact/defined tolerance
+- [x] รักษาลำดับ Date
+- [x] ตรวจว่าไม่มี affected row เหลือใน filtered artifact
+- [x] ตรวจ expected rows 1,520 และ class 0/1 = 1,240/280 โดยไม่ hard-codeเป็น logic
+
+**Validation/Test checklist:**
+
+- [x] Full Validation/Test ยังคงเป็น Original labeled splits
+- [x] สร้าง flagged copies แยกเพื่อ diagnostics เท่านั้น
+- [x] ใช้ primary Train threshold ค่าเดียวกัน
+- [x] ไม่ filter หรือ overwrite Original Validation/Test
+- [x] ระบุ Full, Non-Spike และ Spike-Affected segment membership
+- [x] Primary expected diagnostic counts: Validation 371/0 affected, Test 319/54 non-affected/affected
+
+**Tests:**
+
+- [x] Original inputs ไม่เปลี่ยน checksum
+- [x] With-Spike values ตรง Original Train
+- [x] Non-Spike เป็น subset ตาม Date ที่ถูกต้อง
+- [x] Kept source-column values ตรง Original Train
+- [x] ไม่มี return ข้ามวันที่จากการกรอง
+- [x] Labels ตรง Original Q75 เดิม
+- [x] Full Validation/Test row count และ checksumไม่เปลี่ยน
+- [x] Diagnostic copies ไม่ถูกใช้แทน Full split โดย API contract
+
+**Definition of Done:**
+
+- [x] Primary With-Spike/Non-Spike artifacts สร้างซ้ำได้
+- [x] Original artifacts ไม่เปลี่ยน
+- [x] Full Validation/Test ยังคงเดิมทั้งสอง experiment cases
+
+ผล pinned M5: With-Spike 1,733 แถวและ byte-identical กับ Original Train; Non-Spike 1,520 แถว (class 0/1 = 1,240/280); Validation diagnostics 371 Full/371 non-affected/0 affected; Test diagnostics 373 Full/319 non-affected/54 affected
+
+## M6. Reports และ Primary Figures
+
+**สถานะที่ตรวจแล้ว:** Implemented / Verified ใน `src/build_spike_reports.py` และ `tests/test_spike_reports.py`; reuse M4 report/daily-return figure โดยไม่ overwrite และสร้าง dataset report กับกราฟใหม่ 2 ภาพจาก verified M1–M5 artifacts
+
+**Dependencies:** M1–M5
+
+**Artifacts:**
+
+- `outputs/reports/spike_analysis.json`
+- `outputs/reports/experiment_dataset_report.json`
+- `outputs/figures/spike_analysis/daily_return_spikes.png`
+- `outputs/figures/spike_analysis/volatility_spike_effect.png`
+- `outputs/figures/spike_analysis/dataset_comparison.png`
+
+**Checklist:**
+
+- [x] ใช้ strict JSON และ portable relative paths
+- [x] บันทึก detector formula/configuration
+- [x] บันทึก Q1, Q3, IQR, multiplier และ threshold
+- [x] บันทึก source split และ strict comparison rule
+- [x] บันทึก direct count/dates
+- [x] บันทึก requested/clipped affected bounds
+- [x] บันทึก affected union counts
+- [x] บันทึก before/after rows และ date ranges
+- [x] บันทึก class counts/ratios ก่อนและหลังกรอง
+- [x] บันทึก Full/Non-Spike/Spike-Affected diagnostic segment counts
+- [x] บันทึก source/output checksums
+- [x] บันทึก Original Q75 และยืนยันว่าไม่ได้ recompute
+- [x] บันทึก RSI operational-definition limitation
+- [x] ใช้ถ้อยคำว่า `operationally non-spike-affected` เมื่อสรุป Non-Spike Train
+- [x] ห้ามใช้ถ้อยคำว่า “ปราศจาก spike influence ทุก feature”
+- [x] Figures ต้อง trace กลับ verified data และ report values ได้
+- [x] ตรวจ title, axes, units, legend และ date coverage
+
+**Tests:**
+
+- [x] Report counts ตรง CSV
+- [x] Report checksums ตรงไฟล์
+- [x] Report paths portable
+- [x] Report rerun deterministic เมื่อ inputs/configเหมือนเดิม
+- [x] Figures ทั้งหมดถูกสร้างและไม่เป็นไฟล์ว่าง
+
+**Definition of Done:**
+
+- [x] Reports และ primary figures ครบ
+- [x] ทุกตัวเลข trace กลับ source artifacts ได้
+- [x] RSI และ boundary limitations ปรากฏในทั้ง report และ documentation
+
+## M7. Separate Phase 2 Runner
+
+**Dependencies:** M1–M6 APIs
+
+**Recommended artifact:** `src/run_spike_analysis.py`
+
+เลือก runner แยกเพราะ `src/run_data_pipeline.py` มีหน้าที่ rebuild Phase 1 ตั้งแต่ Snapshot ถึง labeled splits และมี declared outputs/safety lifecycle ของ Phase 1 อยู่แล้ว การแยก runner ทำให้ Phase 2 อ่าน baseline แบบ protected inputs และ overwrite ได้เฉพาะ generated Phase 2 artifacts
+
+**Checklist:**
+
+- [x] สร้าง `SpikePipelinePaths` หรือโครง path contractเทียบเท่า
+- [x] รองรับ default project paths
+- [x] รองรับ isolated `--output-root` โดยไม่ remap inputs
+- [x] รองรับ `--input-root` แยกเมื่อต้องการเปลี่ยน accepted baseline
+- [x] อ่าน labeled splits เป็น protected inputs
+- [x] ตรวจ baseline contract ก่อน write ใด ๆ
+- [x] ตรวจ input checksums ก่อน run
+- [x] Preflight generated output paths
+- [x] ป้องกัน path alias กับทุก protected baseline artifact
+- [x] ป้องกัน duplicate output destinations
+- [x] ป้องกัน output หลุดจาก allowed roots
+- [x] ไม่ overwrite โดย default
+- [x] รองรับ `--overwrite-generated` เฉพาะ declared Phase 2 outputs
+- [x] ปฏิเสธ symlink/hard-link overwrite
+- [x] เรียก M1 → M4 → M5 → M6 ตามลำดับ โดย M2/M3 เป็น canonical APIs ที่ stages เหล่านี้ reuse
+- [x] ตรวจ protected checksums ซ้ำเมื่อสำเร็จและเมื่อ stage ล้มเหลว
+- [x] ระบุ stage ใน error message
+- [x] แจ้งว่า partial generated outputs อาจเหลือหาก stage ล้มเหลว
+- [x] พิมพ์ summary paths/counts/checksums
+- [x] ห้ามเรียก Phase 1 rebuild, network download หรือ model training
+
+**Artifacts:**
+
+- `src/run_spike_analysis.py`
+- `tests/test_spike_pipeline.py`
+- README run command
+
+**Tests:**
+
+- [x] End-to-end run ใต้ temporary output root
+- [x] Default no-overwrite behavior
+- [x] Explicit overwrite จำกัดเฉพาะ Phase 2 outputs
+- [x] Protected-input alias tests
+- [x] Duplicate-output tests
+- [x] Symlink/hard-link safety testsตาม platform capability
+- [x] Failure-stage reporting
+- [x] Source checksum verification หลัง failure
+- [x] Offline execution test
+- [x] Deterministic rerun test
+- [x] `--input-root` และ `--output-root` ไม่ remap กันโดยปริยาย
+
+**Definition of Done:**
+
+- [x] Phase 2 reproduce ได้ด้วย documented command เดียว
+- [x] Runner ไม่แก้หรือ rebuild Phase 1 inputs
+- [x] Integration tests ผ่าน
+
+## M8. Verification และ Documentation Gate
+
+**Dependencies:** M1–M7
+
+**Artifacts:**
+
+- `README.md`
+- `HANDOFF.md`
+- `PROJECT_STATUS.md`
+- Phase 2 run/test evidence
+
+**Checklist:**
+
+- [x] รัน spike-specific unit/integration tests (`142 passed, 1 skipped`)
+- [x] รัน existing full test suite (`334 passed, 2 skipped`)
+- [x] ตรวจ generated artifacts inventory 11/11 ไฟล์ตาม path ที่แจกแจงจริง
+- [x] ตรวจ source checksums ก่อน/หลัง success และ intentional preflight failure
+- [x] ตรวจ report/CSV/figure consistency
+- [x] บันทึกคำสั่ง reproduce ที่รันจริง
+- [x] บันทึก expected outputs
+- [x] บันทึก RSI limitation
+- [x] บันทึก boundary clipping policy
+- [x] บันทึก saved-report portability mismatch และ resolution/status
+- [x] อัปเดตสถานะ Phase 2 ตามหลักฐานจริงเท่านั้น
+- [x] ห้ามระบุว่า model training เสร็จ
+- [x] ห้ามระบุผล model performance ใน Phase 2
+
+**Definition of Done:**
+
+- [x] Must-have tests ทั้งหมดผ่าน
+- [x] Must-have artifacts ครบและตรวจสอบได้
+- [x] Documentation ตรงกับ implementation และ generated results
+- [x] Gate = OPEN ให้ Phase ถัดไปเริ่ม paired model training ได้
+
+---
+
+# Optional Sensitivity Analysis สำหรับ Phase 2
+
+Sensitivity เป็นการวิเคราะห์ผลต่อจำนวนข้อมูล ไม่แทน primary 3×IQR dataset และไม่ใช้เลือก primary ruleย้อนหลังจาก model/Test scores
+
+## S1. Q3 + 1.5×IQR
+
+**Dependencies:** M1–M3
+
+**Checklist:**
+
+- [ ] Fit Q1/Q3/IQR จาก Original Train เท่านั้น
+- [ ] ใช้ threshold `Q3 + 1.5 × IQR`
+- [ ] ใช้ strict `>`
+- [ ] Apply Train threshold ค่าเดียวกับ Validation/Test
+- [ ] สร้าง affected mask ด้วย `[s-5, s+19]`
+- [ ] รายงาน direct, affected, remaining rows และ class distribution
+- [ ] รายงาน Test right-boundary clipping ที่เกิดขึ้นจริง
+- [ ] ห้ามสร้างเป็น primary Non-Spike dataset
+- [ ] ห้าม train model variant นี้ใน Phase 2
+
+**Observed checks:**
+
+- Threshold ประมาณ `0.0302071795070148`
+- Train direct/affected/remaining ประมาณ 91/690/1,043
+- Remaining Train class 0/1 ประมาณ 991/52
+
+## S2. Train percentile 99
+
+**Dependencies:** M1–M3
+
+**Checklist:**
+
+- [ ] Fit p99 จาก `abs(return_1d)` ของ Original Train เท่านั้น
+- [ ] Freeze quantile interpolation methodใน report
+- [ ] ใช้ strict `>`
+- [ ] Apply Train threshold ค่าเดียวกับ Validation/Test
+- [ ] สร้าง affected mask ด้วย `[s-5, s+19]`
+- [ ] รายงาน direct, affected, remaining rows และ class distribution
+- [ ] ห้ามสร้างเป็น primary Non-Spike dataset
+- [ ] ห้าม train model variant นี้ใน Phase 2
+
+**Observed checks:**
+
+- Threshold ประมาณ `0.0487619470246741`
+- Train direct/affected/remaining ประมาณ 18/211/1,522
+- Remaining Train class 0/1 ประมาณ 1,241/281
+
+## S3. Sensitivity Artifacts และ Tests
+
+**Artifacts:**
+
+- `outputs/reports/spike_sensitivity.json`
+- `outputs/figures/spike_analysis/threshold_comparison.png`
+
+**Tests:**
+
+- [ ] ทุก sensitivity threshold fit จาก Train เท่านั้น
+- [ ] ทุก rule ใช้ strict `>`
+- [ ] Equality boundary ไม่ถูก flag
+- [ ] Validation/Test mutation ไม่เปลี่ยน fitted threshold
+- [ ] Counts ใน report ตรง detector/mask outputs
+- [ ] Primary config และ primary artifacts ไม่เปลี่ยนเมื่อเปิด sensitivity
+
+**Definition of Done:**
+
+- [ ] รายงานผลเป็น data-retention/class-distribution diagnostics
+- [ ] แยก primary กับ sensitivity ชัดเจน
+- [ ] ไม่มี model training หรือ Test-score-based rule selection
+
+---
+
+# Future Work — ไม่ใช่ Phase 2 Must-have
+
+- [ ] Robust Z-score detector
+  - [ ] Freeze median/MAD formula
+  - [ ] Freeze scaling constant
+  - [ ] Freeze cutoff
+  - [ ] กำหนด `MAD = 0` policy
+  - [ ] เพิ่ม strict-comparison และ leakage tests
+- [ ] RSI decay sensitivity
+  - [ ] นิยาม tolerance เชิงตัวเลข
+  - [ ] ประเมิน window ที่ยาวกว่า `s+19`
+  - [ ] เปรียบเทียบกับ Policy A โดยไม่เปลี่ยน primary artifacts
+- [ ] Train models สำหรับ sensitivity variants
+  - [ ] ทำใน modeling phase เท่านั้น
+  - [ ] ใช้ paired protocol, seeds, metrics และ Full Test เดียวกัน
+  - [ ] ห้ามเลือก detector ย้อนหลังจาก Test performance
+- [ ] Sequence-model rules
+  - [ ] ห้ามสร้าง sequence ข้ามวันที่ที่ถูกกรอง
+  - [ ] เพิ่ม contiguous-segment contract และ tests
+- [ ] Source-data correction workstream หาก direct audit พบ data error
+  - [ ] แก้ baseline แยกจาก Phase 2
+  - [ ] Reproduce Phase 1 ใหม่
+  - [ ] Update manifests/checksums อย่างตรวจสอบได้
+  - [ ] Re-run Phase 2 หลัง baseline review
+
+---
+
+# Phase 2 Definition of Done รวม
+
+Phase 2 ถือว่าเสร็จเมื่อ Must-have M1–M8 ครบทั้งหมด:
+
+- [x] Primary detector fit จาก Original Train เท่านั้น
+- [x] Primary threshold ใช้ strict `>` และไม่ hard-code
+- [x] Primary affected mask ใช้ `[s-5, s+19]` แบบ inclusive
+- [x] RSI Policy A และข้อจำกัดถูกบันทึกทุกจุดที่เกี่ยวข้อง
+- [x] Boundary clipping/isolation ถูกทดสอบและรายงาน
+- [x] Direct spikes ถูก trace กลับ source
+- [x] With-Spike และ Non-Spike Train reproducible
+- [x] Full Validation/Test เป็น Original splits เดิม
+- [x] Diagnostic segments ไม่แทนผล Full Validation/Test
+- [x] Original Raw/Snapshot/Manifest/Clean/Features/Targets/Splits ไม่เปลี่ยน
+- [x] Original Classification Q75 และ labels ไม่เปลี่ยน
+- [x] Reports, figures และ checksums ตรง artifacts
+- [x] Separate Phase 2 runner ผ่าน integration tests
+- [x] Existing full test suite ผ่าน
+- [x] Saved-report portability mismatch ได้รับการตรวจและบันทึกผล
+- [x] README/HANDOFF/PROJECT_STATUS ตรงกับหลักฐานจริง
+- [x] ยังไม่มีการอ้างว่า model training หรือ model evaluation เสร็จ
+
+Optional sensitivity ไม่เป็นเงื่อนไขปิด Phase 2 เว้นแต่ทีมยกระดับเป็น requirement ภายหลัง ส่วน Robust Z-score, RSI decay alternatives และ model training เป็น Future Work
+
+## ลำดับ Implementation ที่แนะนำ
+
+1. M1 — Freeze และ verify baseline input contract
+2. M2 — Implement pure primary detector
+3. M3 — Implement affected mask และ boundary metadata
+4. M4 — ทำ direct spike/data-quality audit
+5. M5 — สร้าง primary experiment datasets และ diagnostic copies
+6. M6 — สร้าง reports และ primary figures
+7. M7 — ประกอบเป็น separate Phase 2 runner
+8. M8 — รัน verification และอัปเดต documentation
+9. S1–S3 — ทำ optional data-retention sensitivity หากเวลาเพียงพอ
+10. เปิด modeling phase หลัง Must-have gate ผ่านเท่านั้น

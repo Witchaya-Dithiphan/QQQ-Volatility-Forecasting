@@ -76,6 +76,73 @@ Path ภายใน regression target, split และ classification reports �
 python -m pytest -q
 ```
 
+## Phase 2 spike-analysis readiness
+
+ก่อน implement experiment datasets ได้ตรวจ Phase 1 ใหม่ใน isolated output root แล้ว พบว่า reports ที่สร้างจากโค้ดปัจจุบันใช้ portable relative paths และ labeled CSV ทั้งสาม split มี SHA-256 ตรงกับชุดที่ project root แบบ byte-for-byte รายละเอียด hashes, authoritative inputs, boundary policy และคำสั่ง reproduce อยู่ใน `PHASE2_SPIKE_READINESS.md`
+
+M1 Baseline Input Contract implement แล้วใน `src/build_spike_input_contract.py` โดยอ่าน baseline labeled splits และ saved reports โดยไม่แก้ไข ตรวจ schema, numeric/finite values, dates, split gaps, Original Train Q75, strict labels และ SHA-256 จากนั้นเขียนเฉพาะ generated `spike_input_contract.json` พร้อมบันทึก saved-report portability discrepancy โดยไม่แก้ reports เดิม ก่อนรันให้สร้าง Phase 1 reproduction ใน output root ใหม่ แล้วสร้าง generated contract ดังนี้:
+
+```powershell
+python -m src.run_data_pipeline --output-root tmp/phase2-m1-baseline
+python -m src.build_spike_input_contract --reproduced-root tmp/phase2-m1-baseline
+```
+
+ผลอยู่ที่ `outputs/reports/spike_input_contract.json` และถูก ignore โดย Git คำสั่งจะไม่ overwrite โดย default; หากตั้งใจสร้าง contract ซ้ำใช้ `--overwrite-generated` ซึ่งอนุญาตเฉพาะไฟล์ contract ที่ประกาศไว้
+
+M2 direct detector implement แล้วใน `src/detect_spikes.py`: fit Q1/Q3/IQR/threshold จาก M1-verified Original Train และ apply fitted threshold เดิมกับ split ใดก็ได้แบบ strict `>` โดยไม่ refitหรือแก้ input ส่วน M3 ใน `src/spike_contract.py` เป็นเจ้าของ affected window `[s-5, s+19]`, split-local clipping/union mask และ JSON-safe boundary metadata เพียงแห่งเดียว
+
+M4 audit implement แล้วใน `src/audit_spikes.py` โดย reuse M2/M3 APIs, trace direct events ผ่าน labeled/target/feature/clean/pinned raw, ตรวจ source checksums และเขียนเฉพาะสาม generated artifacts ใต้ output root:
+
+```powershell
+python -m src.audit_spikes --output-root tmp/phase2-m4-audit
+```
+
+ผล pinned audit คือ Train 19 direct/213 affected, Validation 0/0 และ Test 4/54 รวม 23 events ที่ trace ครบและมีสถานะ `market_movement`; ไม่พบ data-quality finding จากหลักฐานภายใน repository และไม่ได้อ้างเหตุการณ์ตลาดภายนอก Default จะไม่ overwrite; ใช้ `--overwrite-generated` เฉพาะเมื่อตั้งใจแทนที่สาม M4 artifacts
+
+M5 primary experiment datasets implement แล้วใน `src/build_experiment_datasets.py` โดยใช้ M1/M4 เป็น dependency gates และเรียก M2/M3 APIs เดิม ไม่คำนวณ features, targets หรือ labels ใหม่:
+
+```powershell
+python -m src.build_experiment_datasets --output-root tmp/phase2-m5-datasets
+```
+
+ผล pinned M5 คือ With-Spike 1,733 แถวและ byte-identical กับ Original Train, Non-Spike 1,520 แถว (class 0/1 = 1,240/280), Validation diagnostics 371 Full/0 affected และ Test diagnostics 373 Full/54 affected Full Validation/Test สำหรับ model evaluation ยังคงเป็น Original labeled splits ไม่ใช่ flagged copies
+
+M6 implement แล้วใน `src/build_spike_reports.py`: validate/aggregate ผล M1–M5, reuse `spike_analysis.json` และ `daily_return_spikes.png` จาก M4 แบบ read-only และสร้าง `experiment_dataset_report.json`, `volatility_spike_effect.png`, `dataset_comparison.png` โดยไม่เขียนสูตร detector/window/filtering ซ้ำ รองรับ isolated `--output-root` และ default ไม่ overwrite generated M6 artifacts
+
+M7 runner implement แล้วใน `src/run_spike_analysis.py` สำหรับ reproduce M1–M6 แบบ offline ด้วยคำสั่งเดียว โดยไม่ rebuild Phase 1 และไม่ train model คำสั่งแนะนำจาก project root คือ:
+
+```powershell
+python -m src.run_spike_analysis --output-root tmp/phase2-run
+```
+
+`--output-root` เปลี่ยนเฉพาะ generated Phase 2 destinations ใต้ `data/processed/experiments`, `outputs/reports` และ `outputs/figures/spike_analysis`; baseline inputs ยังคงอ่านจาก project root หากต้องการใช้ baseline tree อื่นต้องระบุ `--input-root` แยกอย่างชัดเจน:
+
+```powershell
+python -m src.run_spike_analysis --input-root path/to/accepted-baseline --output-root tmp/phase2-run
+```
+
+Prerequisites คือ Phase 1 Snapshot/Manifest, interim data, labeled splits, split/classification reports และ accepted Phase 1 reproduction ที่ผ่าน M1 แล้ว Default จะ fail ก่อนเริ่ม stage หาก declared output ใดมีอยู่; `--overwrite-generated` เขียนทับได้เฉพาะ 11 artifacts ที่ประกาศไว้และไม่แตะไฟล์อื่นใน output root Full Validation/Test สำหรับ evaluation ยังคงเป็น Original labeled splits ส่วน flagged copies ใช้ diagnostics เท่านั้น
+
+### Phase 2 verification gate (M8)
+
+ตรวจรับล่าสุดจาก project root ด้วย output root ใหม่ โดยไม่ได้แก้ generated outputs เดิม:
+
+```powershell
+python -m src.run_spike_analysis --output-root tmp/phase2-m8-verification-20261007
+```
+
+Gate = **OPEN สำหรับเริ่ม paired model training ขั้นถัดไป** เพราะ spike-specific tests ผ่าน `142 passed, 1 skipped`, full suite ผ่าน `334 passed, 2 skipped`, targeted Ruff/mypy ผ่าน, protected checksums ไม่เปลี่ยน และ must-have artifacts ครบ 11/11 ไฟล์:
+
+- Reports: `spike_input_contract.json`, `spike_analysis.json`, `spike_event_audit.csv`, `experiment_dataset_report.json`
+- Experiment datasets: `with_spikes/train.csv`, `non_spike/train.csv`, `diagnostics/validation_flagged.csv`, `diagnostics/test_flagged.csv`
+- Figures: `daily_return_spikes.png`, `volatility_spike_effect.png`, `dataset_comparison.png`
+
+ผล pinned ที่ตรวจจาก artifacts จริงคือ Train direct/affected `19/213`, With-Spike/Non-Spike `1,733/1,520`, Validation affected `0`, Test affected `54` และ Non-Spike class 0/1 `1,240/280` Snapshot, Manifest และ Original Train/Validation/Test SHA-256 ก่อน/หลัง success รวมถึง intentional no-overwrite failure เหมือนเดิมทุกไฟล์
+
+Root `data_split_report.json` และ `classification_threshold.json` รุ่นเก่ายังมี absolute Windows paths และไม่มี `paths_relative_to`; M8 ไม่ rewrite ไฟล์เหล่านี้ Fresh Phase 1 reproduction reports และ Phase 2 reports ใน isolated run ใช้ portable relative pathsและ links resolve ได้ ข้อจำกัดยังคงเดิม: Wilder RSI เป็น recursive, `[s-5,s+19]` เป็น operational window, mask clip ภายใน split และไม่ได้พิสูจน์ว่า cross-boundary influence หรือ spike influence ในทุก feature เป็นศูนย์
+
+M8 ไม่ได้ train model และไม่มี model metrics/performance results ใดถูกสร้างขึ้น S3 sensitivity report/figure ยังเป็น optional และไม่ใช่ must-have gate
+
 ## Original Course Requirements
 
 Model plan ด้านล่างยึด requirement summary ที่ระบุแหล่งอ้างอิงเป็น
@@ -309,12 +376,11 @@ metric ผลหลักต้องรายงาน metrics ครบ ไม
 | Classification | Logistic Regression | Required | Required |
 | Classification | AdaBoost | Required | Required |
 
-With-Spike ใช้ Original Train ส่วน Non-Spike จะตัดเฉพาะ Train modeling rows ที่
+With-Spike ใช้ Original Train ส่วน Non-Spike ตัดเฉพาะ Train modeling rows ที่
 `is_spike_affected == True` หลังสร้าง features/targets แล้ว โดยไม่เปลี่ยน Original
-Validation/Test, classification Q75, models, metrics หรือ search protocol ปัจจุบัน
-workflow นี้เป็น `Planned`: ยังไม่มี detector, experiment datasets หรือ saved
-spike/model metrics จึงยังใช้คำว่า `Implemented` หรือ `Verified by saved results`
-ไม่ได้
+Validation/Test หรือ classification Q75 ปัจจุบัน M1–M8, experiment datasets,
+reports, figures, separate Phase 2 runner และ verification gate implement/verify แล้ว แต่ models,
+metrics และ search protocol ยังเป็น `Planned` จึงยังอ้างว่าผลโมเดลเสร็จไม่ได้
 
 ## Model Selection Risks and Open Questions
 
@@ -329,8 +395,8 @@ spike/model metrics จึงยังใช้คำว่า `Implemented` ห
   implementation
 - ต้อง freeze hyperparameter search spaces, random seeds, scaling policy และ
   prediction-threshold policy ก่อนใช้ Test
-- With-Spike/Non-Spike workflow และ model implementations ยังเป็น `Planned` และยัง
-  ไม่มี performance claims
+- With-Spike/Non-Spike datasets พร้อมแล้ว แต่ model implementations ยังเป็น `Planned`
+  และยังไม่มี performance claims
 
 ### Traceable sources
 
