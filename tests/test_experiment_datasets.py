@@ -8,11 +8,24 @@ import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
 import pandas as pd
 import pytest
 
+from src.build_experiment_datasets import (
+    DIAGNOSTIC_COLUMNS,
+    ExperimentDatasetPaths,
+    build_primary_experiment_frames,
+    run_experiment_dataset_pipeline,
+)
+from src.build_experiment_datasets import (
+    _preflight as experiment_preflight,
+)
+from src.build_experiment_datasets import (
+    main as experiment_main,
+)
 from src.build_features import FEATURE_COLUMNS
 from src.build_spike_input_contract import (
     MODEL_COLUMNS,
@@ -71,9 +84,7 @@ def _classification_report(
         "classification_target": CLASSIFICATION_TARGET,
         "threshold_decimal": threshold,
         "comparison_rule": f"{TARGET_COLUMN} > threshold",
-        "input_paths": {
-            name: f"C:\\old-machine\\data\\{name}.csv" for name in frames
-        },
+        "input_paths": {name: f"C:\\old-machine\\data\\{name}.csv" for name in frames},
         "output_paths": {
             name: f"C:\\old-machine\\data\\{name}_labeled.csv" for name in frames
         },
@@ -98,14 +109,10 @@ def _build_case() -> ContractCase:
     }
     threshold = float(frames["train"][TARGET_COLUMN].quantile(0.75))
     for frame in frames.values():
-        frame[CLASSIFICATION_TARGET] = (
-            frame[TARGET_COLUMN].gt(threshold).astype("int8")
-        )
+        frame[CLASSIFICATION_TARGET] = frame[TARGET_COLUMN].gt(threshold).astype("int8")
     split_report: dict[str, object] = {
         "input_path": "C:\\old-machine\\data\\regression_target.csv",
-        "output_paths": {
-            name: f"C:\\old-machine\\data\\{name}.csv" for name in frames
-        },
+        "output_paths": {name: f"C:\\old-machine\\data\\{name}.csv" for name in frames},
         "gap_size": 5,
         "total_gap_rows": 10,
         "split_rows": {name: len(frame) for name, frame in frames.items()},
@@ -504,17 +511,13 @@ def _write_reproduction(
         for name in case.frames
     }
     classification_payload["output_paths"] = {
-        name: _portable_path(
-            processed / f"{name}_labeled.csv", classification_path
-        )
+        name: _portable_path(processed / f"{name}_labeled.csv", classification_path)
         for name in case.frames
     }
     _write_json(classification_path, classification_payload)
 
 
-def _write_pipeline_case(
-    root: Path, case: ContractCase
-) -> SpikeInputContractPaths:
+def _write_pipeline_case(root: Path, case: ContractCase) -> SpikeInputContractPaths:
     inputs = root / "authoritative"
     reports = root / "saved-reports"
     train = inputs / "train_labeled.csv"
@@ -566,12 +569,16 @@ def test_pipeline_writes_portable_deterministic_strict_json_without_mutating_sou
     assert report["saved_report_provenance"]["isolated_phase1_reproduction"][
         "all_labeled_csvs_byte_identical"
     ]
-    assert all(not Path(item["path"]).is_absolute() for item in report["inputs"].values())
+    assert all(
+        not Path(item["path"]).is_absolute() for item in report["inputs"].values()
+    )
     assert b"NaN" not in first_bytes and b"Infinity" not in first_bytes
     json.loads(first_bytes)
 
     with pytest.raises(FileExistsError, match="--overwrite-generated"):
-        run_spike_input_contract_pipeline(paths, expectations=contract_case.expectations)
+        run_spike_input_contract_pipeline(
+            paths, expectations=contract_case.expectations
+        )
     assert paths.output_report.read_bytes() == first_bytes
 
     run_spike_input_contract_pipeline(
@@ -616,7 +623,9 @@ def test_pipeline_failure_does_not_write_or_mutate_sources(
     before = {name: _sha256(path) for name, path in paths.protected_inputs().items()}
 
     with pytest.raises(ValueError, match="must not contain NaN"):
-        run_spike_input_contract_pipeline(paths, expectations=contract_case.expectations)
+        run_spike_input_contract_pipeline(
+            paths, expectations=contract_case.expectations
+        )
 
     after = {name: _sha256(path) for name, path in paths.protected_inputs().items()}
     assert before == after
@@ -635,7 +644,9 @@ def test_pipeline_rejects_nonportable_fresh_reproduction(
     _write_json(report_path, payload)
 
     with pytest.raises(ValueError, match="portable-path contract"):
-        run_spike_input_contract_pipeline(paths, expectations=contract_case.expectations)
+        run_spike_input_contract_pipeline(
+            paths, expectations=contract_case.expectations
+        )
 
 
 def test_pipeline_rejects_reproduction_hash_mismatch(
@@ -648,7 +659,9 @@ def test_pipeline_rejects_reproduction_hash_mismatch(
     reproduced_train.write_text("different bytes\n", encoding="utf-8")
 
     with pytest.raises(ValueError, match="hashes differ"):
-        run_spike_input_contract_pipeline(paths, expectations=contract_case.expectations)
+        run_spike_input_contract_pipeline(
+            paths, expectations=contract_case.expectations
+        )
 
 
 def test_pipeline_preflight_rejects_missing_reproduction_and_output_directory(
@@ -753,3 +766,299 @@ def test_cli_reports_success(
     assert "train=train-hash" in captured.out
 
 
+def _minimal_spike_frame(
+    start: str,
+    returns: list[float],
+    *,
+    index_start: int = 0,
+) -> pd.DataFrame:
+    """Build a minimal labeled-like split for pure M5 positional tests."""
+    return pd.DataFrame(
+        {
+            "Date": pd.bdate_range(start, periods=len(returns)),
+            "return_1d": returns,
+            TARGET_COLUMN: np.linspace(0.01, 0.02, len(returns)),
+            CLASSIFICATION_TARGET: np.zeros(len(returns), dtype="int8"),
+        },
+        index=pd.RangeIndex(index_start, index_start + len(returns)),
+    )
+
+
+def test_m5_pure_builder_uses_original_positions_with_overlap_and_clipping() -> None:
+    train_returns = [0.0] * 40
+    train_returns[0] = 0.5
+    train_returns[15] = -0.5
+    train_returns[39] = 0.5
+    labeled = {
+        "train": _minimal_spike_frame("2020-01-01", train_returns, index_start=100),
+        "validation": _minimal_spike_frame("2021-01-01", [0.0] * 12, index_start=500),
+        "test": _minimal_spike_frame(
+            "2022-01-03", [0.0, -0.6, *([0.0] * 10)], index_start=900
+        ),
+    }
+
+    built = build_primary_experiment_frames(labeled)
+    train_result = built.affected_results["train"]
+
+    assert train_result.summary.direct_count == 3
+    assert train_result.summary.left_clipped_window_count == 1
+    assert train_result.summary.right_clipped_window_count == 1
+    assert train_result.summary.overlap_position_count > 0
+    expected_positions = np.flatnonzero(
+        ~train_result.affected_flags.to_numpy(dtype=bool)
+    )
+    pd.testing.assert_frame_equal(
+        built.non_spike_train,
+        labeled["train"].iloc[expected_positions].reset_index(drop=True),
+    )
+    assert built.validation_flagged["is_spike_affected"].sum() == 0
+    assert list(built.validation_flagged.columns[-3:]) == list(DIAGNOSTIC_COLUMNS)
+    assert built.test_flagged.iloc[1]["is_spike"]
+    assert built.test_flagged.iloc[1]["return_1d"] == -0.6
+
+
+def test_m5_pure_builder_handles_no_spikes_without_filtering() -> None:
+    labeled = {
+        "train": _minimal_spike_frame("2020-01-01", [0.0] * 10),
+        "validation": _minimal_spike_frame("2021-01-01", [0.0] * 5),
+        "test": _minimal_spike_frame("2022-01-03", [0.0] * 5),
+    }
+
+    built = build_primary_experiment_frames(labeled)
+
+    pd.testing.assert_frame_equal(built.with_spikes_train, labeled["train"])
+    pd.testing.assert_frame_equal(
+        built.non_spike_train, labeled["train"].reset_index(drop=True)
+    )
+    assert all(
+        result.summary.affected_union_count == 0
+        for result in built.affected_results.values()
+    )
+
+
+def _production_m5_paths(output_root: Path) -> ExperimentDatasetPaths:
+    return ExperimentDatasetPaths.under_roots(
+        Path(__file__).resolve().parents[1], output_root
+    )
+
+
+def _require_m5_production_inputs(paths: ExperimentDatasetPaths) -> None:
+    if not all(path.is_file() for path in paths.protected_inputs().values()):
+        pytest.skip("Ignored M1/M4 production inputs are unavailable")
+
+
+def test_m5_pipeline_builds_deterministic_read_only_primary_artifacts(
+    tmp_path: Path,
+) -> None:
+    paths = _production_m5_paths(tmp_path)
+    _require_m5_production_inputs(paths)
+    source_bytes = {
+        name: path.read_bytes() for name, path in paths.protected_inputs().items()
+    }
+
+    first = run_experiment_dataset_pipeline(paths)
+    first_outputs = {
+        name: path.read_bytes() for name, path in paths.generated_outputs().items()
+    }
+    second = run_experiment_dataset_pipeline(paths, overwrite_generated=True)
+
+    assert first.output_checksums == second.output_checksums
+    assert {
+        name: path.read_bytes() for name, path in paths.generated_outputs().items()
+    } == first_outputs
+    assert {
+        name: path.read_bytes() for name, path in paths.protected_inputs().items()
+    } == source_bytes
+    assert paths.with_spikes_train.read_bytes() == paths.train_labeled.read_bytes()
+    assert first.with_spikes_byte_identical
+    assert first.row_counts == {
+        "with_spikes_train": 1733,
+        "non_spike_train": 1520,
+        "validation_flagged": 371,
+        "test_flagged": 373,
+    }
+    assert first.class_counts["non_spike_train"] == {0: 1240, 1: 280}
+    assert first.diagnostic_counts == {
+        "validation": {"full": 371, "non_spike": 371, "spike_affected": 0},
+        "test": {"full": 373, "non_spike": 319, "spike_affected": 54},
+    }
+    assert first.full_evaluation_inputs == {
+        "validation": paths.validation_labeled,
+        "test": paths.test_labeled,
+    }
+
+    original = pd.read_csv(paths.train_labeled)
+    non_spike = pd.read_csv(paths.non_spike_train)
+    assert list(non_spike.columns) == list(original.columns)
+    source_subset = original.set_index("Date").loc[non_spike["Date"]].reset_index()
+    pd.testing.assert_frame_equal(non_spike, source_subset)
+    assert not non_spike["Date"].duplicated().any()
+    assert non_spike["Date"].is_monotonic_increasing
+
+    for split_name, flagged_path, original_path in (
+        ("validation", paths.validation_flagged, paths.validation_labeled),
+        ("test", paths.test_flagged, paths.test_labeled),
+    ):
+        flagged = pd.read_csv(flagged_path)
+        original_split = pd.read_csv(original_path)
+        pd.testing.assert_frame_equal(
+            flagged[list(original_split.columns)], original_split
+        )
+        assert list(flagged.columns[-3:]) == list(DIAGNOSTIC_COLUMNS)
+        assert set(flagged["diagnostic_segment"]) <= {
+            "non_spike",
+            "spike_affected",
+        }
+        assert len(flagged) == first.diagnostic_counts[split_name]["full"]
+
+
+def _touch_m5_inputs(paths: ExperimentDatasetPaths) -> None:
+    for path in paths.protected_inputs().values():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text("fixture", encoding="utf-8")
+
+
+def test_m5_preflight_rejects_existing_outputs_and_hardlink_alias(
+    tmp_path: Path,
+) -> None:
+    source = tmp_path / "source"
+    output = tmp_path / "output"
+    paths = ExperimentDatasetPaths.under_roots(
+        source,
+        output,
+        raw_snapshot=source / "raw" / "snapshot.csv",
+        manifest=source / "manifest" / "snapshot.json",
+        input_contract=source / "reports" / "contract.json",
+        audit_report=source / "reports" / "audit.json",
+        audit_events=source / "reports" / "events.csv",
+        audit_figure=source / "figures" / "audit.png",
+    )
+    _touch_m5_inputs(paths)
+    paths.with_spikes_train.parent.mkdir(parents=True, exist_ok=True)
+    paths.with_spikes_train.write_text("existing", encoding="utf-8")
+    with pytest.raises(FileExistsError, match="overwrite-generated"):
+        experiment_preflight(paths, overwrite_generated=False)
+
+    paths.with_spikes_train.unlink()
+    try:
+        os.link(paths.train_labeled, paths.with_spikes_train)
+    except OSError as error:
+        pytest.skip(f"Hard links unavailable: {error}")
+    with pytest.raises(ValueError, match="aliases protected input"):
+        experiment_preflight(paths, overwrite_generated=True)
+
+
+@pytest.mark.parametrize(
+    ("overall_status", "message"),
+    [
+        ("requires_baseline_reproduction", "not internally consistent"),
+        ("internally_consistent", "unresolved findings"),
+    ],
+)
+def test_m5_pipeline_stops_on_unresolved_m4_finding(
+    tmp_path: Path,
+    overall_status: str,
+    message: str,
+) -> None:
+    normal_paths = _production_m5_paths(tmp_path / "normal")
+    _require_m5_production_inputs(normal_paths)
+    modified_report = tmp_path / "blocked" / "spike_analysis.json"
+    modified_report.parent.mkdir(parents=True)
+    report = json.loads(normal_paths.audit_report.read_text(encoding="utf-8"))
+    report["overall_data_quality_status"] = overall_status
+    report["audit_findings"] = [{"event_key": "synthetic:blocker"}]
+    modified_report.write_text(json.dumps(report, allow_nan=False), encoding="utf-8")
+    paths = ExperimentDatasetPaths.under_roots(
+        Path(__file__).resolve().parents[1],
+        tmp_path / "blocked-output",
+        audit_report=modified_report,
+    )
+
+    with pytest.raises(RuntimeError, match=message):
+        run_experiment_dataset_pipeline(paths)
+    assert not any(path.exists() for path in paths.generated_outputs().values())
+
+
+def test_m5_defaults_use_configured_experiment_paths() -> None:
+    paths = ExperimentDatasetPaths.defaults()
+
+    assert paths.with_spikes_train.parts[-3:] == (
+        "experiments",
+        "with_spikes",
+        "train.csv",
+    )
+    assert paths.non_spike_train.name == "train.csv"
+    assert paths.validation_flagged.name == "validation_flagged.csv"
+    assert paths.test_flagged.name == "test_flagged.csv"
+
+
+def test_m5_pure_builder_requires_all_three_splits() -> None:
+    with pytest.raises(ValueError, match="must contain exactly"):
+        build_primary_experiment_frames(
+            {"train": _minimal_spike_frame("2020-01-01", [0.0] * 5)}
+        )
+
+
+def test_m5_cli_reports_success(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    def fake_pipeline(
+        paths: ExperimentDatasetPaths,
+        *,
+        overwrite_generated: bool = False,
+    ) -> SimpleNamespace:
+        assert overwrite_generated
+        names = paths.generated_outputs()
+        return SimpleNamespace(
+            paths=paths,
+            row_counts={name: index for index, name in enumerate(names, start=1)},
+            output_checksums={name: f"{name}-hash" for name in names},
+            class_counts={"non_spike_train": {0: 2, 1: 1}},
+            diagnostic_counts={"validation": {"full": 3}},
+            full_evaluation_inputs={
+                "validation": paths.validation_labeled,
+                "test": paths.test_labeled,
+            },
+        )
+
+    monkeypatch.setattr(
+        "src.build_experiment_datasets.run_experiment_dataset_pipeline",
+        fake_pipeline,
+    )
+
+    assert (
+        experiment_main(["--output-root", str(tmp_path), "--overwrite-generated"]) == 0
+    )
+    output = capsys.readouterr().out
+    assert "M5 experiment datasets" in output
+    assert "with_spikes_train-hash" in output
+    assert "Full evaluation inputs remain Original labeled splits" in output
+
+
+def test_m5_cli_reports_failure_and_partial_outputs(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    def fail_pipeline(
+        paths: ExperimentDatasetPaths,
+        *,
+        overwrite_generated: bool = False,
+    ) -> None:
+        del overwrite_generated
+        paths.with_spikes_train.parent.mkdir(parents=True, exist_ok=True)
+        paths.with_spikes_train.write_text("partial", encoding="utf-8")
+        raise RuntimeError("synthetic failure")
+
+    monkeypatch.setattr(
+        "src.build_experiment_datasets.run_experiment_dataset_pipeline",
+        fail_pipeline,
+    )
+
+    assert experiment_main(["--output-root", str(tmp_path)]) == 1
+    error = capsys.readouterr().err
+    assert "synthetic failure" in error
+    assert "Generated M5 outputs present after failure" in error
+    assert "with_spikes_train" in error

@@ -48,6 +48,12 @@ SPIKE_EVENT_AUDIT_PATH = PROJECT_ROOT / "outputs" / "reports" / "spike_event_aud
 SPIKE_DAILY_RETURN_FIGURE_PATH = (
     PROJECT_ROOT / "outputs" / "figures" / "spike_analysis" / "daily_return_spikes.png"
 )
+WITH_SPIKES_TRAIN_PATH = SPIKE_EXPERIMENT_ROOT / "with_spikes" / "train.csv"
+NON_SPIKE_TRAIN_PATH = SPIKE_EXPERIMENT_ROOT / "non_spike" / "train.csv"
+VALIDATION_FLAGGED_PATH = (
+    SPIKE_EXPERIMENT_ROOT / "diagnostics" / "validation_flagged.csv"
+)
+TEST_FLAGGED_PATH = SPIKE_EXPERIMENT_ROOT / "diagnostics" / "test_flagged.csv"
 PRIMARY_SPIKE_IQR_MULTIPLIER = 3.0
 SPIKE_RETURN_COLUMN: Final = "return_1d"
 SPIKE_QUANTILE_METHOD: Final = "linear"
