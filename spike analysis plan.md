@@ -2,7 +2,7 @@
 
 ## สถานะและขอบเขต
 
-เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบัน M1 Baseline Input Contract, M2 pure primary detector และ M3 affected-mask/boundary metadata API เสร็จแล้ว โดย `src/detect_spikes.py` เป็นเจ้าของ direct-detector logic และ `src/spike_contract.py` เป็นเจ้าของ affected-window logic แต่ยังไม่มี experiment datasets, market-event/data-quality audit, Phase 2 experiment runner/reports/figures หรือ model artifacts ดังนั้นงาน **Spike Analysis / experiment dataset preparation ยังไม่เสร็จ** และยังไม่มีการ train หรือประเมินโมเดลจาก Phase 2
+เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบัน M1 Baseline Input Contract, M2 pure primary detector, M3 affected-mask/boundary metadata API และ M4 direct-spike/data-quality audit เสร็จแล้ว โดย `src/detect_spikes.py` เป็นเจ้าของ direct-detector logic, `src/spike_contract.py` เป็นเจ้าของ affected-window logic และ `src/audit_spikes.py` reuse API ทั้งสองชุดเพื่อสร้าง audit artifacts แต่ยังไม่มี With-Spike/Non-Spike experiment datasets, M5–M7 runner หรือ model artifacts ดังนั้นงาน **Spike Analysis / experiment dataset preparation ยังไม่เสร็จ** และยังไม่มีการ train หรือประเมินโมเดลจาก Phase 2
 
 คำว่า Non-Spike ในโครงการนี้หมายถึงสำเนาของ Original Train ที่ตัดแถวตาม operational affected window ออก ไม่ได้หมายความว่าข้อมูลปราศจากอิทธิพลของ spike ในทุก feature อย่างสมบูรณ์
 
@@ -254,32 +254,34 @@
 
 **Checklist:**
 
-- [ ] ดึง direct spike dates จาก detector output
-- [ ] บันทึก Date, signed return และ absolute return
-- [ ] บันทึก Open, High, Low, Close และ Volume
-- [ ] Trace event date กลับไปยัง labeled, target, feature, clean และ raw timeline
-- [ ] ตรวจค่าระหว่าง stages ว่าสอดคล้องกัน
-- [ ] แยกสถานะ `market_movement`, `suspected_data_error` หรือ `needs_review`
-- [ ] บันทึก audit note และ source checksum ต่อ artifact
-- [ ] บันทึก expected 19 events เป็น verification ไม่ใช่ input
-- [ ] หากพบ data error ให้สร้าง finding แยก
-- [ ] ห้ามแก้ Raw/Snapshot/Manifest จาก Phase 2 script
-- [ ] ห้ามเปลี่ยน baseline หรือ detector rule อัตโนมัติ
-- [ ] หากต้องแก้ source data ให้หยุดการสรุปผลและเปิด baseline-reproduction workstream แยก
+- [x] ดึง direct spike dates จาก detector output
+- [x] บันทึก Date, signed return และ absolute return
+- [x] บันทึก Open, High, Low, Close และ Volume
+- [x] Trace event date กลับไปยัง labeled, target, feature, clean และ raw timeline
+- [x] ตรวจค่าระหว่าง stages ว่าสอดคล้องกัน
+- [x] แยกสถานะ `market_movement`, `suspected_data_error` หรือ `needs_review`
+- [x] บันทึก audit note และ source checksum ต่อ artifact
+- [x] บันทึก expected 19 events เป็น verification ไม่ใช่ input
+- [x] หากพบ data error ให้สร้าง finding แยก
+- [x] ห้ามแก้ Raw/Snapshot/Manifest จาก Phase 2 script
+- [x] ห้ามเปลี่ยน baseline หรือ detector rule อัตโนมัติ
+- [x] หากต้องแก้ source data ให้หยุดการสรุปผลและเปิด baseline-reproduction workstream แยก
 
 **Tests:**
 
-- [ ] ทุก reported date ตรงกับ detector flags
-- [ ] ทุก event trace กลับ source date ได้หนึ่งแถวพอดี
-- [ ] Report count ตรง event table
-- [ ] Source checksums ก่อน/หลังเหมือนกัน
-- [ ] Strict JSON ไม่มี NaN/Infinity
+- [x] ทุก reported date ตรงกับ detector flags
+- [x] ทุก event trace กลับ source date ได้หนึ่งแถวพอดี
+- [x] Report count ตรง event table
+- [x] Source checksums ก่อน/หลังเหมือนกัน
+- [x] Strict JSON ไม่มี NaN/Infinity
 
 **Definition of Done:**
 
-- [ ] Direct spike ทุกแถว trace กลับต้นทางได้
-- [ ] Data-quality classification ถูกบันทึกโดยไม่แก้ source
-- [ ] Audit artifacts ตรวจซ้ำจาก inputs เดิมได้
+- [x] Direct spike ทุกแถว trace กลับต้นทางได้
+- [x] Data-quality classification ถูกบันทึกโดยไม่แก้ source
+- [x] Audit artifacts ตรวจซ้ำจาก inputs เดิมได้
+
+ผลจาก pinned inputs: 23 events (Train 19, Validation 0, Test 4) trace ครบและเป็น `market_movement` ทั้งหมดตามหลักฐานภายใน repository; ไม่พบ `suspected_data_error` หรือ `needs_review` และไม่ได้อ้างเหตุการณ์ตลาดภายนอก
 
 ## M5. Build Primary Experiment Datasets
 

@@ -4,7 +4,7 @@
 
 ## Scope และสถานะ
 
-รอบนี้ตรวจ Phase 1 provenance, freeze กลไก primary spike/boundary contract และทำ M1 Baseline Input Contract แล้ว ยังไม่ได้สร้าง With-Spike/Non-Spike datasets, spike-analysis reports/figures, Phase 2 experiment runner หรือ model artifacts ดังนั้น **Phase 2 ยังไม่เสร็จ**
+รอบนี้ตรวจ Phase 1 provenance, freeze กลไก primary spike/boundary contract, ทำ M1 Baseline Input Contract และทำ M4 direct-spike/data-quality audit แล้ว ยังไม่ได้สร้าง With-Spike/Non-Spike datasets, complete Phase 2 experiment runner หรือ model artifacts ดังนั้น **Phase 2 ยังไม่เสร็จ**
 
 M1 มี implementation ที่ `src/build_spike_input_contract.py`, tests ที่ `tests/test_experiment_datasets.py` และ generated evidence ที่ `outputs/reports/spike_input_contract.json` (ignored by Git) Contract อ่าน baseline inputs โดยไม่แก้ไข, ตรวจ schema/values/splits/gaps/Q75/labels/checksums และเขียนเฉพาะ generated contract report ที่ประกาศไว้ โดยไม่แก้ saved reports เดิม
 
@@ -222,7 +222,17 @@ Primary read-only diagnostic ที่ใช้ threshold จาก Train ค่
 | Validation | 0 | 0 | 0 | 0 / 0 |
 | Test | 4 | 54 | 25 | 0 / 0 |
 
-M3 ไม่อ่าน/เขียนไฟล์จาก production API, ไม่กรองแถว และไม่สร้าง experiment CSV, `spike_analysis.json` หรือ figures การ serialize metadata ยังเป็นหน้าที่ M4/M6 และ experiment datasets ยังเป็น M5
+M3 ไม่อ่าน/เขียนไฟล์จาก production APIและไม่กรองแถว M4 ใน `src/audit_spikes.py` เป็นผู้เรียก M2/M3 APIs และ serialize metadata โดยไม่เขียนสูตร detector/window ซ้ำ ส่วน experiment datasets ยังเป็น M5
+
+### M4 direct-spike/data-quality audit
+
+รันจาก project root ไปยัง isolated output root:
+
+```powershell
+.venv\Scripts\python.exe -m src.audit_spikes --output-root tmp/phase2-m4-audit
+```
+
+Artifacts ที่สร้างมีเพียง `spike_analysis.json`, `spike_event_audit.csv` และ `daily_return_spikes.png` คำสั่งไม่ overwrite โดย default และ `--overwrite-generated` จำกัดเฉพาะสามไฟล์นี้ ผล pinned audit มี 23 events: Train 19, Validation 0 และ Test 4 ทุก event trace ได้หนึ่งแถวใน labeled/target/feature/clean/raw, raw-derived return ตรงกับ labeled return ภายใน tolerance และถูกจัดเป็น `market_movement` ทั้งหมด ไม่พบ `suspected_data_error`, `needs_review` หรือ audit finding และไม่ได้อ้างเหตุการณ์ตลาดภายนอก Source checksums ก่อน/หลังไม่เปลี่ยน
 
 ## 5. Supplementary 1.5×IQR Test boundary audit
 
@@ -295,9 +305,10 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 .venv\Scripts\python.exe -m pytest tests\test_spike_contract.py -q
 .venv\Scripts\python.exe -m pytest tests\test_spike_detection.py -q
 .venv\Scripts\python.exe -m pytest tests\test_experiment_datasets.py -q
+.venv\Scripts\python.exe -m pytest tests\test_spike_audit.py -q
 .venv\Scripts\python.exe -m pytest -q -rs
-.venv\Scripts\python.exe -m ruff check config.py src\detect_spikes.py src\spike_contract.py tests\test_spike_detection.py tests\test_spike_contract.py
-.venv\Scripts\python.exe -m mypy --follow-imports=skip src\detect_spikes.py src\spike_contract.py
+.venv\Scripts\python.exe -m ruff check config.py src\audit_spikes.py tests\test_spike_audit.py
+.venv\Scripts\python.exe -m mypy --follow-imports=skip src\audit_spikes.py tests\test_spike_audit.py
 ```
 
 ผลล่าสุดหลังแก้ source:
@@ -305,10 +316,13 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 - M3 spike contract tests: 36 passed
 - M2 detector tests: 33 passed
 - M1 input-contract tests: 39 passed
-- Full suite: 300 passed, 1 skipped
+- M4 audit tests: 7 passed
+- Full suite: 307 passed, 1 skipped
 - Detector/window branch coverage: 92% total (`detect_spikes.py` 93%, `spike_contract.py` 91%)
 - Skipped: Windows symlink privilege (`WinError 1314`), ไม่ใช่ test failure
-- Targeted Ruff และ mypy สำหรับไฟล์ในขอบเขต M2/M3: all checks passed
+- Targeted Ruff และ mypy สำหรับไฟล์ในขอบเขต M4: all checks passed
+
+Mypy แบบตาม imports ยังพบ known issue เดิมที่ `src/build_targets.py:447` (`Series.quantile` รับ interpolation จากค่าคงที่ชนิด `str`) จึงไม่ขยาย scope ของ M4 ไปแก้ Phase 1 module นี้
 
 ### Known issue: repository-wide Ruff
 
@@ -334,13 +348,12 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 - Current และ reproduced labeled CSVs byte-identical
 - Authoritative Phase 2 inputs และ hashesระบุชัด
 - Snapshot/Manifest ไม่เปลี่ยน
-- M2 primary detector และ M3 affected-mask/boundary metadata มี executable tests
+- M2 primary detector, M3 affected-mask/boundary metadata และ M4 audit มี executable tests
 
 งานที่ยังไม่เสร็จและห้ามอ้างว่าเสร็จ:
 
-- Direct market-event/data-quality audit
 - With-Spike/Non-Spike datasets
 - Validation/Test diagnostic artifacts
-- Phase 2 runner, reports และ figures
+- Complete Phase 2 runner, dataset reports และ figures ที่เหลือ
 - Optional sensitivity report artifact
 - Model training/evaluation

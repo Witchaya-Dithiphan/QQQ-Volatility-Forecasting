@@ -41,6 +41,13 @@ SPIKE_EXPERIMENT_ROOT = PROJECT_ROOT / "data" / "processed" / "experiments"
 SPIKE_INPUT_CONTRACT_REPORT_PATH = (
     PROJECT_ROOT / "outputs" / "reports" / "spike_input_contract.json"
 )
+SPIKE_ANALYSIS_REPORT_PATH = (
+    PROJECT_ROOT / "outputs" / "reports" / "spike_analysis.json"
+)
+SPIKE_EVENT_AUDIT_PATH = PROJECT_ROOT / "outputs" / "reports" / "spike_event_audit.csv"
+SPIKE_DAILY_RETURN_FIGURE_PATH = (
+    PROJECT_ROOT / "outputs" / "figures" / "spike_analysis" / "daily_return_spikes.png"
+)
 PRIMARY_SPIKE_IQR_MULTIPLIER = 3.0
 SPIKE_RETURN_COLUMN: Final = "return_1d"
 SPIKE_QUANTILE_METHOD: Final = "linear"
