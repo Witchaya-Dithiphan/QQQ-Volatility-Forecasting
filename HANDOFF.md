@@ -1,8 +1,8 @@
 # QQQ Volatility Forecasting - เอกสารส่งต่องาน
 
-เอกสารนี้อัปเดตล่าสุด ณ วันที่ **2026-10-06** บน branch
-`feature/spike-analysis` โดย M1 commit แล้วที่ `399fecb`, M2 commit แล้วที่
-`04c165c` และปัจจุบันมี M3 implementation/tests/docs ที่ยังไม่ได้ commit
+เอกสารนี้อัปเดตล่าสุด ณ วันที่ **2026-10-07** บน branch
+`feature/spike-analysis` ที่ commit `ef3ff2d` (`feat: add run spike analysis pipeline`)
+โดย M1–M7 commit แล้ว และ M8 ตรวจรับพร้อมอัปเดตเอกสารสำหรับเปิด model-training gate
 
 สถานะที่ใช้ตลอดเอกสาร:
 
@@ -67,7 +67,7 @@ validation รอบนี้ อย่างไรก็ตาม generated rep
 `classification_threshold.json` ยังเก็บ absolute paths แม้ runner ปัจจุบันสร้าง
 report-relative paths ได้แล้ว
 
-**Phase 2 - Spike Analysis/Experiment Dataset Preparation:** **M1–M7 verified** มี input contract, detector, affected mask, direct-spike audit, With-Spike/Non-Spike Train, diagnostic Validation/Test copies, reports, figures และ separate runner แล้ว แต่ยังไม่มี model training/evaluation ดูหลักฐานที่ `PHASE2_SPIKE_READINESS.md`
+**Phase 2 - Spike Analysis/Experiment Dataset Preparation:** **M1–M8 verified; Gate OPEN** มี input contract, detector, affected mask, direct-spike audit, With-Spike/Non-Spike Train, diagnostic Validation/Test copies, reports, figures, separate runner และ verification gate แล้ว แต่ยังไม่มี model training/evaluation ดูหลักฐานที่ `PHASE2_SPIKE_READINESS.md` และหัวข้อ M8 ด้านล่าง
 
 ## 3. แผนผังโครงสร้างไฟล์
 
@@ -99,7 +99,7 @@ report-relative paths ได้แล้ว
 | `data/interim/` | `.gitkeep` tracked; contents ignored | Clean, feature และ regression-target datasets | Raw/generated stages | 3 CSVs |
 | `data/processed/` | `.gitkeep` tracked; contents ignored | Original และ labeled splits | Modeling-ready data | 6 CSVs |
 | `outputs/reports/` | `.gitkeep` tracked; contents ignored | JSON audit reports | Pipeline stages | 5 reports เมื่อ runner ปัจจุบันรันครบ |
-| `outputs/figures/` | `.gitkeep` tracked; contents ignored | พื้นที่ figure exports | ยังไม่มี producer | ไม่มี exported figure ปัจจุบัน |
+| `outputs/figures/` | `.gitkeep` tracked; contents ignored | พื้นที่ figure exports | Phase 2 report runner | มี spike-analysis figures 3 ไฟล์เมื่อรัน M7; ยังไม่มี model-performance figures |
 | `outputs/models/` | `.gitkeep` tracked; contents ignored | พื้นที่ persisted models | ยังไม่มี model training | ไม่มี model files ปัจจุบัน |
 | `outputs/metrics/` | `.gitkeep` tracked; contents ignored | พื้นที่ persisted metrics/predictions | ยังไม่มี evaluation | ไม่มี metric files ปัจจุบัน |
 | `README.md` | Tracked | Runbook และ model/evaluation plan | หลักฐานใน repo + requirement summary | Documentation |
@@ -206,6 +206,7 @@ volume_zscore_20
 ```powershell
 python src/download_qqq_data.py verify-snapshot
 python -m src.run_data_pipeline --output-root tmp/phase1-handoff-check
+python -m src.run_spike_analysis --output-root tmp/phase2-m8-verification-20261007
 ```
 
 ถ้า artifact ใดใน output root มีอยู่แล้ว runner จะหยุดที่ preflight โดยไม่เขียนทับ
@@ -213,6 +214,16 @@ python -m src.run_data_pipeline --output-root tmp/phase1-handoff-check
 แทนที่เฉพาะ 14 outputs ที่ runner ประกาศไว้ และยังไม่อนุญาตให้แตะ Snapshot/Manifest
 หาก stage หลัง preflight ล้มเหลว outputs จาก stage ที่สำเร็จหรือสำเร็จบางส่วนอาจค้าง
 อยู่ ต้องตรวจและเลือก output root ใหม่ก่อน retry
+
+M8 ตรวจรับ Phase 2 command ข้างต้นแล้ว: `--output-root` เปลี่ยนเฉพาะ 11 generated Phase 2 artifacts และยังอ่าน accepted baseline จาก project root หากต้องการ baseline อื่นต้องใช้ `--input-root` แยก Default ไม่ overwrite; rerun ที่ root เดิมโดยไม่มี flag ถูกทดสอบให้ fail ที่ preflight และ protected checksums ยังคงเดิม
+
+Phase 2 must-have inventory มี reports 4, experiment CSVs 4 และ figures 3 รวม 11 ไฟล์ ผลตรวจคือ Train direct/affected 19/213, With-Spike/Non-Spike 1,733/1,520, Validation/Test affected 0/54 และ Non-Spike classes 1,240/280 Full Validation/Test ยังคงเป็น Original labeled splits ส่วน flagged copies เป็น diagnostics เท่านั้น
+
+**M8 gate: OPEN สำหรับเริ่ม paired model training ขั้นถัดไป** — spike-specific `142 passed, 1 skipped`, full suite `334 passed, 2 skipped`, targeted Ruff/mypy ผ่าน, inventory 11/11 และ protected checksum drift = 0 Skips ทั้งสองเป็น Windows symlink privilege ไม่ใช่ passed และไม่ใช่ must-have failure Repository-wide Ruff ยังมี known issues เดิม 21 รายการนอก Phase 2 scope
+
+ข้อจำกัดที่ต้องส่งต่อ: Wilder RSI อาจได้รับอิทธิพลหลัง `s+19`; window `[s-5,s+19]` และ within-split clipping เป็น operational policy ไม่ใช่หลักฐานว่า cross-boundary/spike influence เป็นศูนย์ทุก feature Root split/classification reports เก่ายังมี absolute pathsและไม่ได้ถูก rewrite; isolated reproduction/Phase 2 reports ใหม่ portable แล้ว
+
+ยังไม่มี model training, metrics หรือ performance results จาก M8
 
 Labeled split paths แบบ default:
 
@@ -301,7 +312,7 @@ evaluation subset มีทั้งสอง classes ก่อน หากไ�
 | 4 | `python src/download_qqq_data.py verify-snapshot` | แสดง 2,512 rows, date range และ SHA-256 ตรง Manifest | **Verified** รอบนี้; offline |
 | 5 | `python -m src.run_data_pipeline --output-root tmp/phase1-handoff-check` | สร้าง 14 artifacts ใต้ isolated root | **Verified** รอบนี้ด้วย output root ชั่วคราวชื่ออื่น; offline |
 | 6 | `Get-ChildItem tmp/phase1-handoff-check -Recurse -File` | เห็น interim 3, processed 6, reports 5 files | **Verified** กับ isolated artifacts รอบนี้ |
-| 7 | `python -m pytest -q -rs` | Baseline และ Phase 2 M1–M5 tests ผ่าน; แสดงเหตุผลของ skipped tests | **Verified:** `317 passed, 1 skipped` |
+| 7 | `python -m pytest -q -rs` | Baseline และ Phase 2 M1–M8 tests ผ่าน; แสดงเหตุผลของ skipped tests | **Verified:** `334 passed, 2 skipped` |
 | 8 | Train/evaluate/forecast | ไม่มีคำสั่งให้รัน | **Planned** - ห้ามสร้าง command สมมติ |
 
 คำสั่งที่ใช้ network แยกจาก baseline reproduction:
@@ -413,7 +424,7 @@ protocol จะพร้อม
 
 - Symlink test ถูก skip บน Windows เนื่องจากไม่มี privilege
 - Repository-wide Ruff ยังมี 21 errors ใน Phase 1 modules/notebooks (`I001`,
-  `F401`, `RUF046`); targeted M1–M5 lint ผ่าน และรายละเอียดรายไฟล์อยู่ใน
+  `F401`, `RUF046`); targeted M1–M8 lint ผ่าน และรายละเอียดรายไฟล์อยู่ใน
   `PHASE2_SPIKE_READINESS.md` โดยยังไม่แก้นอก scope
 - Root reports บางไฟล์เป็น historical format ที่มี absolute paths
 - Root ไม่มี `regression_target_report.json` แม้ README และ runner ปัจจุบันระบุไฟล์นี้;
@@ -467,5 +478,5 @@ directories สำหรับ figures/models/metrics
 - `.venv/Scripts/python.exe -m src.run_spike_analysis --output-root tmp/phase2-m7-validation-20261007` - สำเร็จ; สร้าง 11 declared Phase 2 artifacts โดยอ่าน baseline จาก project root
 - `.venv/Scripts/python.exe -m pytest -q` - ดูผลล่าสุดใน `PHASE2_SPIKE_READINESS.md`
 
-สถานะปลายทาง: Phase 1 และ Phase 2 M1–M7 **Implemented / Verified**;
+สถานะปลายทาง: Phase 1 และ Phase 2 M1–M8 **Implemented / Verified; Gate OPEN**;
 model train/evaluate และ forecast ยังเป็น **Planned**

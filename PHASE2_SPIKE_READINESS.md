@@ -1,10 +1,10 @@
 # Phase 2 Spike Analysis — Baseline Provenance and Readiness
 
-ตรวจล่าสุด: 2026-10-06 บน branch `feature/spike-analysis`, M1 เริ่มจาก commit `f3f8471`
+ตรวจล่าสุด: 2026-10-07 บน branch `feature/spike-analysis`, M7 อยู่ที่ commit `ef3ff2d`
 
 ## Scope และสถานะ
 
-รอบนี้ตรวจ Phase 1 provenance และทำ Phase 2 M1–M7 แล้ว รวม input contract, detector, affected mask, direct-spike audit, primary experiment/diagnostic datasets, reports/primary figures และ separate Phase 2 runner แต่ยังไม่มี model artifacts ดังนั้น **data-side Phase 2 พร้อมสำหรับขั้น model experiment แต่ยังไม่มีผล train/evaluate**
+รอบนี้ตรวจ Phase 1 provenance และตรวจรับ Phase 2 M1–M8 แล้ว รวม input contract, detector, affected mask, direct-spike audit, primary experiment/diagnostic datasets, reports/primary figures, separate Phase 2 runner และ verification gate แต่ยังไม่มี model artifacts ดังนั้น **Gate = OPEN สำหรับขั้น paired model experiment แต่ยังไม่มีผล train/evaluate**
 
 M7 ใช้ `src/run_spike_analysis.py` เรียก stage APIs เดิมแบบ offline และไม่ rebuild Phase 1 โดย `--output-root` เปลี่ยนเฉพาะ generated Phase 2 artifacts ส่วน accepted baseline inputs ยังคงอ่านจาก project root หรือ `--input-root` ที่ระบุแยก Runner preflight declared outputs ทั้ง 11 ไฟล์ก่อนเขียน, ป้องกัน aliases/implicit overwrite และตรวจ protected checksums ทั้ง success/failure paths
 
@@ -349,13 +349,15 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 - Full suite: 334 passed, 2 skipped
 - Detector/window branch coverage: 92% total (`detect_spikes.py` 93%, `spike_contract.py` 91%)
 - Skipped: Windows symlink privilege (`WinError 1314`), ไม่ใช่ test failure
-- Targeted Ruff และ mypy สำหรับไฟล์ในขอบเขต M7: all checks passed
+- Spike-specific suite: 142 passed, 1 skipped
+- M8 isolated runner: artifacts 11/11; protected checksum drift = 0
+- Targeted Ruff และ mypy สำหรับไฟล์ในขอบเขต M1–M8: all checks passed
 
 Mypy แบบตาม imports ยังพบ known issue เดิมที่ `src/build_targets.py:447` (`Series.quantile` รับ interpolation จากค่าคงที่ชนิด `str`) จึงไม่ขยาย scope ของ M4 ไปแก้ Phase 1 module นี้
 
 ### Known issue: repository-wide Ruff
 
-คำสั่ง `.venv\Scripts\python.exe -m ruff check . --output-format concise` ยังไม่ผ่าน โดยพบ **21 errors** ในไฟล์เดิมนอกขอบเขต M1–M5 และยังไม่ได้ใช้ `--fix`:
+คำสั่ง `.venv\Scripts\python.exe -m ruff check . --output-format concise` ยังไม่ผ่าน โดยพบ **21 errors** ในไฟล์เดิมนอกขอบเขต Phase 2 และยังไม่ได้ใช้ `--fix`:
 
 | File | Errors จริงจาก Ruff |
 | --- | --- |
@@ -367,17 +369,18 @@ Mypy แบบตาม imports ยังพบ known issue เดิมที�
 | `src/load_data.py` | `I001` import block 1 จุด |
 | `src/split_data.py` | `I001` import block 2 จุด; `RUF046` redundant integer casts 5 จุด |
 
-สถานะนี้เป็น known issue ของ repository-wide lint ไม่ใช่ M1–M7 failure: targeted Ruff ของไฟล์ใน scope ผ่านทั้งหมด และรอบนี้ไม่ขยาย scope ไปแก้ Phase 1 modules/notebooks เหล่านี้
+สถานะนี้เป็น known issue ของ repository-wide lint ไม่ใช่ M1–M8 failure: targeted Ruff ของไฟล์ใน scope ผ่านทั้งหมด และรอบนี้ไม่ขยาย scope ไปแก้ Phase 1 modules/notebooks เหล่านี้
 
 ## 8. Readiness decision
 
-**พร้อมเริ่ม model experiment ขั้นถัดไปแบบมีเงื่อนไข** เพราะ:
+**Gate = OPEN พร้อมเริ่ม paired model experiment ขั้นถัดไป** เพราะ:
 
 - Fresh Phase 1 reportsพิสูจน์ portable-path contract แล้ว
 - Current และ reproduced labeled CSVs byte-identical
 - Authoritative Phase 2 inputs และ hashesระบุชัด
 - Snapshot/Manifest ไม่เปลี่ยน
 - M2 primary detector, M3 affected-mask/boundary metadata, M4 audit, M5 datasets, M6 reports และ M7 runner มี executable tests
+- M8 ตรวจ artifacts 11/11, report/CSV/figure consistency, portability และ protected checksums ก่อน/หลังแล้ว
 
 งานที่ยังไม่เสร็จและห้ามอ้างว่าเสร็จ:
 

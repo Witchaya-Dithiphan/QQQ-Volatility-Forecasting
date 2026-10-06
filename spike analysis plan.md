@@ -2,7 +2,7 @@
 
 ## สถานะและขอบเขต
 
-เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบัน M1–M5 เสร็จแล้ว โดย `src/detect_spikes.py` เป็นเจ้าของ direct-detector logic, `src/spike_contract.py` เป็นเจ้าของ affected-window logic, `src/audit_spikes.py` สร้าง M4 audit และ `src/build_experiment_datasets.py` สร้าง With-Spike/Non-Spike กับ diagnostic copies โดย reuse contracts เดิม แต่ยังไม่มี M6 reports, M7 complete runner หรือ model artifacts ดังนั้นงาน **Spike Analysis / experiment dataset preparation ยังไม่เสร็จ** และยังไม่มีการ train หรือประเมินโมเดลจาก Phase 2
+เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบัน Must-have M1–M8 ผ่าน verification gate แล้ว โดย `src/detect_spikes.py` เป็นเจ้าของ direct-detector logic, `src/spike_contract.py` เป็นเจ้าของ affected-window logic, stages M4–M6 เป็นเจ้าของ audit/datasets/reports และ `src/run_spike_analysis.py` เป็น separate runner ที่ reproduce artifacts ทั้งชุดได้ งานถัดไปเปิดให้เริ่ม paired model training แต่ยังไม่มีการ train, evaluation, metrics หรือ model-performance results
 
 คำว่า Non-Spike ในโครงการนี้หมายถึงสำเนาของ Original Train ที่ตัดแถวตาม operational affected window ออก ไม่ได้หมายความว่าข้อมูลปราศจากอิทธิพลของ spike ในทุก feature อย่างสมบูรณ์
 
@@ -463,26 +463,26 @@
 
 **Checklist:**
 
-- [ ] รัน spike-specific unit/integration tests
-- [ ] รัน existing full test suite
-- [ ] ตรวจ generated artifacts inventory
-- [ ] ตรวจ source checksums ก่อน/หลัง
-- [ ] ตรวจ report/CSV/figure consistency
-- [ ] บันทึกคำสั่ง reproduce
-- [ ] บันทึก expected outputs
-- [ ] บันทึก RSI limitation
-- [ ] บันทึก boundary clipping policy
-- [ ] บันทึก saved-report portability mismatch และ resolution/status
-- [ ] อัปเดตสถานะ Phase 2 ตามหลักฐานจริงเท่านั้น
-- [ ] ห้ามระบุว่า model training เสร็จ
-- [ ] ห้ามระบุผล model performance ใน Phase 2
+- [x] รัน spike-specific unit/integration tests (`142 passed, 1 skipped`)
+- [x] รัน existing full test suite (`334 passed, 2 skipped`)
+- [x] ตรวจ generated artifacts inventory 11/11 ไฟล์ตาม path ที่แจกแจงจริง
+- [x] ตรวจ source checksums ก่อน/หลัง success และ intentional preflight failure
+- [x] ตรวจ report/CSV/figure consistency
+- [x] บันทึกคำสั่ง reproduce ที่รันจริง
+- [x] บันทึก expected outputs
+- [x] บันทึก RSI limitation
+- [x] บันทึก boundary clipping policy
+- [x] บันทึก saved-report portability mismatch และ resolution/status
+- [x] อัปเดตสถานะ Phase 2 ตามหลักฐานจริงเท่านั้น
+- [x] ห้ามระบุว่า model training เสร็จ
+- [x] ห้ามระบุผล model performance ใน Phase 2
 
 **Definition of Done:**
 
-- [ ] Must-have tests ทั้งหมดผ่าน
-- [ ] Must-have artifacts ครบและตรวจสอบได้
-- [ ] Documentation ตรงกับ implementation และ generated results
-- [ ] จึงเปิด gate ให้ Phase ถัดไปเริ่ม paired model training
+- [x] Must-have tests ทั้งหมดผ่าน
+- [x] Must-have artifacts ครบและตรวจสอบได้
+- [x] Documentation ตรงกับ implementation และ generated results
+- [x] Gate = OPEN ให้ Phase ถัดไปเริ่ม paired model training ได้
 
 ---
 
@@ -588,23 +588,23 @@ Sensitivity เป็นการวิเคราะห์ผลต่อจ�
 
 Phase 2 ถือว่าเสร็จเมื่อ Must-have M1–M8 ครบทั้งหมด:
 
-- [ ] Primary detector fit จาก Original Train เท่านั้น
-- [ ] Primary threshold ใช้ strict `>` และไม่ hard-code
-- [ ] Primary affected mask ใช้ `[s-5, s+19]` แบบ inclusive
-- [ ] RSI Policy A และข้อจำกัดถูกบันทึกทุกจุดที่เกี่ยวข้อง
-- [ ] Boundary clipping/isolation ถูกทดสอบและรายงาน
-- [ ] Direct spikes ถูก trace กลับ source
-- [ ] With-Spike และ Non-Spike Train reproducible
-- [ ] Full Validation/Test เป็น Original splits เดิม
-- [ ] Diagnostic segments ไม่แทนผล Full Validation/Test
-- [ ] Original Raw/Snapshot/Manifest/Clean/Features/Targets/Splits ไม่เปลี่ยน
-- [ ] Original Classification Q75 และ labels ไม่เปลี่ยน
-- [ ] Reports, figures และ checksums ตรง artifacts
-- [ ] Separate Phase 2 runner ผ่าน integration tests
-- [ ] Existing full test suite ผ่าน
-- [ ] Saved-report portability mismatch ได้รับการตรวจและบันทึกผล
-- [ ] README/HANDOFF/PROJECT_STATUS ตรงกับหลักฐานจริง
-- [ ] ยังไม่มีการอ้างว่า model training หรือ model evaluation เสร็จ
+- [x] Primary detector fit จาก Original Train เท่านั้น
+- [x] Primary threshold ใช้ strict `>` และไม่ hard-code
+- [x] Primary affected mask ใช้ `[s-5, s+19]` แบบ inclusive
+- [x] RSI Policy A และข้อจำกัดถูกบันทึกทุกจุดที่เกี่ยวข้อง
+- [x] Boundary clipping/isolation ถูกทดสอบและรายงาน
+- [x] Direct spikes ถูก trace กลับ source
+- [x] With-Spike และ Non-Spike Train reproducible
+- [x] Full Validation/Test เป็น Original splits เดิม
+- [x] Diagnostic segments ไม่แทนผล Full Validation/Test
+- [x] Original Raw/Snapshot/Manifest/Clean/Features/Targets/Splits ไม่เปลี่ยน
+- [x] Original Classification Q75 และ labels ไม่เปลี่ยน
+- [x] Reports, figures และ checksums ตรง artifacts
+- [x] Separate Phase 2 runner ผ่าน integration tests
+- [x] Existing full test suite ผ่าน
+- [x] Saved-report portability mismatch ได้รับการตรวจและบันทึกผล
+- [x] README/HANDOFF/PROJECT_STATUS ตรงกับหลักฐานจริง
+- [x] ยังไม่มีการอ้างว่า model training หรือ model evaluation เสร็จ
 
 Optional sensitivity ไม่เป็นเงื่อนไขปิด Phase 2 เว้นแต่ทีมยกระดับเป็น requirement ภายหลัง ส่วน Robust Z-score, RSI decay alternatives และ model training เป็น Future Work
 

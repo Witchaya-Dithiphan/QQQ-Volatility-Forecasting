@@ -123,6 +123,26 @@ python -m src.run_spike_analysis --input-root path/to/accepted-baseline --output
 
 Prerequisites คือ Phase 1 Snapshot/Manifest, interim data, labeled splits, split/classification reports และ accepted Phase 1 reproduction ที่ผ่าน M1 แล้ว Default จะ fail ก่อนเริ่ม stage หาก declared output ใดมีอยู่; `--overwrite-generated` เขียนทับได้เฉพาะ 11 artifacts ที่ประกาศไว้และไม่แตะไฟล์อื่นใน output root Full Validation/Test สำหรับ evaluation ยังคงเป็น Original labeled splits ส่วน flagged copies ใช้ diagnostics เท่านั้น
 
+### Phase 2 verification gate (M8)
+
+ตรวจรับล่าสุดจาก project root ด้วย output root ใหม่ โดยไม่ได้แก้ generated outputs เดิม:
+
+```powershell
+python -m src.run_spike_analysis --output-root tmp/phase2-m8-verification-20261007
+```
+
+Gate = **OPEN สำหรับเริ่ม paired model training ขั้นถัดไป** เพราะ spike-specific tests ผ่าน `142 passed, 1 skipped`, full suite ผ่าน `334 passed, 2 skipped`, targeted Ruff/mypy ผ่าน, protected checksums ไม่เปลี่ยน และ must-have artifacts ครบ 11/11 ไฟล์:
+
+- Reports: `spike_input_contract.json`, `spike_analysis.json`, `spike_event_audit.csv`, `experiment_dataset_report.json`
+- Experiment datasets: `with_spikes/train.csv`, `non_spike/train.csv`, `diagnostics/validation_flagged.csv`, `diagnostics/test_flagged.csv`
+- Figures: `daily_return_spikes.png`, `volatility_spike_effect.png`, `dataset_comparison.png`
+
+ผล pinned ที่ตรวจจาก artifacts จริงคือ Train direct/affected `19/213`, With-Spike/Non-Spike `1,733/1,520`, Validation affected `0`, Test affected `54` และ Non-Spike class 0/1 `1,240/280` Snapshot, Manifest และ Original Train/Validation/Test SHA-256 ก่อน/หลัง success รวมถึง intentional no-overwrite failure เหมือนเดิมทุกไฟล์
+
+Root `data_split_report.json` และ `classification_threshold.json` รุ่นเก่ายังมี absolute Windows paths และไม่มี `paths_relative_to`; M8 ไม่ rewrite ไฟล์เหล่านี้ Fresh Phase 1 reproduction reports และ Phase 2 reports ใน isolated run ใช้ portable relative pathsและ links resolve ได้ ข้อจำกัดยังคงเดิม: Wilder RSI เป็น recursive, `[s-5,s+19]` เป็น operational window, mask clip ภายใน split และไม่ได้พิสูจน์ว่า cross-boundary influence หรือ spike influence ในทุก feature เป็นศูนย์
+
+M8 ไม่ได้ train model และไม่มี model metrics/performance results ใดถูกสร้างขึ้น S3 sensitivity report/figure ยังเป็น optional และไม่ใช่ must-have gate
+
 ## Original Course Requirements
 
 Model plan ด้านล่างยึด requirement summary ที่ระบุแหล่งอ้างอิงเป็น
@@ -358,8 +378,8 @@ metric ผลหลักต้องรายงาน metrics ครบ ไม
 
 With-Spike ใช้ Original Train ส่วน Non-Spike ตัดเฉพาะ Train modeling rows ที่
 `is_spike_affected == True` หลังสร้าง features/targets แล้ว โดยไม่เปลี่ยน Original
-Validation/Test หรือ classification Q75 ปัจจุบัน M1–M7, experiment datasets,
-reports, figures และ separate Phase 2 runner implement/verify แล้ว แต่ models,
+Validation/Test หรือ classification Q75 ปัจจุบัน M1–M8, experiment datasets,
+reports, figures, separate Phase 2 runner และ verification gate implement/verify แล้ว แต่ models,
 metrics และ search protocol ยังเป็น `Planned` จึงยังอ้างว่าผลโมเดลเสร็จไม่ได้
 
 ## Model Selection Risks and Open Questions
