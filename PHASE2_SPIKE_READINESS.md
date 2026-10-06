@@ -1,10 +1,12 @@
 # Phase 2 Spike Analysis — Baseline Provenance and Readiness
 
-ตรวจล่าสุด: 2026-10-06 บน branch `feature/spike-analysis`, commit ตั้งต้น `9e80b22`
+ตรวจล่าสุด: 2026-10-06 บน branch `feature/spike-analysis`, M1 เริ่มจาก commit `f3f8471`
 
 ## Scope และสถานะ
 
-รอบนี้ตรวจ Phase 1 provenance, freeze กลไก primary spike/boundary contract และเพิ่ม synthetic contract tests เท่านั้น ยังไม่ได้สร้าง With-Spike/Non-Spike datasets, Phase 2 reports/figures, runner หรือ model artifacts ดังนั้น **Phase 2 ยังไม่เสร็จ**
+รอบนี้ตรวจ Phase 1 provenance, freeze กลไก primary spike/boundary contract และทำ M1 Baseline Input Contract แล้ว ยังไม่ได้สร้าง With-Spike/Non-Spike datasets, spike-analysis reports/figures, Phase 2 experiment runner หรือ model artifacts ดังนั้น **Phase 2 ยังไม่เสร็จ**
+
+M1 มี implementation ที่ `src/build_spike_input_contract.py`, tests ที่ `tests/test_experiment_datasets.py` และ generated evidence ที่ `outputs/reports/spike_input_contract.json` (ignored by Git) Contract อ่าน baseline inputs โดยไม่แก้ไข, ตรวจ schema/values/splits/gaps/Q75/labels/checksums และเขียนเฉพาะ generated contract report ที่ประกาศไว้ โดยไม่แก้ saved reports เดิม
 
 Primary rule ไม่เปลี่ยน:
 
@@ -140,6 +142,28 @@ Snapshot hash ตรงกับค่าใน Manifest และทั้ง S
 
 Expected row/count/threshold values ใช้เป็น audit regression checks เท่านั้น Future Phase 2 codeต้อง derive ผลจาก inputs และ fail เมื่อ contract เปลี่ยนอย่างไม่คาดหมาย ห้าม hard-code expected valuesเพื่อกลบ dataset drift
 
+### M1 executable contract
+
+รัน Phase 1 reproduction ใน root ใหม่และสร้าง contract ด้วยคำสั่ง:
+
+```powershell
+.venv\Scripts\python.exe -m src.run_data_pipeline --output-root tmp/phase2-m1-baseline-20261006
+.venv\Scripts\python.exe -m src.build_spike_input_contract --reproduced-root tmp/phase2-m1-baseline-20261006
+```
+
+ผลที่ยืนยันเมื่อ 2026-10-06:
+
+- Contract เป็น strict JSON และ path ที่บันทึกเป็น relative ต่อ report directory
+- Saved root reports เดิมถูกบันทึกว่าเป็น `artifact_provenance_discrepancy`; ไม่ infer ว่า calculation code ผิดและไม่ rewrite reports เดิม
+- Fresh reproduction reports ใช้ `paths_relative_to = report_directory` และทุก serialized link resolve ได้
+- Reproduced Train/Validation/Test labeled CSVs byte-identical กับ authoritative inputs
+- Train/Validation/Test rows = 1,733/371/373 และ Q75 = `0.2530580184684854`
+- Equality boundary ใน Train มี 1 แถวและ label เป็น 0 ตาม strict `>`
+- Checksums ของ labeled splits และ saved reports เหมือนกันก่อน/หลัง contract run
+- `tests/test_experiment_datasets.py`: 39 passed; module coverage 93% (branch coverage enabled)
+
+Contract ไม่อนุญาต overwrite โดย default; `--overwrite-generated` เปลี่ยนได้เฉพาะ declared `spike_input_contract.json` และปฏิเสธ output ที่ alias protected baseline input
+
 ## 4. Frozen boundary-policy implementation และ synthetic tests
 
 เพิ่ม pure primitives ใน `src/spike_contract.py`:
@@ -234,16 +258,34 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 
 ```powershell
 .venv\Scripts\python.exe -m pytest tests\test_spike_contract.py -q
+.venv\Scripts\python.exe -m pytest tests\test_experiment_datasets.py -q
 .venv\Scripts\python.exe -m pytest -q -rs
-.venv\Scripts\python.exe -m ruff check config.py src\spike_contract.py tests\test_spike_contract.py
+.venv\Scripts\python.exe -m ruff check config.py src\spike_contract.py src\build_spike_input_contract.py tests\test_spike_contract.py tests\test_experiment_datasets.py
 ```
 
 ผลล่าสุดหลังแก้ source:
 
 - Spike contract tests: 14 passed
-- Full suite: 206 passed, 1 skipped
+- M1 input-contract tests: 39 passed
+- Full suite: 245 passed, 1 skipped
 - Skipped: Windows symlink privilege (`WinError 1314`), ไม่ใช่ test failure
-- Ruff: all checks passed
+- Ruff สำหรับไฟล์ในขอบเขต M1 ตามคำสั่งข้างต้น: all checks passed
+
+### Known issue: repository-wide Ruff
+
+คำสั่ง `.venv\Scripts\python.exe -m ruff check . --output-format concise` ยังไม่ผ่าน โดยพบ **21 errors** ในไฟล์เดิมนอกขอบเขต M1 และยังไม่ได้ใช้ `--fix`:
+
+| File | Errors จริงจาก Ruff |
+| --- | --- |
+| `notebooks/01_data_cleaning.ipynb` | `I001` import block 1 จุด; `F401` unused `matplotlib.dates` 1 จุด |
+| `notebooks/02_eda_and_features.ipynb` | `I001` import block 1 จุด |
+| `src/build_features.py` | `I001` import block 2 จุด; `RUF046` redundant `int(len(...))` 1 จุด |
+| `src/build_targets.py` | `I001` import block 2 จุด; `RUF046` redundant integer casts 2 จุด |
+| `src/clean_data.py` | `I001` import block 2 จุด; `RUF046` redundant integer cast 1 จุด |
+| `src/load_data.py` | `I001` import block 1 จุด |
+| `src/split_data.py` | `I001` import block 2 จุด; `RUF046` redundant integer casts 5 จุด |
+
+สถานะนี้เป็น known issue ของ repository-wide lint ไม่ใช่ M1 failure: targeted Ruff ของ `config.py`, M1 source และ tests ผ่านทั้งหมด และรอบนี้ไม่ขยาย scope ไปแก้ Phase 1 modules/notebooks เหล่านี้
 
 ## 8. Readiness decision
 
@@ -257,7 +299,6 @@ Sensitivity นี้ fit จาก Original Train เท่านั้น ใ�
 
 งานที่ยังไม่เสร็จและห้ามอ้างว่าเสร็จ:
 
-- Full input-contract/report generator สำหรับ Phase 2
 - Direct market-event/data-quality audit
 - With-Spike/Non-Spike datasets
 - Validation/Test diagnostic artifacts

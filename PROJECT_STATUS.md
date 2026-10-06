@@ -2,11 +2,11 @@
 
 > ตรวจสอบล่าสุด: 2026-10-06
 >
-> ขอบเขตการตรวจ: source code, tests, notebooks, datasets และ saved reports ใน working directory โดยใช้การตรวจแบบ read-only ยกเว้นการอัปเดตไฟล์สถานะนี้
+> ขอบเขต M1: อ่าน baseline inputs และ saved reports โดยไม่แก้ไข; เขียนเฉพาะ generated `outputs/reports/spike_input_contract.json` รวมถึง source/tests/docs ของ M1
 >
 > ฐานของการสำรวจเดิมก่อน Phase 1: branch `main`, commit `115a054`; tracked working tree สะอาด
 >
-> ผลทดสอบล่าสุดหลังเพิ่ม Phase 2 contract tests: `206 passed, 1 skipped` จาก `.venv\Scripts\python.exe -m pytest -q -rs` (symlink case ข้ามบน Windows ที่ไม่มีสิทธิ์สร้าง symlink)
+> ผลทดสอบล่าสุดหลังทำ M1: `245 passed, 1 skipped` จาก `.venv\Scripts\python.exe -m pytest -q -rs` (symlink case ข้ามบน Windows ที่ไม่มีสิทธิ์สร้าง symlink)
 
 ## 1. ภาพรวมโปรเจกต์
 
@@ -24,7 +24,7 @@ Data Preparation เดิมทำเสร็จถึงขั้นสร้
 - **With-Spike Case:** ใช้ Original Train ทั้งหมด เป็น baseline experiment
 - **Non-Spike Case:** ตัดเฉพาะ modeling rows ใน Train ที่ `is_spike_affected == True` ออก เพื่อวัด sensitivity ต่อ extreme daily-return events
 
-Requirement นี้เพิ่มภายหลัง Data Preparation เดิม ปัจจุบันมี EDA/read-only audit, frozen pure rule primitives และ synthetic boundary tests แล้ว แต่ยังไม่มี experiment datasets, Phase 2 runner/reports/figures หรือ model artifacts จึง **ยังไม่ถือว่าเสร็จ**
+Requirement นี้เพิ่มภายหลัง Data Preparation เดิม ปัจจุบัน M1 Baseline Input Contract และ frozen pure rule primitives พร้อม synthetic tests แล้ว แต่ยังไม่มี experiment datasets, direct spike audit, Phase 2 experiment runner/reports/figures หรือ model artifacts จึง **ยังไม่ถือว่าเสร็จ**
 
 Historical snapshot สำหรับผลปัจจุบันคือ `data/raw/qqq_daily.csv` จำนวน 2,512 แถว ช่วง 2016-08-31 ถึง 2026-08-28 และ SHA-256 `649e1db1b79c0990ea947a4ea162d6836b9bbdda2af24bc5ab6ae66cb83b6b13` ตรงกับ `data/manifests/qqq_daily_snapshot.json`
 
@@ -40,7 +40,7 @@ Historical snapshot สำหรับผลปัจจุบันคือ `d
 | Chronological split พร้อม purging gap | ✅ เสร็จแล้ว | `src/split_data.py`, `tests/test_split_data.py` | 70/15/15 และ gap 5 แถวสองช่วง |
 | Classification target จาก Original Train Q75 | ✅ เสร็จแล้ว | `src/build_targets.py`, `outputs/reports/classification_threshold.json` | strict `>`; threshold `0.2530580184684854` |
 | Data Preparation notebooks | ✅ เสร็จแล้ว | `notebooks/01_data_cleaning.ipynb`, `notebooks/02_eda_and_features.ipynb` | มี saved cell outputs; working directory ปัจจุบันไม่มี exported PNG ใต้ `outputs/figures/` |
-| Spike analysis | 🟡 ทำบางส่วน | `src/spike_contract.py`, `tests/test_spike_contract.py`, `PHASE2_SPIKE_READINESS.md` และ Notebook 02 | Freeze rule mechanics/boundary policy แล้ว; ยังไม่มี pipeline report หรือ saved spike figures |
+| Spike analysis | 🟡 ทำบางส่วน | `src/build_spike_input_contract.py`, `src/spike_contract.py`, tests, `PHASE2_SPIKE_READINESS.md` และ Notebook 02 | M1 input contract และ rule/boundary primitives พร้อมแล้ว; ยังไม่มี experiment datasets หรือ saved spike figures |
 | Train-only spike threshold | 🟡 Contract only | Pure fit/apply API และ synthetic tests | ยังไม่มี Phase 2 detector runner/report; ตัวเลข audit ไม่ถูก hard-code |
 | With-Spike experiment dataset | ⬜ ยังไม่พบว่าดำเนินการ | Original split มีอยู่ แต่ยังไม่มี experiment copy/manifest | ต้องสร้าง artifact แยกและยืนยัน checksum |
 | Non-Spike experiment dataset | ⬜ ยังไม่พบว่าดำเนินการ | ไม่มี affected mask หรือ filtered artifact | ห้ามแก้ Original Train |
@@ -48,8 +48,8 @@ Historical snapshot สำหรับผลปัจจุบันคือ `d
 | Paired model comparison | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/*.py` ยังมีเพียง module docstring | ต้องควบคุม protocol ให้เหมือนกันทั้งสอง cases |
 | Regression model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/regression.py`, `notebooks/03_regression.ipynb` | Notebook มี 0 cells |
 | Classification model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/classification.py`, `notebooks/04_classification.ipynb` | Notebook มี 0 cells |
-| Automated tests | ✅ Baseline + contract verified | `tests/`, `pytest.ini` | 206 tests ผ่าน, 1 symlink test ข้ามบน Windows; รวม synthetic spike-contract tests 14 tests |
-| Project runbook/data provenance | 🟡 ทำบางส่วน | `README.md`, `PHASE2_SPIKE_READINESS.md`, Manifest, config และ runners | Baseline reproduction/portable reports verified; Phase 2 artifact runner ยังไม่เริ่ม |
+| Automated tests | ✅ Baseline + contract verified | `tests/`, `pytest.ini` | 245 tests ผ่าน, 1 symlink test ข้ามบน Windows; รวม spike-boundary 14 tests และ M1 input-contract 39 tests |
+| Project runbook/data provenance | 🟡 ทำบางส่วน | `README.md`, `PHASE2_SPIKE_READINESS.md`, Manifest, config และ runners | M1 contract และ isolated reproduction verified; Phase 2 experiment runner ยังไม่เริ่ม |
 
 ## 3. Data Pipeline
 

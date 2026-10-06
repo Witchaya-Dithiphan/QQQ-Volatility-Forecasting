@@ -13,12 +13,13 @@ from numbers import Real
 
 import numpy as np
 import pandas as pd
+from numpy.typing import NDArray
 from pandas.api.types import is_bool_dtype, is_numeric_dtype
 
 from config import (
     PRIMARY_SPIKE_IQR_MULTIPLIER,
-    SPIKE_AFFECTED_ROWS_AFTER,
-    SPIKE_AFFECTED_ROWS_BEFORE,
+    SPIKE_FEATURE_FORWARD_REACH,
+    SPIKE_TARGET_BACKWARD_REACH,
 )
 
 
@@ -118,8 +119,8 @@ def flag_direct_spikes(
 def affected_windows(
     direct_spikes: pd.Series,
     *,
-    rows_before: int = SPIKE_AFFECTED_ROWS_BEFORE,
-    rows_after: int = SPIKE_AFFECTED_ROWS_AFTER,
+    rows_before: int = SPIKE_TARGET_BACKWARD_REACH,
+    rows_after: int = SPIKE_FEATURE_FORWARD_REACH,
 ) -> tuple[AffectedWindow, ...]:
     """Describe inclusive affected windows clipped within one supplied split.
 
@@ -160,8 +161,8 @@ def affected_windows(
 def build_affected_mask(
     direct_spikes: pd.Series,
     *,
-    rows_before: int = SPIKE_AFFECTED_ROWS_BEFORE,
-    rows_after: int = SPIKE_AFFECTED_ROWS_AFTER,
+    rows_before: int = SPIKE_TARGET_BACKWARD_REACH,
+    rows_after: int = SPIKE_FEATURE_FORWARD_REACH,
 ) -> pd.Series:
     """Build the union of inclusive affected windows within one split."""
     windows = affected_windows(
@@ -169,7 +170,9 @@ def build_affected_mask(
         rows_before=rows_before,
         rows_after=rows_after,
     )
-    difference = np.zeros(len(direct_spikes) + 1, dtype=np.int64)
+    difference: NDArray[np.int64] = np.zeros(
+        len(direct_spikes) + 1, dtype=np.int64
+    )
     for window in windows:
         difference[window.clipped_start] += 1
         difference[window.clipped_end + 1] -= 1

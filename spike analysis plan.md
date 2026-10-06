@@ -2,7 +2,7 @@
 
 ## สถานะและขอบเขต
 
-เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบันมีเฉพาะ frozen rule primitives ใน `src/spike_contract.py`, synthetic boundary tests และ readiness evidence ใน `PHASE2_SPIKE_READINESS.md` แต่ยังไม่มี experiment datasets, Phase 2 runner/reports/figures หรือ model artifacts ดังนั้นงาน **Spike Analysis / experiment dataset preparation ยังไม่เสร็จ** และยังไม่มีการ train หรือประเมินโมเดลจาก Phase 2
+เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบัน M1 Baseline Input Contract และ frozen rule primitives ใน `src/spike_contract.py` พร้อม synthetic tests เสร็จแล้ว แต่ยังไม่มี experiment datasets, direct spike audit, Phase 2 experiment runner/reports/figures หรือ model artifacts ดังนั้นงาน **Spike Analysis / experiment dataset preparation ยังไม่เสร็จ** และยังไม่มีการ train หรือประเมินโมเดลจาก Phase 2
 
 คำว่า Non-Spike ในโครงการนี้หมายถึงสำเนาของ Original Train ที่ตัดแถวตาม operational affected window ออก ไม่ได้หมายความว่าข้อมูลปราศจากอิทธิพลของ spike ในทุก feature อย่างสมบูรณ์
 
@@ -101,39 +101,40 @@
 **Artifacts:**
 
 - `config.py`
+- `src/build_spike_input_contract.py`
 - `outputs/reports/spike_input_contract.json`
 - `tests/test_experiment_datasets.py`
 
 **Checklist:**
 
-- [ ] เพิ่ม Phase 2 input/output paths ใน `config.py`
-- [ ] เพิ่มค่าคงที่ primary multiplier `3.0`
-- [ ] เพิ่ม target-backward reach `5`
-- [ ] เพิ่ม feature-forward reach `19`
-- [ ] ระบุ comparison rule เป็น strict `>`
-- [ ] ระบุ RSI policy เป็น `operational_window_s_minus_5_to_s_plus_19`
-- [ ] อ่าน `train_labeled.csv`, `validation_labeled.csv`, `test_labeled.csv` แบบ read-only
-- [ ] Validate required 16-column schema
-- [ ] Validate numeric dtypes ของ features, target และ label
-- [ ] Validate Date parse, uniqueness และ ascending order
-- [ ] Validate ไม่มี NaN/Infinity ใน model columns
-- [ ] Validate labels เป็น 0/1 เท่านั้น
-- [ ] Validate row counts และ date ranges ปัจจุบัน
-- [ ] Validate split ไม่ overlap
-- [ ] Validate gap dates/size จาก baseline split report
-- [ ] Validate Original Classification Q75 และ label consistency
-- [ ] คำนวณ SHA-256 ของ labeled splits โดยตรง
-- [ ] บันทึก source checksums ก่อนเริ่มเขียน output
-- [ ] บันทึกความไม่สอดคล้องของ saved report portability
-- [ ] ตรวจ Phase 1 reproduction ใน isolated output root หรือบันทึกเหตุผลหากยังไม่ทำ
-- [ ] ห้าม rewrite baseline artifacts จาก Phase 2 runner
+- [x] เพิ่ม Phase 2 input/output paths ใน `config.py`
+- [x] เพิ่มค่าคงที่ primary multiplier `3.0`
+- [x] เพิ่ม target-backward reach `5`
+- [x] เพิ่ม feature-forward reach `19`
+- [x] ระบุ comparison rule เป็น strict `>`
+- [x] ระบุ RSI policy เป็น `operational_window_s_minus_5_to_s_plus_19`
+- [x] อ่าน `train_labeled.csv`, `validation_labeled.csv`, `test_labeled.csv` แบบ read-only
+- [x] Validate required 16-column schema
+- [x] Validate numeric dtypes ของ features, target และ label
+- [x] Validate Date parse, uniqueness และ ascending order
+- [x] Validate ไม่มี NaN/Infinity ใน model columns
+- [x] Validate labels เป็น 0/1 เท่านั้น
+- [x] Validate row counts และ date ranges ปัจจุบัน
+- [x] Validate split ไม่ overlap
+- [x] Validate gap dates/size จาก baseline split report
+- [x] Validate Original Classification Q75 และ label consistency
+- [x] คำนวณ SHA-256 ของ labeled splits โดยตรง
+- [x] บันทึก source checksums ก่อนเริ่มเขียน output
+- [x] บันทึกความไม่สอดคล้องของ saved report portability
+- [x] ตรวจ Phase 1 reproduction ใน isolated output root หรือบันทึกเหตุผลหากยังไม่ทำ
+- [x] ห้าม rewrite baseline artifacts จาก Phase 2 runner
 
 **Definition of Done:**
 
-- [ ] Contract JSON เป็น strict JSON และใช้ portable paths
-- [ ] Schema, rows, dates, gaps, labels และ checksums ถูก assert
-- [ ] ความต่างระหว่าง current code กับ saved reports ถูกบันทึก ไม่ถูกแก้เงียบ ๆ
-- [ ] ไม่มี source file ใดเปลี่ยน checksum
+- [x] Contract JSON เป็น strict JSON และใช้ portable paths
+- [x] Schema, rows, dates, gaps, labels และ checksums ถูก assert
+- [x] ความต่างระหว่าง current code กับ saved reports ถูกบันทึก ไม่ถูกแก้เงียบ ๆ
+- [x] ไม่มี source file ใดเปลี่ยน checksum
 
 ## M2. Implement Pure Primary Spike Detector
 

@@ -80,7 +80,16 @@ python -m pytest -q
 
 ก่อน implement experiment datasets ได้ตรวจ Phase 1 ใหม่ใน isolated output root แล้ว พบว่า reports ที่สร้างจากโค้ดปัจจุบันใช้ portable relative paths และ labeled CSV ทั้งสาม split มี SHA-256 ตรงกับชุดที่ project root แบบ byte-for-byte รายละเอียด hashes, authoritative inputs, boundary policy และคำสั่ง reproduce อยู่ใน `PHASE2_SPIKE_READINESS.md`
 
-ปัจจุบัน `src/spike_contract.py` freeze เฉพาะ pure rule mechanics สำหรับ primary `Q3 + 3 × IQR`, strict `>` และ affected window `[s-5, s+19]` พร้อม synthetic boundary tests ยังไม่มี With-Spike/Non-Spike datasets, Phase 2 runner/reports/figures หรือ model training
+M1 Baseline Input Contract implement แล้วใน `src/build_spike_input_contract.py` โดยอ่าน baseline labeled splits และ saved reports โดยไม่แก้ไข ตรวจ schema, numeric/finite values, dates, split gaps, Original Train Q75, strict labels และ SHA-256 จากนั้นเขียนเฉพาะ generated `spike_input_contract.json` พร้อมบันทึก saved-report portability discrepancy โดยไม่แก้ reports เดิม ก่อนรันให้สร้าง Phase 1 reproduction ใน output root ใหม่ แล้วสร้าง generated contract ดังนี้:
+
+```powershell
+python -m src.run_data_pipeline --output-root tmp/phase2-m1-baseline
+python -m src.build_spike_input_contract --reproduced-root tmp/phase2-m1-baseline
+```
+
+ผลอยู่ที่ `outputs/reports/spike_input_contract.json` และถูก ignore โดย Git คำสั่งจะไม่ overwrite โดย default; หากตั้งใจสร้าง contract ซ้ำใช้ `--overwrite-generated` ซึ่งอนุญาตเฉพาะไฟล์ contract ที่ประกาศไว้
+
+ปัจจุบัน `src/spike_contract.py` freeze pure rule mechanics สำหรับ primary `Q3 + 3 × IQR`, strict `>` และ affected window `[s-5, s+19]` พร้อม synthetic boundary tests แล้ว แต่ยังไม่มี With-Spike/Non-Spike datasets, direct spike audit, Phase 2 experiment runner/reports/figures หรือ model training
 
 ## Original Course Requirements
 

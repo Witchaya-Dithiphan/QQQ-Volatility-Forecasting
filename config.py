@@ -36,6 +36,12 @@ CLASSIFICATION_THRESHOLD_REPORT_PATH = (
 
 # Phase 2 spike-analysis contract. Threshold values remain data-derived from the
 # Original Train split; only the frozen rule parameters belong in configuration.
+SPIKE_EXPERIMENT_ROOT = PROJECT_ROOT / "data" / "processed" / "experiments"
+SPIKE_INPUT_CONTRACT_REPORT_PATH = (
+    PROJECT_ROOT / "outputs" / "reports" / "spike_input_contract.json"
+)
 PRIMARY_SPIKE_IQR_MULTIPLIER = 3.0
-SPIKE_AFFECTED_ROWS_BEFORE = 5
-SPIKE_AFFECTED_ROWS_AFTER = 19
+SPIKE_TARGET_BACKWARD_REACH = 5
+SPIKE_FEATURE_FORWARD_REACH = 19
+SPIKE_COMPARISON_RULE = "strict_greater_than"
+SPIKE_RSI_POLICY = "operational_window_s_minus_5_to_s_plus_19"

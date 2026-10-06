@@ -1,9 +1,8 @@
 # QQQ Volatility Forecasting - เอกสารส่งต่องาน
 
-เอกสารนี้ตรวจจาก repository ณ วันที่ **2026-10-06** บน branch `main`, commit
-`bd88732991b7568c08b15b81321539bef01367ed` (`bd88732`) ก่อนสร้างไฟล์นี้
-tracked working tree สะอาดและไม่มี uncommitted changes การสร้าง `HANDOFF.md`
-เป็นการเปลี่ยนแปลงเดียวของงานรอบนี้
+เอกสารนี้อัปเดตล่าสุด ณ วันที่ **2026-10-06** บน branch
+`feature/spike-analysis` โดยงาน M1 เริ่มจาก commit `f3f8471` ปัจจุบันมี uncommitted
+M1 implementation/tests/docs ตามคำสั่งผู้ใช้ และยังไม่ได้ commit
 
 สถานะที่ใช้ตลอดเอกสาร:
 
@@ -35,8 +34,8 @@ Historical volatility features เช่น `historical_volatility_5d` และ
 - **ข้อมูลพร้อม แต่โค้ดโมเดลยังไม่มี:** Original/With-Spike Train,
   Validation และ Test พร้อมเป็น tabular inputs แต่ `src/models/` ยังไม่มี model
   implementation
-- **วางแผนไว้:** Non-Spike experiment datasets, spike detector, paired model
-  training, evaluation, forecast และ persisted model/metric artifacts
+- **วางแผนไว้:** primary detector/report ขั้น M2, Non-Spike experiment datasets,
+  paired model training, evaluation, forecast และ persisted model/metric artifacts
 
 คำว่า **With-Spike** ในเอกสารนี้หมายถึง Original Train ที่ยังเก็บ extreme events
 ไว้ ไม่ได้หมายความว่าโมเดล baseline ถูก train แล้ว ส่วน **Non-Spike** เป็น experiment
@@ -57,9 +56,9 @@ Historical volatility features เช่น `historical_volatility_5d` และ
 | Chronological split 70/15/15 + gaps | **Implemented / Verified** | `src/split_data.py`, `outputs/reports/data_split_report.json` |
 | Train-only Q75 classification labels | **Implemented / Verified** | `src/build_targets.py`, `outputs/reports/classification_threshold.json` |
 | End-to-end data runner | **Implemented / Verified** | `src/run_data_pipeline.py`; isolated run รอบนี้สำเร็จและสร้าง 14 artifacts |
-| Tests | **Implemented / Verified** | `tests/`; รอบนี้ `206 passed, 1 skipped` รวม spike contract tests 14 tests |
+| Tests | **Implemented / Verified** | `tests/`; รอบนี้ `245 passed, 1 skipped` รวม spike contract tests 14 tests และ M1 input-contract tests 39 tests |
 | Regression/Classification models | **Planned** | `src/models/regression.py` และ `classification.py` มีเพียง module docstring |
-| Spike/Non-Spike pipeline | **Partially implemented** | มี `src/spike_contract.py`, synthetic boundary tests และ readiness report; ยังไม่มี experiment datasets/runner/reports/figures |
+| Spike/Non-Spike pipeline | **Partially implemented** | M1 input contract และ pure boundary primitives verified; ยังไม่มี experiment datasets/direct audit/experiment runner/figures |
 | Model results/figures | **Not recorded** | `outputs/models/`, `outputs/metrics/`, `outputs/figures/` มีเพียง `.gitkeep` |
 
 **Phase 1 - Baseline Data Preparation:** implementation ใช้งานได้และผ่าน isolated
@@ -68,7 +67,7 @@ validation รอบนี้ อย่างไรก็ตาม generated rep
 `classification_threshold.json` ยังเก็บ absolute paths แม้ runner ปัจจุบันสร้าง
 report-relative paths ได้แล้ว
 
-**Phase 2 - Spike Analysis/Experiment Dataset Preparation:** **Contract verified / artifacts planned** มี pure rule primitives และ synthetic boundary tests แล้ว แต่ยังไม่มี generated experiment datasets, Phase 2 runner/reports/figures ห้ามถือค่าจาก audit เป็น completed pipeline ดูหลักฐานที่ `PHASE2_SPIKE_READINESS.md`
+**Phase 2 - Spike Analysis/Experiment Dataset Preparation:** **M1 + rule contract verified / experiment artifacts planned** มี `src/build_spike_input_contract.py`, generated `spike_input_contract.json`, pure rule primitives และ synthetic tests แล้ว แต่ยังไม่มี generated experiment datasets, direct spike audit หรือ Phase 2 experiment runner/figures ห้ามถือค่าจาก audit เป็น completed pipeline ดูหลักฐานที่ `PHASE2_SPIKE_READINESS.md`
 
 ## 3. แผนผังโครงสร้างไฟล์
 
@@ -82,6 +81,8 @@ report-relative paths ได้แล้ว
 | `src/build_targets.py` | Tracked | สร้าง future-volatility target และ Train-only Q75 labels | Feature CSV หรือ splits | Regression-target CSV/report และ labeled splits/report |
 | `src/split_data.py` | Tracked | กรอง modeling rows แล้วแบ่งตามเวลา พร้อมสอง gaps | Regression-target CSV | Train/Validation/Test และ split report |
 | `src/run_data_pipeline.py` | Tracked | Orchestrate Phase 1 ตั้งแต่ verification ถึง labels | Snapshot + Manifest | 14 generated artifacts ใน output root |
+| `src/build_spike_input_contract.py` | Tracked | อ่านและ validate/freeze Phase 2 M1 baseline inputs โดยไม่แก้ไข | Labeled splits + saved reports + isolated reproduction | เขียนเฉพาะ generated portable `spike_input_contract.json` |
+| `src/spike_contract.py` | Tracked | Pure primary-rule และ affected-window primitives | Returns/direct flags | Metadata/flags/masks ในหน่วยความจำ |
 | `src/report_paths.py` | Tracked | สร้าง path ใน report แบบ relative ต่อ report directory | Artifact/report paths | Portable path string |
 | `src/models/` | Tracked | ตำแหน่งสำหรับ model code | ยังไม่มี | **Planned; ไม่มี model side effect** |
 | `tests/` | Tracked | Tests สำหรับ baseline pipeline และ Phase 2 spike/boundary contract | Source code + synthetic fixtures | Pytest result; ยังไม่มี model tests หรือ Phase 2 artifact-runner integration tests |
@@ -297,7 +298,7 @@ evaluation subset มีทั้งสอง classes ก่อน หากไ�
 | 4 | `python src/download_qqq_data.py verify-snapshot` | แสดง 2,512 rows, date range และ SHA-256 ตรง Manifest | **Verified** รอบนี้; offline |
 | 5 | `python -m src.run_data_pipeline --output-root tmp/phase1-handoff-check` | สร้าง 14 artifacts ใต้ isolated root | **Verified** รอบนี้ด้วย output root ชั่วคราวชื่ออื่น; offline |
 | 6 | `Get-ChildItem tmp/phase1-handoff-check -Recurse -File` | เห็น interim 3, processed 6, reports 5 files | **Verified** กับ isolated artifacts รอบนี้ |
-| 7 | `python -m pytest -q -rs` | Baseline และ spike-contract tests ผ่าน; แสดงเหตุผลของ skipped tests | **Verified:** `206 passed, 1 skipped` |
+| 7 | `python -m pytest -q -rs` | Baseline, spike-contract และ M1 input-contract tests ผ่าน; แสดงเหตุผลของ skipped tests | **Verified:** `245 passed, 1 skipped` |
 | 8 | Train/evaluate/forecast | ไม่มีคำสั่งให้รัน | **Planned** - ห้ามสร้าง command สมมติ |
 
 คำสั่งที่ใช้ network แยกจาก baseline reproduction:
@@ -365,7 +366,7 @@ Open questions:
 | Class counts Train | Normal 1,300 / High 433 | `classification_threshold.json` |
 | Class counts Validation | Normal 337 / High 34 | `classification_threshold.json` |
 | Class counts Test | Normal 300 / High 73 | `classification_threshold.json` |
-| Tests รอบนี้ | 206 passed, 1 skipped | `python -m pytest -q -rs` outputรอบล่าสุด |
+| Tests รอบนี้ | 245 passed, 1 skipped | `python -m pytest -q -rs` outputรอบล่าสุด |
 
 Skipped test คือ symlink-safety case ที่ `tests/test_data_pipeline.py:355` เพราะ
 Windows แจ้ง `WinError 1314` ว่า process ไม่มี privilege สร้าง symlink ไม่ใช่ model
@@ -389,8 +390,8 @@ test และไม่ใช่ test failure
 ลำดับแนะนำ:
 
 1. หลัง clone ให้หา Snapshot จากผู้ส่ง ตรวจ checksum และรัน verification/tests
-2. Freeze baseline schema, checksums, split boundaries และ experiment contract
-3. Implement/test Train-only Extreme-IQR detector
+2. ใช้ M1 contract ที่ freeze baseline schema, checksums และ split boundaries แล้ว
+3. Implement/test Train-only Extreme-IQR detector ขั้น M2
 4. สร้างและตรวจ direct/affected flags รวม equality/boundary/leakage cases
 5. สร้าง With-Spike/Non-Spike Train artifacts แยก path โดยไม่แก้ originals
 6. Flag Validation/Test เป็น diagnostic segments ด้วย Train threshold เดิม
@@ -407,6 +408,9 @@ protocol จะพร้อม
 ข้อจำกัดที่ตรวจพบ:
 
 - Symlink test ถูก skip บน Windows เนื่องจากไม่มี privilege
+- Repository-wide Ruff ยังมี 21 errors ใน Phase 1 modules/notebooks (`I001`,
+  `F401`, `RUF046`); targeted M1 lint ผ่าน และรายละเอียดรายไฟล์อยู่ใน
+  `PHASE2_SPIKE_READINESS.md` โดยยังไม่แก้นอก scope M1
 - Root reports บางไฟล์เป็น historical format ที่มี absolute paths
 - Root ไม่มี `regression_target_report.json` แม้ README และ runner ปัจจุบันระบุไฟล์นี้;
   isolated runner สร้างได้สำเร็จ
@@ -454,7 +458,7 @@ directories สำหรับ figures/models/metrics
 - `.venv/Scripts/python.exe -m src.run_data_pipeline --output-root <isolated-temp-root>`
   - สำเร็จ สร้าง 14 artifacts แล้วลบเฉพาะ validation root ชั่วคราว
 - `.venv/Scripts/python.exe -m pip check` - `No broken requirements found.`
-- `.venv/Scripts/python.exe -m pytest -q -rs` - `206 passed, 1 skipped`
+- `.venv/Scripts/python.exe -m pytest -q -rs` - `245 passed, 1 skipped`
 
 สถานะปลายทาง: Phase 1 data preparation **Implemented / Verified**; train,
 evaluate และ forecast **Planned** และยังไม่มีคำสั่งที่รันได้
