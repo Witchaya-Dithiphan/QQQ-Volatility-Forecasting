@@ -3,6 +3,10 @@
 > **คู่มือการติดตั้งและรันหลัก:** [RUNBOOK.md](RUNBOOK.md) ใช้ Python 3.11.9 และแยก
 > ขั้นตอนสำหรับ clone ใหม่, การรันซ้ำที่ project root และ isolated verification
 > คำสั่งในส่วนหลักฐานด้านล่างเป็นบันทึกของรอบตรวจรับเดิม
+>
+> **Modeling handoff ล่าสุด:** [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md)
+> เป็น source of truth สำหรับ inventory 18 รายการ, With-Spike-first, scratch/reference,
+> milestones และ Non-Spike reruns
 
 เมื่อ workspace มี Snapshot, Phase 1 artifacts และ accepted Phase 2 contract ครบแล้ว:
 
@@ -12,14 +16,15 @@
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-เอกสารนี้อัปเดตล่าสุด ณ วันที่ **2026-10-07** บน branch
-`feature/spike-analysis` ที่ commit `ef3ff2d` (`feat: add run spike analysis pipeline`)
-โดย M1–M7 commit แล้ว และ M8 ตรวจรับพร้อมอัปเดตเอกสารสำหรับเปิด model-training gate
+หลักฐาน M8 เดิมบันทึกวันที่ **2026-10-07** บน branch `feature/spike-analysis`
+ที่ commit `ef3ff2d` ส่วน audit เอกสารล่าสุดวันที่ **2026-10-08** ตรวจ checkout
+`main` ที่ `03dfada`; ต้องแยกสองช่วงเวลานี้และไม่เขียนผลเดิมเหมือนเพิ่งรันใหม่
 
 สถานะที่ใช้ตลอดเอกสาร:
 
 - **Implemented** - มี source implementation ใน repository
-- **Verified** - ตรวจด้วย artifact หรือคำสั่งที่รันจริงในรอบนี้
+- **Verified** - มี artifact/command evidence โดยต้องดูวันที่กำกับ; audit เอกสาร
+  2026-10-08 ไม่ได้รัน full suite ใหม่
 - **Planned** - มีข้อกำหนดหรือแผน แต่ยังไม่มี implementation ครบ
 - **Not recorded** - **ยังไม่ได้บันทึก** ใน repository หรือหลักฐานที่ตรวจได้
 
@@ -43,11 +48,11 @@ Historical volatility features เช่น `historical_volatility_5d` และ
 - **ทำแล้ว:** Snapshot verification, cleaning, feature engineering, regression
   target, chronological split พร้อม gaps, Train-only Q75 labels, labeled splits,
   end-to-end data runner, reports และ automated tests
-- **ข้อมูลพร้อม แต่โค้ดโมเดลยังไม่มี:** Original/With-Spike Train,
+- **ข้อมูลพร้อม แต่โค้ดโมเดลยังไม่มี:** Original/With-Spike/Non-Spike Train,
   Validation และ Test พร้อมเป็น tabular inputs แต่ `src/models/` ยังไม่มี model
   implementation
-- **วางแผนไว้:** paired model training, evaluation, forecast และ persisted
-  model/metric artifacts
+- **วางแผนไว้:** 18-item model inventory, With-Spike-first training, Non-Spike
+  fresh reruns, evaluation และ persisted model/metric artifacts
 
 คำว่า **With-Spike** ในเอกสารนี้หมายถึง Original Train ที่ยังเก็บ extreme events
 ไว้ ไม่ได้หมายความว่าโมเดล baseline ถูก train แล้ว ส่วน **Non-Spike** เป็น experiment
@@ -61,23 +66,23 @@ model training หรือผลเปรียบเทียบ
 
 | ส่วนงาน | สถานะ | หลักฐาน |
 | --- | --- | --- |
-| Immutable Snapshot verification | **Implemented / Verified** | `src/download_qqq_data.py`, `data/manifests/qqq_daily_snapshot.json`, tests และผล `verify-snapshot` รอบนี้ |
+| Immutable Snapshot verification | **Implemented / Verified** | `src/download_qqq_data.py`, Manifest, tests และ recorded verification 2026-10-07 |
 | Cleaning/validation | **Implemented / Verified** | `src/clean_data.py`, `outputs/reports/cleaning_report.json` |
 | 8 causal features | **Implemented / Verified** | `src/build_features.py`, `outputs/reports/feature_report.json` |
-| 5-day regression target | **Implemented / Verified** | `src/build_targets.py`; isolated run รอบนี้สร้าง `regression_target_report.json` สำเร็จ |
+| 5-day regression target | **Implemented / Verified** | `src/build_targets.py`; recorded isolated run 2026-10-07 และ root reportที่ตรวจ 2026-10-08 |
 | Chronological split 70/15/15 + gaps | **Implemented / Verified** | `src/split_data.py`, `outputs/reports/data_split_report.json` |
 | Train-only Q75 classification labels | **Implemented / Verified** | `src/build_targets.py`, `outputs/reports/classification_threshold.json` |
-| End-to-end data runner | **Implemented / Verified** | `src/run_data_pipeline.py`; isolated run รอบนี้สำเร็จและสร้าง 14 artifacts |
-| Tests | **Implemented / Verified** | `tests/`; รอบนี้ `334 passed, 2 skipped`; M7 runner tests 11 passed, 1 symlink test skipped และ coverage 96% |
-| Regression/Classification models | **Planned** | `src/models/regression.py` และ `classification.py` มีเพียง module docstring |
+| End-to-end data runner | **Implemented / Verified** | `src/run_data_pipeline.py`; recorded isolated run 2026-10-07 สร้าง 14 artifacts |
+| Tests | **Implemented / Verified** | recorded 2026-10-07: `334 passed, 2 skipped`; M7 runner 11 passed, 1 symlink skipped, coverage 96% |
+| Regression/Classification/Clustering models | **Planned** | inventory 4/12/2 ใน `MODEL_TRAINING_PLAN.md`; model filesยังเป็น docstring |
 | Spike/Non-Spike pipeline | **Implemented / Verified through M7** | event audit, experiment CSVs, reports, primary figures และ separate runner พร้อม |
 | Model results/figures | **Not recorded** | มี M4/M6 spike-analysis figures แล้ว แต่ยังไม่มี model/metric artifacts |
 
-**Phase 1 - Baseline Data Preparation:** implementation ใช้งานได้และผ่าน isolated
-validation รอบนี้ อย่างไรก็ตาม generated reports ที่ project root เป็นชุดเก่าบางส่วน:
-`regression_target_report.json` ไม่มีอยู่ที่ root และ `data_split_report.json` กับ
-`classification_threshold.json` ยังเก็บ absolute paths แม้ runner ปัจจุบันสร้าง
-report-relative paths ได้แล้ว
+**Phase 1 - Baseline Data Preparation:** implementation ใช้งานได้ตาม recorded
+verification และ audit นี้พบ root `regression_target_report.json` แล้ว รวมทั้ง
+`data_split_report.json`/`classification_threshold.json` รุ่นปัจจุบันที่ใช้
+report-relative paths ประวัติที่เอกสารเก่าเคยพบ absolute paths ยังคงเป็นหลักฐานของ
+artifact รุ่นก่อน ไม่ใช่สถานะปัจจุบันของไฟล์ root
 
 **Phase 2 - Spike Analysis/Experiment Dataset Preparation:** **M1–M8 verified; Gate OPEN** มี input contract, detector, affected mask, direct-spike audit, With-Spike/Non-Spike Train, diagnostic Validation/Test copies, reports, figures, separate runner และ verification gate แล้ว แต่ยังไม่มี model training/evaluation ดูหลักฐานที่ `PHASE2_SPIKE_READINESS.md` และหัวข้อ M8 ด้านล่าง
 
@@ -125,17 +130,17 @@ data, reports, figures, models หรือ metrics เพราะ `.gitignore`
 
 ### เวอร์ชันและ dependencies
 
-- Python version สำหรับการส่งต่องาน: **3.11.9** ซึ่งเป็นเวอร์ชันที่ใช้ตรวจรับจาก
-  `.venv/Scripts/python.exe`; ปัจจุบันยังไม่มี `.python-version`, `pyproject.toml`,
-  CI หรือ environment file บังคับเวอร์ชันนี้แบบ machine-readable
+- Python **3.11.9** เป็นเวอร์ชันของหลักฐานตรวจรับเดิม แต่ `.venv` ใน checkout ที่
+  audit วันที่ 2026-10-08 รายงาน **Python 3.12.3**; ปัจจุบันยังไม่มี `.python-version`,
+  `pyproject.toml`, CI หรือ environment file บังคับเวอร์ชันเดียวแบบ machine-readable
 - `requirements.txt` ระบุ `numpy`, `pandas`, `pytest`, `matplotlib`, `seaborn`,
   `nbformat`, `nbconvert`, `ipykernel` โดย **ไม่ pin versions**
 - ไม่มี lockfile (`poetry.lock`, `Pipfile.lock` หรือ equivalent)
-- เวอร์ชันที่ติดตั้งใน environment รอบนี้: NumPy 2.4.6, pandas 3.0.6,
+- เวอร์ชัน packages ที่บันทึกจาก environment ในรอบ 2026-10-07: NumPy 2.4.6, pandas 3.0.6,
   pytest 9.1.1, Matplotlib 3.11.2, seaborn 0.13.2, nbformat 5.11.1,
   nbconvert 7.17.1 และ ipykernel 7.4.0
-- Scikit-learn ถูกกล่าวถึงใน model plan แต่ **ไม่อยู่ใน `requirements.txt` และไม่ถูก
-  ติดตั้งใน environment รอบนี้**; version ที่จะใช้: **ยังไม่ได้บันทึก**
+- Scikit-learn และ XGBoost ถูกกล่าวถึงใน model plan แต่ **ไม่อยู่ใน
+  `requirements.txt`**; version/submission environment ที่จะใช้ยังต้อง freeze
 
 ### Windows PowerShell
 
@@ -171,10 +176,10 @@ track ใน Git และ live refresh ไม่สามารถรับป�
 | Source page | `https://www.nasdaq.com/market-activity/etf/qqq/historical` | Manifest |
 | Symbol | `QQQ` | Manifest |
 | Snapshot path | `data/raw/qqq_daily.csv` | Manifest/config |
-| Date range | 2016-08-31 ถึง 2026-08-28 | Manifest + verification รอบนี้ |
-| Rows | 2,512 | Manifest + verification รอบนี้ |
-| Schema | `Date, Close, Volume, Open, High, Low` | Manifest + verification รอบนี้ |
-| SHA-256 | `649e1db1b79c0990ea947a4ea162d6836b9bbdda2af24bc5ab6ae66cb83b6b13` | Manifest + verification รอบนี้ |
+| Date range | 2016-08-31 ถึง 2026-08-28 | Manifest + recorded verification 2026-10-07 |
+| Rows | 2,512 | Manifest + recorded verification 2026-10-07 |
+| Schema | `Date, Close, Volume, Open, High, Low` | Manifest + recorded verification 2026-10-07 |
+| SHA-256 | `649e1db1b79c0990ea947a4ea162d6836b9bbdda2af24bc5ab6ae66cb83b6b13` | Manifest + recorded verification 2026-10-07 |
 | Original retrieval date/time | **ยังไม่ได้บันทึก** (`retrieved_at: null`) | Manifest |
 | Archive modified time | 2026-08-31 04:34:02 +07:00 | Manifest; ไม่ใช่ retrieval time |
 | Dataset license/terms | **ยังไม่ได้บันทึก** | ต้องเพิ่มแหล่งอ้างอิง terms/license ที่ตรวจย้อนกลับได้ |
@@ -234,7 +239,10 @@ Phase 2 must-have inventory มี reports 4, experiment CSVs 4 และ figure
 
 **M8 gate: OPEN สำหรับเริ่ม paired model training ขั้นถัดไป** — spike-specific `142 passed, 1 skipped`, full suite `334 passed, 2 skipped`, targeted Ruff/mypy ผ่าน, inventory 11/11 และ protected checksum drift = 0 Skips ทั้งสองเป็น Windows symlink privilege ไม่ใช่ passed และไม่ใช่ must-have failure Repository-wide Ruff ยังมี known issues เดิม 21 รายการนอก Phase 2 scope
 
-ข้อจำกัดที่ต้องส่งต่อ: Wilder RSI อาจได้รับอิทธิพลหลัง `s+19`; window `[s-5,s+19]` และ within-split clipping เป็น operational policy ไม่ใช่หลักฐานว่า cross-boundary/spike influence เป็นศูนย์ทุก feature Root split/classification reports เก่ายังมี absolute pathsและไม่ได้ถูก rewrite; isolated reproduction/Phase 2 reports ใหม่ portable แล้ว
+ข้อจำกัดที่ต้องส่งต่อ: Wilder RSI อาจได้รับอิทธิพลหลัง `s+19`; window
+`[s-5,s+19]` และ within-split clipping เป็น operational policy ไม่ใช่หลักฐานว่า
+cross-boundary/spike influence เป็นศูนย์ทุก feature ณ รอบ M8 root reports ยังเป็น
+historical format; checkout ที่ audit 2026-10-08 มี portable root reportsแล้ว
 
 ยังไม่มี model training, metrics หรือ performance results จาก M8
 
@@ -278,27 +286,30 @@ modeling-ready 2,487 rows, gaps รวม 10 rows และ Train/Validation/Tes
 - ไม่พบ persisted model, prediction, metric หรือ exported figure
 - ไม่พบ scikit-learn dependency หรือ code เปรียบเทียบ from-scratch กับ scikit-learn
 
-Original/With-Spike splits พร้อมเป็น inputs สำหรับเริ่มพัฒนา model แต่ยังไม่ควรอ้าง
-ผลทดลอง และ paired conclusion กับ Non-Spike ต้องรอ Phase 2 artifacts
+With-Spike/Non-Spike splits และ Phase 2 artifacts พร้อมเป็น inputs แต่ยังไม่ควรอ้าง
+ผลทดลอง ลำดับคือ With-Spike-first แล้ว fit ใหม่สำหรับ Non-Spike; paired conclusion
+ต้องรอ model resultsครบทั้งสอง variants
 
 ### แผนโมเดลและเกณฑ์ประเมิน
 
-แหล่งที่มาของแผนส่วนนี้คือ **ภาพแผนโมเดลที่ผู้ใช้แนบ** ภาพไม่ได้อยู่ใน repository
-และไม่ใช่หลักฐานว่า implement, train หรือ evaluate แล้ว
+แผน authoritative อยู่ใน [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) และอ้าง
+Course PDF ที่ตรวจครบ 5 หน้าแล้ว Inventory เบื้องต้นมี Regression 4,
+Classification 12 และ Clustering 2 โดยนับ Perceptron/SLP เป็นหนึ่งรายการ
 
 #### Regression
 
 | โมเดล | Target | Metrics | สถานะโมเดล | สถานะ metrics |
 | --- | --- | --- | --- | --- |
-| Multiple Linear Regression | `target_volatility_5d` | MAE, RMSE, R² | **Planned** - ยังไม่มี from-scratch หรือ reference implementation | กำหนดไว้ในแผน; ผลคำนวณจริง **ยังไม่ได้บันทึก** |
-| Elastic Net | `target_volatility_5d` | MAE, RMSE, R² | **Planned** - ยังไม่มี from-scratch หรือ scikit-learn comparison | กำหนดไว้ในแผน; ผลคำนวณจริง **ยังไม่ได้บันทึก** |
+| Simple Linear, Multiple Linear, Polynomial, Elastic Net | `target_volatility_5d` | Loss/MSE, MAE, RMSE, R² และ baselines | **Planned** - ยังไม่มี scratch/reference implementation | ผลจริง **ยังไม่ได้บันทึก** |
 
 #### Classification
 
 | โมเดล | Target | Metrics/artifacts | สถานะโมเดล | สถานะ metrics |
 | --- | --- | --- | --- | --- |
-| Logistic Regression | `target_high_volatility` | Confusion Matrix, Precision, Recall, Specificity, F1, ROC-AUC | **Planned** - ยังไม่มี from-scratch หรือ reference implementation | กำหนดไว้ในแผน; ผลคำนวณจริง **ยังไม่ได้บันทึก** |
-| AdaBoost | `target_high_volatility` | Confusion Matrix, Precision, Recall, Specificity, F1, ROC-AUC | **Planned** - ยังไม่มี from-scratch หรือ scikit-learn comparison | กำหนดไว้ในแผน; ผลคำนวณจริง **ยังไม่ได้บันทึก** |
+| 12 classifiers ตาม inventory | `target_high_volatility` | Confusion Matrix, Accuracy, Precision, Recall, Specificity, F1, ROC/PR metrics | **Planned** - ยังไม่มี scratch/reference implementation | ผลจริง **ยังไม่ได้บันทึก** |
+
+Clustering มี k-Means และ Agglomerative แยกจาก supervised metrics; ต้องใช้ internal
+metrics/stability และห้าม fit ใหม่บน Test แล้วอ้างว่าเป็น forecast
 
 README ระบุ metrics เพิ่มจากภาพตาม requirement summary ได้แก่ Accuracy,
 training loss/objective และ performance curves; metrics เหล่านี้ยังเป็น **Planned**
@@ -319,13 +330,13 @@ evaluation subset มีทั้งสอง classes ก่อน หากไ�
 
 | ลำดับ | คำสั่ง copy/run | ผลลัพธ์ที่ควรเกิด | สถานะตรวจยืนยัน |
 | --- | --- | --- | --- |
-| 1 | `py -3 -m venv .venv` (Windows) หรือ `python3 -m venv .venv` (macOS/Linux) | สร้าง virtual environment | **Not recorded** - ไม่สร้าง environment ใหม่ในรอบนี้ |
+| 1 | `py -3 -m venv .venv` (Windows) หรือ `python3 -m venv .venv` (macOS/Linux) | สร้าง virtual environment | **Not recorded** - รอบ 2026-10-07 ไม่ได้สร้าง environment ใหม่ |
 | 2 | `python -m pip install -r requirements.txt` หลัง activate | ติดตั้ง dependencies; ต้องใช้ network/cache | **Not recorded** - environment มีอยู่แล้ว; requirements ไม่ pin |
-| 3 | `python --version` และ `python -m pip check` | ตรวจ interpreter และ dependency consistency | **Verified:** Python 3.11.9 และ `No broken requirements found.` |
-| 4 | `python src/download_qqq_data.py verify-snapshot` | แสดง 2,512 rows, date range และ SHA-256 ตรง Manifest | **Verified** รอบนี้; offline |
-| 5 | `python -m src.run_data_pipeline --output-root tmp/phase1-handoff-check` | สร้าง 14 artifacts ใต้ isolated root | **Verified** รอบนี้ด้วย output root ชั่วคราวชื่ออื่น; offline |
-| 6 | `Get-ChildItem tmp/phase1-handoff-check -Recurse -File` | เห็น interim 3, processed 6, reports 5 files | **Verified** กับ isolated artifacts รอบนี้ |
-| 7 | `python -m pytest -q -rs` | Baseline และ Phase 2 M1–M8 tests ผ่าน; แสดงเหตุผลของ skipped tests | **Verified:** `334 passed, 2 skipped` |
+| 3 | `python --version` และ `python -m pip check` | ตรวจ interpreter และ dependency consistency | **Recorded 2026-10-07:** Python 3.11.9 และ `No broken requirements found.`; audit 2026-10-08 พบ `.venv` เป็น 3.12.3 แต่ไม่ได้รัน `pip check` ใหม่ |
+| 4 | `python src/download_qqq_data.py verify-snapshot` | แสดง 2,512 rows, date range และ SHA-256 ตรง Manifest | **Recorded 2026-10-07:** verified offline |
+| 5 | `python -m src.run_data_pipeline --output-root tmp/phase1-handoff-check` | สร้าง 14 artifacts ใต้ isolated root | **Recorded 2026-10-07:** สำเร็จ; offline |
+| 6 | `Get-ChildItem tmp/phase1-handoff-check -Recurse -File` | เห็น interim 3, processed 6, reports 5 files | **Recorded 2026-10-07:** verified |
+| 7 | `python -m pytest -q -rs` | Baseline และ Phase 2 M1–M8 tests ผ่าน; แสดงเหตุผลของ skipped tests | **Recorded 2026-10-07:** `334 passed, 2 skipped` |
 | 8 | Train/evaluate/forecast | ไม่มีคำสั่งให้รัน | **Planned** - ห้ามสร้าง command สมมติ |
 
 คำสั่งที่ใช้ network แยกจาก baseline reproduction:
@@ -352,11 +363,12 @@ tests สามารถรัน offline ได้เมื่อ environment, 
 - Snapshot/Manifest เป็น protected inputs และต้อง byte-identical ก่อน/หลัง runner
 - Default runner ไม่ overwrite existing outputs; `--overwrite-generated` จำกัดที่
   14 known artifacts
-- Runner ปัจจุบันเขียน report paths แบบ relative ต่อ report directory แต่ reports
-  เก่าที่ root บางไฟล์ยังเป็น absolute paths
+- Runner และ root reports ที่ตรวจใน audit นี้ใช้ paths แบบ relative ต่อ report directory;
+  ประวัติ reports รุ่นเก่าที่เคยเป็น absolute pathsบันทึกไว้ใน readiness evidence
 - Stage failure หลังเริ่มเขียนอาจทิ้ง partial outputs; ข้อความ error ระบุ stage
 
-Spike design ที่ตกลงไว้ โดย direct detector ขั้น M2 เป็น **Implemented / Verified** และขั้น artifact/dataset ยังเป็น **Planned**:
+Spike design ต่อไปนี้เป็น **Implemented / Verified through M8 ตาม recorded evidence**;
+modeling ที่ใช้ artifacts เหล่านี้ยังเป็น **Planned**:
 
 - Detection variable: `abs(return_1d)`
 - Fit Extreme-IQR จาก Original Train เท่านั้น: `Q3 + 3 * IQR`
@@ -381,9 +393,9 @@ Open questions:
 
 | ผลลัพธ์ | ค่า | หลักฐาน |
 | --- | --- | --- |
-| Raw/Clean rows | 2,512 / 2,512 | Manifest, `cleaning_report.json`, verification รอบนี้ |
+| Raw/Clean rows | 2,512 / 2,512 | Manifest, `cleaning_report.json`, recorded verification 2026-10-07 |
 | Raw date range | 2016-08-31 ถึง 2026-08-28 | Manifest/verification |
-| Valid regression targets | 2,507; 5 trailing NaN | `src/build_targets.py`; isolated `regression_target_report.json` รอบนี้ |
+| Valid regression targets | 2,507; 5 trailing NaN | `src/build_targets.py`; recorded isolated report 2026-10-07 |
 | Modeling-ready rows | 2,487; removed 25 | `data_split_report.json` |
 | Gaps | 5 + 5 rows | `data_split_report.json` |
 | Train | 1,733 rows, 2016-09-29 ถึง 2023-08-18 | `data_split_report.json` |
@@ -394,7 +406,7 @@ Open questions:
 | Class counts Validation | Normal 337 / High 34 | `classification_threshold.json` |
 | Class counts Test | Normal 300 / High 73 | `classification_threshold.json` |
 | M2 detector audit | Q1 `0.0029797377830751`, Q3 `0.0138707144726510`, IQR `0.0108909766895759`, threshold `0.0465436445413787`, direct Train spikes 19 | Public M2 fit/apply API + M1 contract |
-| Tests รอบนี้ | 317 passed, 1 skipped | `python -m pytest -q` outputรอบล่าสุด |
+| Tests | 334 passed, 2 skipped | Recorded M8 evidence วันที่ 2026-10-07; audit เอกสารนี้ไม่ได้รันใหม่ |
 
 Skipped test คือ symlink-safety case ที่ `tests/test_data_pipeline.py:355` เพราะ
 Windows แจ้ง `WinError 1314` ว่า process ไม่มี privilege สร้าง symlink ไม่ใช่ model
@@ -418,20 +430,16 @@ test และไม่ใช่ test failure
 ลำดับแนะนำ:
 
 1. หลัง clone ให้หา Snapshot จากผู้ส่ง ตรวจ checksum และรัน verification/tests
-2. ใช้ M1 contract ที่ freeze baseline schema, checksums และ split boundaries แล้ว
-3. ใช้ M2 Train-only Extreme-IQR detector ที่ implement/test แล้ว
-4. ใช้ M3 affected-mask/boundary metadata API ที่ implement/test แล้ว
-5. ใช้ M5 With-Spike/Non-Spike และ diagnostic artifacts ที่ verified แล้ว
-6. Flag Validation/Test เป็น diagnostic segments ด้วย Train threshold เดิม
-7. สร้าง experiment reports/checksums/class distributions และ figures ที่เหลือ
-8. Freeze model algorithms, from-scratch/reference contract, dependencies,
-   hyperparameters, seeds, preprocessing และ metrics
-9. Implement paired regression/classification models แล้วเลือกด้วย Validation
-10. ประเมิน Test ครั้งสุดท้ายและบันทึก models, predictions, metrics และ configs
+2. ยืนยันว่า Phase 1/2 accepted artifacts/checksumsตรงกับ contract; ไม่สร้าง Phase 2 ซ้ำโดยไม่จำเป็น
+3. ใช้ `MODEL_TRAINING_PLAN.md` freeze 18 algorithms, scratch/reference contract,
+   dependencies, hyperparameters, seeds, preprocessing และ metrics
+4. ทำ Train/Validation-only pilotหนึ่งโมเดลทั้งสอง variantsเพื่อพิสูจน์ reuse โดยไม่เปิด Test
+5. หยุด Non-Spikeหลัง pilot แล้วทำ With-Spike inventory/submission packageให้ครบ
+6. Fit Non-Spikeใหม่ด้วย fresh scaler/PCA/model หลัง With-Spike milestone
+7. ทำ paired comparisonเมื่อ model resultsครบทั้งสอง variantsเท่านั้น
 
-เริ่ม prototype กับ Original/With-Spike Train ได้ทันทีหลัง Phase 1 verification แต่
-ยังสรุปผลเปรียบเทียบผลของ spike filtering ไม่ได้จนกว่า Non-Spike artifacts และ
-protocol จะพร้อม
+With-Spike/Non-Spike data artifactsพร้อมแล้ว แต่ยังสรุปผลของ spike filteringไม่ได้
+จนกว่า model training/evaluationครบทั้งสอง variantsภายใต้ frozen protocol
 
 ข้อจำกัดที่ตรวจพบ:
 
@@ -439,12 +447,13 @@ protocol จะพร้อม
 - Repository-wide Ruff ยังมี 21 errors ใน Phase 1 modules/notebooks (`I001`,
   `F401`, `RUF046`); targeted M1–M8 lint ผ่าน และรายละเอียดรายไฟล์อยู่ใน
   `PHASE2_SPIKE_READINESS.md` โดยยังไม่แก้นอก scope
-- Root reports บางไฟล์เป็น historical format ที่มี absolute paths
-- Root ไม่มี `regression_target_report.json` แม้ README และ runner ปัจจุบันระบุไฟล์นี้;
-  isolated runner สร้างได้สำเร็จ
-- ไม่มี exported figures, model files หรือ metric files
+- Root reports ปัจจุบันมี portable paths แต่ readiness docsยังเก็บประวัติ format เก่า
+- Root มี `regression_target_report.json` แล้ว
+- มี Phase 2 spike-analysis figures 3 ไฟล์ แต่ยังไม่มี model-performance figures,
+  model files หรือ metric files
 - Scikit-learn ยังไม่อยู่ใน dependencies
-- Python ที่ตรวจรับบนเครื่องปัจจุบันคือ **3.11.9** แต่ dependency pins/lockfile,
+- Recorded verification ใช้ Python **3.11.9**; `.venv` ที่ audit 2026-10-08 เป็น
+  **3.12.3** และ submission environment/dependency pins/lockfile,
   original retrieval time และ dataset license/terms **ยังไม่ได้บันทึก**
 
 เกณฑ์ตรวจทันทีหลัง clone:
@@ -473,14 +482,14 @@ git diff --cached --name-only
 rotate credential และส่งค่าใหม่ผ่าน secret manager ห้ามวางค่าไว้ใน `HANDOFF.md`,
 README, notebooks, reports หรือ commit
 
-## หลักฐานที่ตรวจในรอบนี้
+## หลักฐาน recorded จากรอบตรวจรับ 2026-10-07
 
 ตรวจอย่างน้อย: `.gitignore`, Git history/status, `README.md`, `PROJECT_STATUS.md`,
 `config.py`, `requirements.txt`, Snapshot Manifest/CSV, `src/` ทุกส่วนที่เกี่ยวข้อง,
 `tests/`, Notebook 01-04, generated datasets, `outputs/reports/` และ output
 directories สำหรับ figures/models/metrics
 
-คำสั่งที่รันจริง:
+คำสั่งที่บันทึกว่ารันจริงในรอบ 2026-10-07 (audit เอกสาร 2026-10-08 ไม่ได้รันซ้ำ):
 
 - `.venv/Scripts/python.exe src/download_qqq_data.py verify-snapshot` - สำเร็จ
 - `.venv/Scripts/python.exe -m src.run_data_pipeline --output-root <isolated-temp-root>`

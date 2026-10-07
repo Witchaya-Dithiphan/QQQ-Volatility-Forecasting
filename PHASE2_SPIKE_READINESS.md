@@ -2,6 +2,10 @@
 
 > **วิธีรันปัจจุบัน:** เอกสารนี้เก็บหลักฐานการตรวจรับตามรอบที่บันทึกไว้ สำหรับวิธี
 > ติดตั้งและรันบน Python 3.11.9 ให้ใช้ [RUNBOOK.md](RUNBOOK.md)
+>
+> Phase 2 gate เปิดสำหรับ modeling แล้ว แต่ scope/model inventory ล่าสุดให้ใช้
+> [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) เป็น source of truth; เอกสารนี้
+> ไม่ใช่หลักฐานว่า model training หรือ paired comparison เสร็จแล้ว
 
 ตรวจล่าสุด: 2026-10-07 บน branch `feature/spike-analysis`, M7 อยู่ที่ commit `ef3ff2d`
 
@@ -54,11 +58,11 @@ Phase 2 authoritative inputs สำหรับ snapshot ปัจจุบั�
 
 เหตุผล: ทั้งสามไฟล์ผ่าน direct schema/value validation และมี byte hashes ตรงกับผล reproduction ใหม่จาก verified Snapshot ทุกไฟล์ ไม่ได้อาศัย path หรือ checksum จาก saved report เก่าเพียงอย่างเดียว
 
-## 2. Saved-report provenance discrepancy
+## 2. Saved-report provenance discrepancy — historical M8 evidence
 
 ### ข้อเท็จจริง
 
-Saved reports เดิมที่ project root มี provenance fields แบบเก่า:
+ในรอบ M8 วันที่ 2026-10-07 saved reports ที่ project root มี provenance fields แบบเก่า:
 
 - `data_split_report.json`
   - `input_path` และ `output_paths.*` เป็น absolute Windows paths
@@ -74,7 +78,10 @@ Fields เหล่านี้กระทบ portability/provenance แต่�
 - Classification Q75, quantile method, strict comparison rule และ class counts
 - source checksums ของ unlabeled splits
 
-ข้อสรุปที่หลักฐานรองรับคือ saved reports ถูกสร้างด้วย report serialization รุ่นก่อน contract ปัจจุบัน ไม่ใช่หลักฐานว่า calculation code ปัจจุบันผิด และไม่ใช่เหตุให้เปลี่ยน spike rule
+ข้อสรุปของรอบนั้นคือ saved reports ถูกสร้างด้วย report serialization รุ่นก่อน
+contract ปัจจุบัน ไม่ใช่หลักฐานว่า calculation code ผิด ต่อมา audit 2026-10-08
+พบว่า root reports ถูกสร้างใหม่เป็น portable format แล้วและมี hashesตรงกับคอลัมน์
+`Reproduced SHA-256` ด้านล่าง ตารางนี้จึงเก็บเป็นประวัติ ไม่ใช่สถานะ root ปัจจุบัน
 
 ### หลักฐานจาก isolated reproduction
 
@@ -104,7 +111,7 @@ Fields เหล่านี้กระทบ portability/provenance แต่�
 
 Report hashes ต่างจาก saved reports เดิมตามที่คาด เพราะ path serialization และ report schema ต่างกัน:
 
-| Report | Saved root SHA-256 | Reproduced SHA-256 |
+| Report | Historical root SHA-256 ณ M8 | Portable/current SHA-256 |
 | --- | --- | --- |
 | `data_split_report.json` | `EF479B6B5731E0C4AA14A375C436B00C760AFBC5DEE285CEB6F4105B002026E0` | `7E9B47C1DE7AA0D66BA6B4CEFEF02816DEFF31FC93AD247E1755DF5E9C7E440F` |
 | `classification_threshold.json` | `E0670FB96B8AD0826D05D4ED888DDB9704C9379FF5F14DD6AB67D624A92F090D` | `FEB1C9A0C01448A2485B5A20837DFFC572F49450619F26AB818E0B93ED22AC53` |
@@ -388,4 +395,5 @@ Mypy แบบตาม imports ยังพบ known issue เดิมที�
 งานที่ยังไม่เสร็จและห้ามอ้างว่าเสร็จ:
 
 - Optional sensitivity report artifact
-- Model training/evaluation
+- Model training/evaluation: inventory เบื้องต้น 18 รายการ, With-Spike-first และ
+  Non-Spike fresh reruns ตาม `MODEL_TRAINING_PLAN.md`

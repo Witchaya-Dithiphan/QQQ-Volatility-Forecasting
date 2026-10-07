@@ -10,6 +10,12 @@ Python หรือ packages คนละ environment
 - [HANDOFF.md](HANDOFF.md) — รายละเอียดการส่งต่องานและ data contracts
 - [PHASE2_SPIKE_READINESS.md](PHASE2_SPIKE_READINESS.md) — หลักฐานการตรวจรับ Phase 2
 - [PROJECT_STATUS.md](PROJECT_STATUS.md) — สถานะ implementation
+- [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) — modeling requirements,
+  inventory 18 รายการ และ implementation milestones; คำสั่ง modeling ในแผนยังไม่พร้อมใช้
+
+> หลักฐานตรวจรับเดิมใช้ Python 3.11.9 แต่ audit วันที่ 2026-10-08 พบว่า `.venv`
+> ปัจจุบันรายงาน Python 3.12.3 ต้อง freeze submission environment ก่อนเริ่ม modeling
+> และห้ามตีความว่าคำสั่ง train/evaluate มีอยู่แล้ว
 
 ## 1. สิ่งที่ต้องมี
 
@@ -204,3 +210,10 @@ Runner ปฏิเสธการเขียนทับโดยค่าเ�
 ตรวจค่าที่แสดงหลัง `Output root:` หากกำหนด `--output-root tmp\...` outputs ทั้งหมด
 จะอยู่ใต้ root นั้น หากต้องการอัปเดต `data\processed\experiments\` ที่ project root
 ให้รัน Phase 2 โดยไม่กำหนด `--output-root`
+
+## 10. Modeling commands
+
+ยังไม่มี training/evaluation CLI ที่รันได้ใน repository `src/models/regression.py`
+และ `src/models/classification.py` ยังมีเพียง docstring และ Notebook 03/04 มี 0 cells
+ตัวอย่าง CLI ใน `MODEL_TRAINING_PLAN.md` เป็น proposed interface เท่านั้น จนกว่าจะมี
+implementation และ tests ห้ามคัดลอกตัวอย่างนั้นมาใช้เป็น runbook command

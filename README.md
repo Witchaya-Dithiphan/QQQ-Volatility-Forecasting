@@ -2,6 +2,10 @@
 
 > **วิธีติดตั้งและรันล่าสุด:** ดู [RUNBOOK.md](RUNBOOK.md) สำหรับ Python 3.11.9,
 > การสร้าง `.venv`, การติดตั้ง dependencies, การรัน Phase 1/Phase 2 และ tests บน Windows
+>
+> **Modeling scope ล่าสุด:** ดู [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md)
+> ซึ่งเป็น source of truth สำหรับ requirement matrix, inventory 18 รายการเบื้องต้น,
+> scratch/reference contract, With-Spike-first milestones และ Non-Spike reruns
 
 สำหรับ workspace ที่ตั้งค่าครบแล้ว ใช้คำสั่งต่อไปนี้จาก project root:
 
@@ -153,7 +157,11 @@ Gate = **OPEN สำหรับเริ่ม paired model training ขั้�
 
 ผล pinned ที่ตรวจจาก artifacts จริงคือ Train direct/affected `19/213`, With-Spike/Non-Spike `1,733/1,520`, Validation affected `0`, Test affected `54` และ Non-Spike class 0/1 `1,240/280` Snapshot, Manifest และ Original Train/Validation/Test SHA-256 ก่อน/หลัง success รวมถึง intentional no-overwrite failure เหมือนเดิมทุกไฟล์
 
-Root `data_split_report.json` และ `classification_threshold.json` รุ่นเก่ายังมี absolute Windows paths และไม่มี `paths_relative_to`; M8 ไม่ rewrite ไฟล์เหล่านี้ Fresh Phase 1 reproduction reports และ Phase 2 reports ใน isolated run ใช้ portable relative pathsและ links resolve ได้ ข้อจำกัดยังคงเดิม: Wilder RSI เป็น recursive, `[s-5,s+19]` เป็น operational window, mask clip ภายใน split และไม่ได้พิสูจน์ว่า cross-boundary influence หรือ spike influence ในทุก feature เป็นศูนย์
+ณ รอบ M8 วันที่ 2026-10-07 root reports รุ่นที่ตรวจตอนนั้นยังเป็น historical
+absolute-path format และ M8 ไม่ rewrite ไฟล์เหล่านั้น ต่อมา checkout ที่ audit
+2026-10-08 มี root `data_split_report.json` และ `classification_threshold.json`
+portable แล้ว โดย SHA-256 ตรงกับค่าที่เอกสาร readiness เรียกว่า reproduced reports
+ข้อจำกัดด้าน Wilder RSI, operational window และ split-local clipping ยังคงเดิม
 
 M8 ไม่ได้ train model และไม่มี model metrics/performance results ใดถูกสร้างขึ้น S3 sensitivity report/figure ยังเป็น optional และไม่ใช่ must-have gate
 
@@ -174,13 +182,10 @@ Model plan ด้านล่างยึด requirement summary ที่ระ
   ใช้ Scikit-learn/PyTorch ประกอบเพื่อยืนยันและ benchmark ได้ และ rubric ให้คะแนน
   Accuracy, Loss, F1 และ performance curve
 
-> **Source-verification limitation:** PDF ต้นฉบับทั้ง
-> `_69-1-01076641_Project-description.pdf`, `Machine Learning (1).pdf` และ
-> `Machine Learning (2).pdf` ไม่ได้อยู่ใน repository หรือ attachment ที่ตรวจได้ใน
-> รอบนี้ จึงยังไม่สามารถตรวจข้อความตามหน้าหรือค้นคำใน Course PDFs โดยตรงได้
-> Page references ข้างต้นมาจาก requirement summary ที่ส่งมากับงานและต้องตรวจซ้ำกับ
-> PDF ก่อนส่งงานขั้นสุดท้าย โดยเฉพาะสถานะ extracurricular model ห้ามตีความว่าได้รับ
-> การอนุมัติจากอาจารย์แล้ว
+> **Source verification:** `_69-1-01076641_Project-description.pdf` มีอยู่ใน checkout
+> และ audit เอกสารวันที่ 2026-10-08 อ่านครบ 5 หน้าแล้ว แต่ไฟล์ยัง untracked ใน Git
+> ส่วน `Machine Learning (1).pdf` และ `Machine Learning (2).pdf` ยังไม่พบ จึงยังห้าม
+> อ้างว่า Elastic Net/AdaBoost ไม่เคยเรียนในชั้นหรือได้รับอนุมัติจากอาจารย์แล้ว
 
 สถานะหลักฐานที่ใช้ในส่วนนี้มีความหมายดังนี้:
 
@@ -195,21 +200,26 @@ Model plan ด้านล่างยึด requirement summary ที่ระ
 - `Verified by saved results`: มี persisted results ที่ตรวจย้อนกลับได้
 
 จากหลักฐาน repository ปัจจุบัน data preparation เป็น `Implemented` และ split/label
-มี saved reports แต่ model training ทั้งสี่ยังเป็น `Planned`: ไฟล์
+มี saved reports แต่ model inventory 18 รายการเบื้องต้นยังเป็น `Planned`: ไฟล์
 `src/models/regression.py` และ `src/models/classification.py` มีเพียง module
 docstring และยังไม่มี saved model metrics ใน `outputs/metrics/` หรือ model reports
 ใน `outputs/reports/`
 
-## Selected Models
+## Modeling Scope
 
-Multiple Linear Regression และ Logistic Regression เป็น baseline เพราะอยู่ใน
-listed models ตาม requirement summary ส่วน Elastic Net และ AdaBoost เป็น
-`Selected extracurricular candidate` เนื่องจากไม่อยู่ใน model list ที่สรุปจากหน้า 2
-และมีกลไกการเรียนรู้ต่างจาก baseline อย่างไรก็ตาม การยืนยันว่าเป็น “beyond
-classroom learning” ยังเป็น `Pending instructor confirmation` จนกว่าจะตรวจ Course
-PDFs และได้รับคำยืนยันจากอาจารย์
+รายการหลักเบื้องต้นมี 18 รายการ: Regression 4, Classification 12 และ Clustering 2
+โดยนับ Perceptron/SLP เป็นหนึ่งรายการ รายการนี้เป็นการตีความจาก PDF ไม่ใช่จำนวนที่
+PDF ระบุโดยตรง และไม่รวม dataset variants, reference implementations,
+preprocessing configurations หรือ hyperparameter trials เป็นโมเดลใหม่
 
-### Regression Models
+รายละเอียด authoritative อยู่ใน [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md)
+ซึ่งกำหนด With-Spike-first, Non-Spike fresh reruns, scratch/reference contract,
+leakage-safe protocol, artifacts, milestones และข้อกำกวมที่ต้องยืนยัน
+
+### Representative Regression Notes
+
+หัวข้อนี้เก็บรายละเอียด 2 ตัวอย่างจากแผนเดิม ไม่ใช่ inventory ทั้งหมด รายการครบ 4
+regression algorithms และ contract ต่อโมเดลอยู่ใน `MODEL_TRAINING_PLAN.md`
 
 #### Multiple Linear Regression - baseline
 
@@ -241,7 +251,10 @@ PDFs และได้รับคำยืนยันจากอาจาร
 - **Limitations:** ต้อง scale features ก่อน regularization, ผลขึ้นกับ hyperparameters
   และยังคงเป็น linear model ใน transformed feature space ที่กำหนด
 
-### Classification Models
+### Representative Classification Notes
+
+หัวข้อนี้เก็บรายละเอียด 2 ตัวอย่างจากแผนเดิม ไม่ใช่ inventory ทั้งหมด รายการครบ 12
+classifiers และ clustering 2 รายการอยู่ใน `MODEL_TRAINING_PLAN.md`
 
 #### Logistic Regression - baseline
 
@@ -277,7 +290,10 @@ requirement summary: ต้องเพิ่ม Regression loss/objective แ�
 curves; Classification ต้องเพิ่ม Accuracy, loss/objective และ performance curve
 พร้อมระบุว่า Sensitivity คือ Recall และ True Negative Rate คือ Specificity
 
-## Why These Models Fit the Targets
+## Target Compatibility Examples
+
+ตารางด้านล่างเป็นตัวอย่างจาก 4 models ที่มีรายละเอียดเดิม ไม่ใช่ model inventory
+ฉบับเต็ม ให้ใช้ `MODEL_TRAINING_PLAN.md` สำหรับ scope และ preprocessing contract
 
 โปรเจกต์สร้าง eight numerical features ใน `src/build_features.py` ได้แก่
 `return_1d`, `return_5d`, `historical_volatility_5d`,
@@ -298,7 +314,8 @@ apply ไปยัง Validation/Test โดยห้าม fit ใหม่ เ
 
 ## From-Scratch and Reference Implementations
 
-ทั้งสี่โมเดลต้องมี from-scratch implementation; Scikit-learn ใช้เฉพาะ reference
+ทั้ง 18 รายการตาม inventory เบื้องต้นต้องมี from-scratch implementation ในระดับที่
+ตรงกับชื่อ algorithm; Scikit-learn/PyTorch/XGBoost library ใช้เฉพาะ reference
 implementation สำหรับ verification และ quantitative benchmarking ไม่ใช้แทนงาน
 from scratch การเปรียบเทียบต้องใช้ splits, features, target definitions,
 hyperparameters และ metrics ที่สอดคล้องกันเท่าที่ implementation อนุญาต
@@ -315,9 +332,10 @@ hyperparameters และ metrics ที่สอดคล้องกันเ�
 8. computational limitations
 9. comparison กับ Scikit-learn บน protocol เดียวกัน
 
-แผน objective ปัจจุบันคือ SSE/MSE สำหรับ Multiple Linear Regression,
-penalized squared error สำหรับ Elastic Net และ Binary Cross-Entropy/Log Loss สำหรับ
-Logistic Regression ส่วน AdaBoost objective รอ freeze variant ก่อน implement
+Objective/algorithm contracts สำหรับทั้ง 18 รายการอยู่ใน `MODEL_TRAINING_PLAN.md`
+ตัวอย่างคือ SSE/MSE สำหรับ linear regression, penalized squared error สำหรับ
+Elastic Net, Binary Cross-Entropy สำหรับ Logistic Regression และ weighted weak-learner
+updates สำหรับ AdaBoost variant ที่ต้อง freezeก่อน implement
 
 ## Evaluation Metrics
 
@@ -380,15 +398,10 @@ metric ผลหลักต้องรายงาน metrics ครบ ไม
 
 ## With-Spike and Non-Spike Experiments
 
-โมเดลทุกตัวต้อง train เป็นคู่ภายใต้ protocol เดียวกัน เพื่อแยกผลของ spike filtering
-ออกจากผลของ model choice:
-
-| Task | Model | With-Spike | Non-Spike |
-| --- | --- | --- | --- |
-| Regression | Multiple Linear Regression | Required | Required |
-| Regression | Elastic Net | Required | Required |
-| Classification | Logistic Regression | Required | Required |
-| Classification | AdaBoost | Required | Required |
+โมเดลทุกตัวใน inventory ต้องรองรับสอง dataset variants ภายใต้ protocol เดียวกัน
+แต่ลำดับส่งงานคือ **With-Spike ให้ครบก่อน แล้ว fit ใหม่สำหรับ Non-Spike** ห้ามนำ
+fitted scaler, PCA หรือ model weights จาก With-Spike ไปใช้เป็นผลหลักของ Non-Spike
+และห้ามอ้างว่า paired comparison เสร็จจนกว่าจะมีผลครบทั้งสอง variants
 
 With-Spike ใช้ Original Train ส่วน Non-Spike ตัดเฉพาะ Train modeling rows ที่
 `is_spike_affected == True` หลังสร้าง features/targets แล้ว โดยไม่เปลี่ยน Original
@@ -398,8 +411,9 @@ metrics และ search protocol ยังเป็น `Planned` จึงย�
 
 ## Model Selection Risks and Open Questions
 
-- ต้องแนบและตรวจ `_69-1-01076641_Project-description.pdf` หน้า 2, 3 และ 5 ก่อน
-  ยืนยัน citations ใน README
+- ตรวจ `_69-1-01076641_Project-description.pdf` ครบ 5 หน้าแล้ว; ไฟล์ยัง untracked
+- ต้องยืนยันว่า Perceptron/SLP นับหนึ่งหรือสอง deliverables และ PCA เป็นขั้นตอนหรือ
+  configuration ที่ต้องส่งแยกเพียงใด
 - ต้องค้นคำว่า `Elastic Net`, `AdaBoost` และ `Adaptive Boosting` ใน
   `Machine Learning (1).pdf` และ `Machine Learning (2).pdf`; ขณะนี้ PDF ไม่พร้อมให้
   ตรวจ จึงห้ามเขียนว่า “Definitely not taught in class”
@@ -409,14 +423,13 @@ metrics และ search protocol ยังเป็น `Planned` จึงย�
   implementation
 - ต้อง freeze hyperparameter search spaces, random seeds, scaling policy และ
   prediction-threshold policy ก่อนใช้ Test
-- With-Spike/Non-Spike datasets พร้อมแล้ว แต่ model implementations ยังเป็น `Planned`
-  และยังไม่มี performance claims
+- With-Spike/Non-Spike datasets พร้อมแล้ว แต่ model implementations ทั้ง inventory
+  ยังเป็น `Planned` และยังไม่มี performance claims
 
 ### Traceable sources
 
-- Requirement summary อ้าง `_69-1-01076641_Project-description.pdf`, หน้า 2
-  (listed models), หน้า 3 (new models/evaluation) และหน้า 5 (rubric/from-scratch)
-  แต่ PDF ยังต้องแนบเพื่อตรวจข้อความโดยตรง
+- `_69-1-01076641_Project-description.pdf` ตรวจครบ 5 หน้าแล้วใน audit
+  2026-10-08; ไฟล์ยัง untracked และต้องตัดสินใจก่อน commit/ส่งมอบ
 - `src/build_features.py`: รายการและนิยาม features
 - `src/build_targets.py`: `target_volatility_5d`, Train-only Q75 และ
   `target_high_volatility`

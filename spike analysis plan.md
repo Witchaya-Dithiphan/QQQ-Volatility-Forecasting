@@ -2,6 +2,9 @@
 
 > **วิธีติดตั้งและรัน pipeline ปัจจุบัน:** ดู [RUNBOOK.md](RUNBOOK.md) เอกสารนี้เป็น
 > แผนการวิเคราะห์ และไม่ใช้แทนคู่มือปฏิบัติงาน
+>
+> Modeling phase ใช้ [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) เป็น source of
+> truth สำหรับ inventory 18 รายการ, With-Spike-first และ Non-Spike reruns
 
 ## สถานะและขอบเขต
 
@@ -33,7 +36,7 @@
 
 ### ข้อขัดแย้งหรือข้อควรระวังที่พบ
 
-- [x] Saved `data_split_report.json` และ `classification_threshold.json` ใน working directory ยังเก็บ absolute paths และไม่มี `paths_relative_to`
+- [x] ณ รอบ M8 วันที่ 2026-10-07 saved root reports ยังเก็บ absolute paths และไม่มี `paths_relative_to`; audit 2026-10-08 พบว่า root reports ปัจจุบันเป็น portable formatแล้ว
 - [x] Fresh isolated reproduction พิสูจน์ว่าโค้ดปัจจุบันสร้าง portable relative paths และ links resolve ได้จริง
 - [x] Labeled CSV เดิมและ reproduced CSV มี SHA-256 ตรงกันทุก split จึงจัด discrepancy เป็น artifact provenance ไม่ใช่ data mismatch
 - [x] ไม่เปลี่ยนมติ spike เพื่อชดเชยความเก่าของ report
@@ -609,7 +612,9 @@ Phase 2 ถือว่าเสร็จเมื่อ Must-have M1–M8 ค�
 - [x] README/HANDOFF/PROJECT_STATUS ตรงกับหลักฐานจริง
 - [x] ยังไม่มีการอ้างว่า model training หรือ model evaluation เสร็จ
 
-Optional sensitivity ไม่เป็นเงื่อนไขปิด Phase 2 เว้นแต่ทีมยกระดับเป็น requirement ภายหลัง ส่วน Robust Z-score, RSI decay alternatives และ model training เป็น Future Work
+Optional sensitivity ไม่เป็นเงื่อนไขปิด Phase 2 เว้นแต่ทีมยกระดับเป็น requirement
+ภายหลัง ส่วน Robust Z-score และ RSI decay alternatives เป็น Future Work ของ spike
+analysis; model training ย้ายไปวางแผนรายละเอียดใน `MODEL_TRAINING_PLAN.md` และยังไม่เริ่ม
 
 ## ลำดับ Implementation ที่แนะนำ
 

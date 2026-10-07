@@ -3,13 +3,17 @@
 > **วิธีรันปัจจุบัน:** ดู [RUNBOOK.md](RUNBOOK.md) สำหรับการติดตั้ง environment และ
 > การรัน Data/Spike pipelines เอกสารนี้ใช้สรุปสถานะ implementation
 
-> ตรวจสอบล่าสุด: 2026-10-07
+> ตรวจเอกสาร/checkout ล่าสุด: 2026-10-08 บน `main` (`03dfada`)
 >
 > ขอบเขตล่าสุด: M1 freeze baseline inputs, M2 เป็น pure direct detector และ M3 เป็น pure affected-mask/boundary metadata API
 >
 > ฐานของการสำรวจเดิมก่อน Phase 1: branch `main`, commit `115a054`; tracked working tree สะอาด
 >
 > M8 verification gate: **OPEN สำหรับเริ่ม paired model training**; spike-specific `142 passed, 1 skipped`, full suite `334 passed, 2 skipped`, targeted Ruff/mypy ผ่าน, artifacts 11/11 และ protected checksum drift = 0
+>
+> Model inventory และ implementation plan ล่าสุดอยู่ที่
+> [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md); ผลทดสอบ M8 ข้างต้นเป็นหลักฐานที่
+> บันทึกเมื่อ 2026-10-07 ไม่ใช่ผลที่รันใหม่ในการแก้เอกสารรอบนี้
 
 ## 1. ภาพรวมโปรเจกต์
 
@@ -48,9 +52,10 @@ Historical snapshot สำหรับผลปัจจุบันคือ `d
 | With-Spike experiment dataset | ✅ M5 verified | `data/processed/experiments/with_spikes/train.csv` | 1,733 แถว; byte-identical กับ Original Train |
 | Non-Spike experiment dataset | ✅ M5 verified | `data/processed/experiments/non_spike/train.csv` | 1,520 แถว; class 0/1 = 1,240/280; source values เดิม |
 | Full/Non-Spike/Spike-Affected evaluation | 🟡 Diagnostic datasets พร้อม | `data/processed/experiments/diagnostics/` | Full Validation/Test ยังชี้ Original splits; metrics ยังไม่ทำ |
-| Paired model comparison | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/*.py` ยังมีเพียง module docstring | ต้องควบคุม protocol ให้เหมือนกันทั้งสอง cases |
-| Regression model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/regression.py`, `notebooks/03_regression.ipynb` | Notebook มี 0 cells |
-| Classification model training | ⬜ ยังไม่พบว่าดำเนินการ | `src/models/classification.py`, `notebooks/04_classification.ipynb` | Notebook มี 0 cells |
+| Paired model comparison | ⬜ ยังไม่ดำเนินการ | `src/models/*.py` ยังมีเพียง module docstring | ห้ามอ้างว่าเสร็จจน With-Spike/Non-Spike fit ใหม่ครบ |
+| Regression model training | ⬜ ยังไม่ดำเนินการ | 4-item inventory ใน `MODEL_TRAINING_PLAN.md`; Notebook 03 มี 0 cells | With-Spike-first |
+| Classification model training | ⬜ ยังไม่ดำเนินการ | 12-item inventory ใน `MODEL_TRAINING_PLAN.md`; Notebook 04 มี 0 cells | With-Spike-first |
+| Clustering | ⬜ ยังไม่ดำเนินการ | k-Means และ Agglomerative ตาม PDF/plan | แยก evaluation จาก supervised classification |
 | Automated tests | ✅ Baseline + contracts verified | `tests/`, `pytest.ini` | 334 tests ผ่าน, 2 symlink tests ข้ามบน Windows; M7 runner coverage 96% |
 | Project runbook/data provenance | ✅ Phase 2 runner verified | `README.md`, `PHASE2_SPIKE_READINESS.md`, Manifest และ runners | `--output-root` แยก generated outputs โดยไม่ remap accepted baseline inputs |
 | Phase 2 verification gate | ✅ OPEN | `tmp/phase2-m8-verification-20261007`, M8 documentation | Reports 4 + CSVs 4 + figures 3 ครบ; report/CSV/figure/checksum consistency ผ่าน |
@@ -67,7 +72,7 @@ Historical snapshot สำหรับผลปัจจุบันคือ `d
 6. Chronological split พร้อม 5-row purging gaps → Original Train/Validation/Test
 7. Fit Classification Q75 จาก Original Train → labeled splits
 
-### 3.2 Spike experiment branch — Contract verified; artifacts planned
+### 3.2 Spike experiment branch — M1–M8 implemented/verified ตาม recorded evidence
 
 ```mermaid
 flowchart TD
@@ -80,16 +85,18 @@ flowchart TD
         F --> G[Original labeled Train / Validation / Test]
     end
 
-    subgraph PLAN[Spike Sensitivity Experiment — Planned]
+    subgraph DONE2[Spike Sensitivity Data Preparation — M1–M8 Completed]
         G --> H[Fit Extreme-IQR threshold from Train only]
         H --> I[Create is_spike and is_spike_affected flags]
         I --> J[With-Spike Train: Original Train]
         I --> K[Non-Spike Train: filter affected rows]
-        J --> L[Same Original Validation / Test]
+        J --> L[Same Original Validation / Test contract]
         K --> L
-        L --> M[Regression and Classification]
-        M --> N[Full / Non-Spike / Spike-Affected evaluation]
-        N --> O[Paired model comparison]
+    end
+    subgraph TODO[Modeling — Planned / Not Started]
+        L --> M[18-item scratch/reference inventory]
+        M --> N[Full / diagnostic evaluation]
+        N --> O[Paired comparison after both variants]
     end
 ```
 
@@ -100,10 +107,13 @@ flowchart TD
 - Baseline artifacts มี Raw, Clean, Features, Regression target, Original splits และ labeled splits ครบใน working directory
 - Reports ปัจจุบันมี `cleaning_report.json`, `feature_report.json`, `data_split_report.json` และ `classification_threshold.json`
 - `README.md` อธิบาย Snapshot verification, Live refresh และ baseline pipeline แล้ว ไม่ใช่ไฟล์ว่าง
-- `outputs/figures/` ปัจจุบันมีเพียง `.gitkeep`; ภาพที่ Notebook อ้างถึงไม่ได้อยู่ใน working directory นี้ จึงต้อง regenerate/verify ภายหลังโดยไม่อ้างว่ามี saved PNG แล้ว
+- `outputs/figures/spike_analysis/` มี primary figures 3 ไฟล์ตาม Phase 2; ยังไม่มี model-performance figures
 - `src/models/regression.py` และ `src/models/classification.py` ยังไม่มี implementation; Notebook 03/04 ว่าง
-- ยังไม่มี orchestration script สำหรับ baseline end-to-end pipeline และยังไม่มี Regression target JSON report
-- Reports บางไฟล์เก็บ absolute path จากเครื่องปัจจุบัน ทำให้ byte checksum ต่างข้ามเครื่องได้ แม้สาระข้อมูลเหมือนกัน
+- มี baseline/Phase 2 orchestration scripts และ root `regression_target_report.json` แล้ว
+- Root `data_split_report.json` และ `classification_threshold.json` ที่ตรวจใน audit นี้
+  ใช้ portable relative paths; เอกสารเดิมยังคงบันทึกประวัติ format เก่าที่เคยมี absolute paths
+- Course PDF มีใน checkout แต่ยัง untracked; `.venv` ปัจจุบันเป็น Python 3.12.3
+  ขณะที่หลักฐานตรวจรับเดิมใช้ Python 3.11.9
 
 ## 5. Features, Targets และ Spike Design Decisions
 
@@ -179,7 +189,7 @@ is_spike = abs_return > spike_threshold
 | Main threshold: `Q3 + 3 × IQR` | 0.0465436445413787 (ประมาณ 4.65%) |
 | Direct spike days, strict `>` | 19 (ประมาณ 1.10% ของ Train) |
 | Spike-affected Train rows (`s-5:s+19`) | 213 |
-| Planned Non-Spike Train rows | 1,520 |
+| Non-Spike Train rows | 1,520 |
 | Non-Spike Train Class 0/1 | 1,240/280 |
 | Non-Spike Train High ratio | 18.4211% |
 
@@ -213,7 +223,7 @@ M5 Test diagnostics ซึ่งแยกจาก Main Test:
 2. **Non-Spike Test Segment:** แถว Test ที่ `is_spike_affected == False`
 3. **Spike-Affected Test Segment:** แถว Test ที่ `is_spike_affected == True` สำหรับ stress test
 
-## 7. Experiment Protocol และ Planned Artifacts
+## 7. Experiment Protocol และ Modeling Handoff
 
 ### 7.1 Paired comparison
 
@@ -227,7 +237,7 @@ Scaler, imputer, feature selector, sampler และ preprocessing อื่น�
 
 สำหรับ tabular models ช่องว่างวันที่ใน Non-Spike Train ยอมรับได้เพราะ features/targets สร้างก่อนกรอง หากเพิ่ม sequence model เช่น LSTM ภายหลัง ต้องห้ามสร้าง sequence ข้ามช่องว่าง
 
-### 7.2 Planned artifacts — ยังไม่สร้าง
+### 7.2 Phase 2 artifacts — สร้างแล้วตาม recorded evidence
 
 ```text
 src/detect_spikes.py
@@ -247,7 +257,7 @@ outputs/figures/spike_analysis/threshold_comparison.png
 outputs/figures/spike_analysis/dataset_comparison.png
 ```
 
-`spike_analysis.json` และ `experiment_dataset_report.json` ต้องเก็บ detection variable, formula, multiplier, Q1/Q3/IQR, threshold, source split, strict comparison rule, direct count/dates, affected-row count, before/after rows, date ranges, class distribution, source checksums และ generated artifact paths
+Artifacts ในรายการนี้มีอยู่ใน checkout ยกเว้น `threshold_comparison.png` ซึ่งเป็น optional sensitivity artifact รายละเอียด modeling artifacts ที่ยังเป็นแผนอยู่ใน `MODEL_TRAINING_PLAN.md`
 
 ## 8. Problems และ Risks
 
@@ -265,7 +275,7 @@ outputs/figures/spike_analysis/dataset_comparison.png
 | Sequence ข้ามช่องว่าง | LSTM อาจถือวันไม่ต่อเนื่องว่าเป็น sequence ต่อเนื่อง | หากใช้ sequence model ให้สร้าง contiguous-segment rule และ tests เพิ่ม |
 | Recursive RSI เกิน 20 แถว | Window `s-5:s+19` ไม่ได้กำจัดอิทธิพลของ spike ต่อ Wilder RSI ทั้งหมด | ระบุเป็น operational approximation และ freeze decay policy/affected rule ก่อนสร้าง artifact |
 | Spike เป็นเหตุการณ์ตลาดจริง | การกรองอาจลดความสามารถรับมือ crisis regime | รักษา With-Spike baseline และประเมิน Spike-Affected Test เป็น stress test |
-| Saved figures ไม่อยู่ในเครื่องปัจจุบัน | หลักฐานภาพไม่ reproducible จาก working directory นี้ | Regenerate ตาม pipeline ที่กำหนดและตรวจ artifact paths/checksums |
+| ยังไม่มี model-performance figures | ยังไม่มีหลักฐานเชิงภาพของ model evaluation | สร้างจาก persisted predictions/metrics ตาม `MODEL_TRAINING_PLAN.md`; Phase 2 spike figures 3 ไฟล์มีอยู่แล้ว |
 
 ## 9. งานที่ต้องทำต่อ
 
@@ -276,7 +286,7 @@ outputs/figures/spike_analysis/dataset_comparison.png
 - [x] เพิ่ม Regression target report และปรับ report paths ให้ portable
 - [x] **อัปเดต `README.md` เป็นงานสุดท้ายของ Phase 1** — มีคำสั่งรัน pipeline ตั้งแต่ Snapshot verification ถึง labeled splits, อธิบาย input/output artifacts, safety rule ที่ห้ามเขียนทับ Raw/Snapshot และผลทดสอบที่คาดหวัง
 
-### Phase 2 — Spike Analysis และ Experiment Dataset Preparation
+### Phase 2 — Spike Analysis และ Experiment Dataset Preparation (historical implementation record; completed)
 
 | # | Task | ไฟล์ที่ควรสร้าง/แก้ | Input | Output | Dependency | Definition of Done |
 | ---: | --- | --- | --- | --- | --- | --- |
@@ -317,17 +327,18 @@ Spike-specific test checklist สำหรับ Task 10:
 19. Pipeline rerun ให้ผลเดิม
 20. ไม่มี return ข้ามวันที่จากการลบ Raw rows
 
-### Phase 3 — Regression Models
+### Phase 3 — Regression Models (4 รายการ)
 
-- [ ] กำหนด baseline/candidate algorithms และใช้ paired protocol กับทั้งสอง Train cases
-- [ ] Implement/test `src/models/regression.py`; เลือกด้วย Validation และประเมิน Test หลัง freeze
+- [ ] Implement Simple Linear, Multiple Linear, Polynomial และ Elastic Net แบบ scratch พร้อม reference
+- [ ] ใช้ With-Spike-first; เลือกด้วย Validation และประเมิน Test หลัง freeze
 - [ ] เติม `notebooks/03_regression.ipynb` พร้อม Full/Non-Spike/Spike-Affected metrics
 
-### Phase 4 — Classification Models
+### Phase 4 — Classification Models (12 รายการ) และ Clustering (2 รายการ)
 
-- [ ] กำหนด majority baseline, imbalance policy และ prediction-threshold policy
-- [ ] Implement/test `src/models/classification.py` ด้วย Original Train Q75 เดียวกันทั้ง cases
-- [ ] เติม `notebooks/04_classification.ipynb` และ metrics ที่ไม่พึ่ง Accuracy อย่างเดียว
+- [ ] Implement 12 classifiers และ 2 clustering algorithms ตาม inventory/contract ในแผนหลัก
+- [ ] กำหนด majority baseline, imbalance policy, prediction-threshold policy และ clustering evaluation
+- [ ] ใช้ Original Train Q75 เดียวกันทั้ง variants และ fit preprocessing/model ใหม่ทุก variant
+- [ ] เติม notebook presentation โดยเรียก source APIs ไม่คัดลอก training logic
 
 ### Phase 5 — Evaluation, Documentation และ Presentation
 
@@ -337,31 +348,31 @@ Spike-specific test checklist สำหรับ Task 10:
 
 ## 10. ลำดับงานรอบถัดไป
 
-1. Freeze baseline input checksums, schema, rows, dates และ split boundaries ใน experiment contract
-2. ใช้ pure Extreme-IQR detector ขั้น M2 ที่ผ่าน Train-only/equality/leakage tests แล้ว
-3. ใช้ affected-mask/boundary metadata API ขั้น M3 ที่ implement/test แล้ว
-4. ทำ M4: สร้าง `spike_analysis.json` และตรวจ 19 spike dates กับ Raw/Clean OHLCV
-5. สร้าง experiment Train artifacts แยก path โดยไม่แก้ Original Train
-6. Flag Original Validation/Test ด้วย Train threshold และสร้าง diagnostic segment definitions
-7. สร้าง `experiment_dataset_report.json` พร้อม class distributions/checksums
-8. สร้างและตรวจ spike-analysis figures จาก verified artifacts
-9. Freeze experiment config/protocol แล้วจึงเริ่ม paired model training
+1. ปิดข้อกำกวม modeling ใน `MODEL_TRAINING_PLAN.md` และยืนยัน extracurricular models
+2. Freeze Python/dependencies, search budget, seeds และ Test-access protocol
+3. Implement shared loader/contracts/preprocessing/metrics/persistence/artifact runner
+4. ทำ Train/Validation-only pilotหนึ่งโมเดลทั้งสอง variantsเพื่อพิสูจน์ reuse โดยไม่เปิด Test
+5. หยุด Non-Spikeหลัง pilot แล้วทำ With-Spike regression/classification/clustering inventoryให้ครบ
+6. สร้าง With-Spike report/slides/notebooks พร้อม scratch/reference/save-load evidence
+7. Fit Non-Spike ใหม่ด้วย framework/protocolเดิมหลัง With-Spike submission milestone
+8. ทำ paired comparisonเมื่อทั้งสอง variantsครบเท่านั้น
 
 ## 11. Definition of Done
 
 ### Spike phase
 
-- [ ] Threshold fit จาก Original Train เท่านั้นและมี report พิสูจน์
-- [ ] With-Spike และ Non-Spike datasets สร้างซ้ำได้จาก documented command
-- [ ] Original Raw/Clean/Features/Targets/Splits และ checksums ไม่เปลี่ยน
-- [ ] ไม่มี leakage จาก threshold, preprocessing, tuning หรือ selection
-- [ ] Split boundaries และ purging gaps เหมือน baseline
-- [ ] Feature/target formulas และ Original Train Q75 เหมือนกันทั้ง cases
-- [ ] Main Validation/Test เป็น Original splits เดียวกัน
-- [ ] Reports, figures และ spike-specific tests ครบและตรงกับ artifacts
+- [x] Threshold fit จาก Original Train เท่านั้นและมี report พิสูจน์
+- [x] With-Spike และ Non-Spike datasets สร้างซ้ำได้จาก documented command
+- [x] Original Raw/Clean/Features/Targets/Splits และ checksums ไม่เปลี่ยน
+- [x] ไม่มี leakageจาก spike threshold/data preparation ตาม M8 contract
+- [x] Split boundaries และ purging gaps เหมือน baseline
+- [x] Feature/target formulas และ Original Train Q75 เหมือนกันทั้ง cases
+- [x] Main Validation/Test เป็น Original splits เดียวกัน
+- [x] Reports, figures และ spike-specific tests ครบตาม recorded M8 evidence
 
 ### Modeling และโครงการทั้งหมด
 
+- [ ] Model inventory 18 รายการมี scratch core logic, reference comparison และ save/load test
 - [ ] Paired models ใช้ algorithms, search space, seed, preprocessing policy และ metrics เดียวกัน
 - [ ] Regression รายงาน MAE/RMSE/R² และ Classification รายงาน Accuracy/Precision/Recall/F1/ROC-AUC/PR-AUC/Confusion Matrix
 - [ ] Metrics แยก Full/Non-Spike/Spike-Affected Test โดย Full Test เป็นผลหลัก
@@ -383,13 +394,14 @@ Spike-specific test checklist สำหรับ Task 10:
 - Test segments เป็น diagnostics; Full Test เป็นผลหลัก
 - Model/preprocessing protocol ต้อง paired และ fit จาก Train case ของตนเอง
 
-### Open questions สำหรับงานหลัง M3
+### Open questions สำหรับ Modeling
 
-1. Robust Z-score จะยืนยันสูตร modified z-score และ cutoff `3.5` ตาม sensitivity audit นี้หรือไม่
-2. ชื่อ/format ของ diagnostic flags จะเก็บเป็น columns ใน derived artifact หรือเป็น report/sidecar file
-3. จะใช้ model algorithms และ hyperparameter search spaces ใดตาม requirement ต้นฉบับ
-4. หลังเห็น class distribution จริง จะใช้ class weights หรือ Train-only sampler หรือไม่
-5. MAPE เหมาะกับ `target_volatility_5d` หรือควรงดเพราะค่าต่ำอาจทำให้ metric บิดเบือน
-6. จะ regenerate exported data-preparation PNG ที่หายจาก working directory ปัจจุบันในขั้นใด
+ข้อกำกวม Phase 2 เรื่อง diagnostic flags, boundary และ RSI policyถูกปิดแล้ว Open
+decisions ปัจจุบันคือ Perceptron/SLP counting, PCA scope, faithful SVM/XGBoost scope,
+AdaBoost variant, polynomial scope, clustering evaluation, class-imbalance policy,
+Python/dependency freeze และ extracurricular approval ตาม `MODEL_TRAINING_PLAN.md`
 
-สถานะสรุป: Baseline Data Preparation และ Phase 2 M1–M8 ผ่าน verification gate แล้ว ขั้นถัดไปสามารถเริ่ม paired Regression/Classification model training ได้ แต่ implementation, metrics และ performance results ของโมเดลยังเป็น **Planned / Not Started**
+สถานะสรุป: Baseline Data Preparation และ Phase 2 M1–M8 ผ่าน recorded verification
+gate แล้ว ขั้นถัดไปคือ shared frameworkและ With-Spike-first modeling ตาม
+`MODEL_TRAINING_PLAN.md`; paired comparison ต้องรอ fresh Non-Spike rerunsภายหลัง
+implementation, metrics และ performance results ของโมเดลยังเป็น **Planned / Not Started**
