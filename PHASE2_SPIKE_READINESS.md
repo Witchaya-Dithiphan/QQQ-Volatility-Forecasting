@@ -1,5 +1,8 @@
 # Phase 2 Spike Analysis — Baseline Provenance and Readiness
 
+> **วิธีรันปัจจุบัน:** เอกสารนี้เก็บหลักฐานการตรวจรับตามรอบที่บันทึกไว้ สำหรับวิธี
+> ติดตั้งและรันบน Python 3.11.9 ให้ใช้ [RUNBOOK.md](RUNBOOK.md)
+
 ตรวจล่าสุด: 2026-10-07 บน branch `feature/spike-analysis`, M7 อยู่ที่ commit `ef3ff2d`
 
 ## Scope และสถานะ

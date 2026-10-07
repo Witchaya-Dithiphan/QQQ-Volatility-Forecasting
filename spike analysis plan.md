@@ -1,5 +1,8 @@
 # Phase 2 — Spike Analysis Plan
 
+> **วิธีติดตั้งและรัน pipeline ปัจจุบัน:** ดู [RUNBOOK.md](RUNBOOK.md) เอกสารนี้เป็น
+> แผนการวิเคราะห์ และไม่ใช้แทนคู่มือปฏิบัติงาน
+
 ## สถานะและขอบเขต
 
 เอกสารนี้เป็น implementation plan สำหรับ Phase 2 เท่านั้น ปัจจุบัน Must-have M1–M8 ผ่าน verification gate แล้ว โดย `src/detect_spikes.py` เป็นเจ้าของ direct-detector logic, `src/spike_contract.py` เป็นเจ้าของ affected-window logic, stages M4–M6 เป็นเจ้าของ audit/datasets/reports และ `src/run_spike_analysis.py` เป็น separate runner ที่ reproduce artifacts ทั้งชุดได้ งานถัดไปเปิดให้เริ่ม paired model training แต่ยังไม่มีการ train, evaluation, metrics หรือ model-performance results

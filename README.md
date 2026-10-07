@@ -1,5 +1,19 @@
 # QQQ Volatility Forecasting
 
+> **วิธีติดตั้งและรันล่าสุด:** ดู [RUNBOOK.md](RUNBOOK.md) สำหรับ Python 3.11.9,
+> การสร้าง `.venv`, การติดตั้ง dependencies, การรัน Phase 1/Phase 2 และ tests บน Windows
+
+สำหรับ workspace ที่ตั้งค่าครบแล้ว ใช้คำสั่งต่อไปนี้จาก project root:
+
+```bat
+.\.venv\Scripts\python.exe -m src.run_data_pipeline --overwrite-generated
+.\.venv\Scripts\python.exe -m src.run_spike_analysis --overwrite-generated
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+ผู้ที่ clone ใหม่ต้องรับ `data/raw/qqq_daily.csv` แยกต่างหากและทำขั้นตอน first-time
+setup ใน [RUNBOOK.md](RUNBOOK.md) ก่อนรันคำสั่งแบบย่อ
+
 โปรเจกต์นี้ใช้ข้อมูล QQQ รายวันเพื่อสร้าง features และพยากรณ์ realized volatility ล่วงหน้า 5 trading days ข้อมูลแบ่งเป็นสอง workflow ที่มีวัตถุประสงค์ต่างกันอย่างชัดเจน
 
 ## Historical snapshot สำหรับ reproducibility

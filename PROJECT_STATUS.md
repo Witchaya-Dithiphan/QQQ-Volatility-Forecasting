@@ -1,5 +1,8 @@
 # QQQ Volatility Forecasting — Project Status
 
+> **วิธีรันปัจจุบัน:** ดู [RUNBOOK.md](RUNBOOK.md) สำหรับการติดตั้ง environment และ
+> การรัน Data/Spike pipelines เอกสารนี้ใช้สรุปสถานะ implementation
+
 > ตรวจสอบล่าสุด: 2026-10-07
 >
 > ขอบเขตล่าสุด: M1 freeze baseline inputs, M2 เป็น pure direct detector และ M3 เป็น pure affected-mask/boundary metadata API

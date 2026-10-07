@@ -1,5 +1,17 @@
 # QQQ Volatility Forecasting - เอกสารส่งต่องาน
 
+> **คู่มือการติดตั้งและรันหลัก:** [RUNBOOK.md](RUNBOOK.md) ใช้ Python 3.11.9 และแยก
+> ขั้นตอนสำหรับ clone ใหม่, การรันซ้ำที่ project root และ isolated verification
+> คำสั่งในส่วนหลักฐานด้านล่างเป็นบันทึกของรอบตรวจรับเดิม
+
+เมื่อ workspace มี Snapshot, Phase 1 artifacts และ accepted Phase 2 contract ครบแล้ว:
+
+```bat
+.\.venv\Scripts\python.exe -m src.run_data_pipeline --overwrite-generated
+.\.venv\Scripts\python.exe -m src.run_spike_analysis --overwrite-generated
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
 เอกสารนี้อัปเดตล่าสุด ณ วันที่ **2026-10-07** บน branch
 `feature/spike-analysis` ที่ commit `ef3ff2d` (`feat: add run spike analysis pipeline`)
 โดย M1–M7 commit แล้ว และ M8 ตรวจรับพร้อมอัปเดตเอกสารสำหรับเปิด model-training gate
@@ -113,10 +125,9 @@ data, reports, figures, models หรือ metrics เพราะ `.gitignore`
 
 ### เวอร์ชันและ dependencies
 
-- Python version ที่โครงการกำหนดอย่างเป็นทางการ: **ยังไม่ได้บันทึก** ไม่มี
-  `.python-version`, `pyproject.toml`, CI หรือ environment file ที่กำหนดเวอร์ชัน
-- Python ที่ใช้ตรวจรอบนี้: **3.11.9** จาก `.venv/Scripts/python.exe`; เป็นข้อมูล
-  environment รอบนี้ ไม่ใช่ required version
+- Python version สำหรับการส่งต่องาน: **3.11.9** ซึ่งเป็นเวอร์ชันที่ใช้ตรวจรับจาก
+  `.venv/Scripts/python.exe`; ปัจจุบันยังไม่มี `.python-version`, `pyproject.toml`,
+  CI หรือ environment file บังคับเวอร์ชันนี้แบบ machine-readable
 - `requirements.txt` ระบุ `numpy`, `pandas`, `pytest`, `matplotlib`, `seaborn`,
   `nbformat`, `nbconvert`, `ipykernel` โดย **ไม่ pin versions**
 - ไม่มี lockfile (`poetry.lock`, `Pipfile.lock` หรือ equivalent)
@@ -129,18 +140,20 @@ data, reports, figures, models หรือ metrics เพราะ `.gitignore`
 ### Windows PowerShell
 
 ```powershell
-py -3 -m venv .venv
+py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-python --version
-python -m pip check
+.\.venv\Scripts\python.exe -m pip install --upgrade pip
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe --version
+.\.venv\Scripts\python.exe -m pip check
 ```
 
 ### macOS/Linux
 
 ```bash
-python3 -m venv .venv
+python3.11 -m venv .venv
 source .venv/bin/activate
+python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 python --version
 python -m pip check
@@ -204,9 +217,9 @@ volume_zscore_20
 คำสั่งปลอดภัยจาก project root โดยใช้ output root ใหม่:
 
 ```powershell
-python src/download_qqq_data.py verify-snapshot
-python -m src.run_data_pipeline --output-root tmp/phase1-handoff-check
-python -m src.run_spike_analysis --output-root tmp/phase2-m8-verification-20261007
+.\.venv\Scripts\python.exe src\download_qqq_data.py verify-snapshot
+.\.venv\Scripts\python.exe -m src.run_data_pipeline --output-root tmp\phase1-handoff-check
+.\.venv\Scripts\python.exe -m src.run_spike_analysis --output-root tmp\phase2-m8-verification-20261007
 ```
 
 ถ้า artifact ใดใน output root มีอยู่แล้ว runner จะหยุดที่ preflight โดยไม่เขียนทับ
@@ -431,8 +444,8 @@ protocol จะพร้อม
   isolated runner สร้างได้สำเร็จ
 - ไม่มี exported figures, model files หรือ metric files
 - Scikit-learn ยังไม่อยู่ใน dependencies
-- Python required version, dependency pins/lockfile, original retrieval time และ
-  dataset license/terms **ยังไม่ได้บันทึก**
+- Python ที่ตรวจรับบนเครื่องปัจจุบันคือ **3.11.9** แต่ dependency pins/lockfile,
+  original retrieval time และ dataset license/terms **ยังไม่ได้บันทึก**
 
 เกณฑ์ตรวจทันทีหลัง clone:
 
