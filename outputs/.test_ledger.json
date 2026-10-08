@@ -1,6 +1,6 @@
 {
   "f904b7f925961bf8e5f8fb24f3905c70ef13b583e921787d62be8771b620a406/with_spike/regression/multiple_linear/scratch/synthetic": {
-    "attempted_utc": "2026-10-08T16:53:01.472536+00:00",
+    "attempted_utc": "2026-10-08T18:10:02.816916+00:00",
     "config_sha256": "f904b7f925961bf8e5f8fb24f3905c70ef13b583e921787d62be8771b620a406",
     "implementation": "scratch",
     "model": "multiple_linear",
