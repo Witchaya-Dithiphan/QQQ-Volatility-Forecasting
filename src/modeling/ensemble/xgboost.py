@@ -1,12 +1,15 @@
 """
-XGBoost Classifier (scratch implementation, binary logistic).
+XGBoost Classifier (scratch implementation, binary logistic, NumPy only).
 
-From-scratch XGBoost following Chen & Guestrin 2016.
-Greedy exact splits, binary logistic loss, L2 regularization.
+Exact second-order regularized trees (Chen & Guestrin 2016) matching the frozen M6 scope
+`exact_second_order_regularized_trees` with tuple fields
+[n_estimators, max_depth, learning_rate, reg_lambda, gamma].
 """
 
+import numbers
+from typing import Any, Dict, List, Optional
+
 import numpy as np
-from typing import Optional, Dict, Any, List, Tuple
 
 
 class XGBoostNode:
@@ -17,262 +20,194 @@ class XGBoostNode:
         self.left: Optional["XGBoostNode"] = None
         self.right: Optional["XGBoostNode"] = None
         self.leaf_weight: Optional[float] = None
-    
+
     def is_leaf(self) -> bool:
         return self.leaf_weight is not None
 
 
+def _int(name: str, value, minimum: int) -> int:
+    if isinstance(value, bool) or not isinstance(value, numbers.Integral) or value < minimum:
+        raise ValueError(f"{name} must be an integer >= {minimum}")
+    return int(value)
+
+
+def _real(name: str, value, *, positive: bool = False) -> float:
+    if isinstance(value, bool) or not isinstance(value, numbers.Real) or not np.isfinite(value) or value < 0 or (positive and value == 0):
+        raise ValueError(f"{name} must be a finite number {'> 0' if positive else '>= 0'}")
+    return float(value)
+
+
 class XGBoostClassifier:
     """
-    Scratch XGBoost classifier: binary logistic with exact greedy splits.
-    
+    Scratch XGBoost classifier: binary logistic, exact greedy splits, base score 0.5 (margin 0).
+
     Per tree:
-    - Gradient: g = p - y
-    - Hessian: h = p(1-p)
+    - Gradient g = p - y, Hessian h = p(1-p)
     - Gain = 0.5*[GL²/(HL+λ) + GR²/(HR+λ) - G²/(H+λ)] - γ
-    - Leaf weight: w* = -G / (H + λ)
+    - Leaf weight w* = -G / (H + λ), scaled by the learning rate (shrinkage)
+    - Split candidates are midpoints between adjacent unique sorted feature values; ties keep the
+      lowest feature index, then the lowest threshold. A child must have Hessian sum >= min_child_weight.
+    All n_estimators trees are built (no early stopping); the procedure is deterministic.
     """
-    
+
     def __init__(
         self,
-        max_trees: int = 50,
-        max_depth: int = 3,
+        n_estimators: int = 50,
+        max_depth: int = 2,
         learning_rate: float = 0.1,
         reg_lambda: float = 1.0,
+        gamma: float = 0.0,
         min_child_weight: float = 1.0,
-        gamma: float = 0.1,
-        tol: float = 1e-6,
-        random_state: int = 42,
     ):
-        """
-        Args:
-            max_trees: Maximum number of trees.
-            max_depth: Maximum tree depth.
-            learning_rate: Shrinkage (eta).
-            reg_lambda: L2 regularization coefficient.
-            min_child_weight: Minimum hessian sum for split.
-            gamma: Minimum gain for split.
-            tol: Loss improvement tolerance for early stopping.
-            random_state: Random seed.
-        """
-        self.max_trees = max_trees
-        self.max_depth = max_depth
-        self.learning_rate = learning_rate
-        self.reg_lambda = reg_lambda
-        self.min_child_weight = min_child_weight
-        self.gamma = gamma
-        self.tol = tol
-        self.random_state = random_state
-        
+        self.n_estimators = _int("n_estimators", n_estimators, 1)
+        self.max_depth = _int("max_depth", max_depth, 1)
+        self.learning_rate = _real("learning_rate", learning_rate, positive=True)
+        self.reg_lambda = _real("reg_lambda", reg_lambda)
+        self.gamma = _real("gamma", gamma)
+        self.min_child_weight = _real("min_child_weight", min_child_weight)
+
+        self._reset()
+
+    def _reset(self) -> None:
         self.trees_: List[XGBoostNode] = []
-        self.scores_: Optional[np.ndarray] = None
         self.loss_history_: List[float] = []
         self.classes_: Optional[np.ndarray] = None
         self.n_features_: Optional[int] = None
-    
-    def _sigmoid(self, x: np.ndarray) -> np.ndarray:
-        """Stable sigmoid."""
+
+    @staticmethod
+    def _sigmoid(x: np.ndarray) -> np.ndarray:
+        """Overflow-safe sigmoid."""
         return 1.0 / (1.0 + np.exp(-np.clip(x, -500, 500)))
-    
-    def _log_loss(self, y: np.ndarray, scores: np.ndarray) -> float:
-        """Binary cross-entropy in log-space (stable)."""
-        # L = -[y*log(p) + (1-y)*log(1-p)]
-        # = -y*log(1/(1+exp(-s))) - (1-y)*log(exp(-s)/(1+exp(-s)))
-        # = y*log(1+exp(-s)) + (1-y)*(-s + log(1+exp(-s)))
-        # = y*log(1+exp(-s)) + (1-y)*log(1+exp(-s)) - (1-y)*s
-        # = log(1+exp(-s)) - (1-y)*s (via logaddexp)
-        # Simplified: mean(np.logaddexp(0, -scores) + (1-y)*scores)
-        
-        clipped_scores = np.clip(scores, -500, 500)
-        loss = np.mean(np.logaddexp(0, clipped_scores) - y * clipped_scores)
-        return loss
-    
-    def _build_tree(
-        self,
-        X: np.ndarray,
-        g: np.ndarray,
-        h: np.ndarray,
-        depth: int = 0,
-    ) -> XGBoostNode:
-        """Build single tree using exact greedy splits."""
+
+    @staticmethod
+    def _log_loss(y: np.ndarray, scores: np.ndarray) -> float:
+        """Mean binary cross-entropy from margins: log(1+e^s) - y*s."""
+        return float(np.mean(np.logaddexp(0.0, scores) - y * scores))
+
+    @staticmethod
+    def _check_X(X, n_features: Optional[int] = None) -> np.ndarray:
+        try:
+            X = np.asarray(X, dtype=np.float64)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("X must be numeric") from exc
+        if X.ndim != 2 or X.shape[0] == 0 or X.shape[1] == 0:
+            raise ValueError("X must be a non-empty 2D array")
+        if not np.isfinite(X).all():
+            raise ValueError("X must be finite")
+        if n_features is not None and X.shape[1] != n_features:
+            raise ValueError(f"Feature mismatch: expected {n_features}, got {X.shape[1]}")
+        return X
+
+    def _leaf(self, G: float, H: float) -> XGBoostNode:
         node = XGBoostNode()
-        n_samples = len(X)
-        
-        # Base case: leaf
-        G = np.sum(g)
-        H = np.sum(h)
-        
-        if (depth >= self.max_depth or 
-            n_samples < 2 or 
-            H < self.min_child_weight):
-            node.leaf_weight = -G / (H + self.reg_lambda)
-            return node
-        
-        # Find best split
-        best_gain = 0.0
-        best_feature = None
-        best_threshold = None
-        
-        for feat_idx in range(X.shape[1]):
-            feature_vals = X[:, feat_idx]
-            thresholds = np.unique(feature_vals)
-            
-            for threshold in thresholds:
-                mask = feature_vals <= threshold
-                if np.sum(mask) == 0 or np.sum(~mask) == 0:
-                    continue
-                
-                GL = np.sum(g[mask])
-                GR = np.sum(g[~mask])
-                HL = np.sum(h[mask])
-                HR = np.sum(h[~mask])
-                
-                # Check min_child_weight
-                if HL < self.min_child_weight or HR < self.min_child_weight:
-                    continue
-                
-                # Gain = 0.5*[GL²/(HL+λ) + GR²/(HR+λ) - G²/(H+λ)] - γ
-                gain = (
-                    0.5 * (
-                        GL**2 / (HL + self.reg_lambda) +
-                        GR**2 / (HR + self.reg_lambda) -
-                        G**2 / (H + self.reg_lambda)
-                    ) - self.gamma
-                )
-                
-                if gain > best_gain:
-                    best_gain = gain
-                    best_feature = feat_idx
-                    best_threshold = threshold
-        
-        # No good split
-        if best_feature is None:
-            node.leaf_weight = -G / (H + self.reg_lambda)
-            return node
-        
-        # Recurse
-        mask = X[:, best_feature] <= best_threshold
-        node.feature = best_feature
-        node.threshold = best_threshold
+        denom = H + self.reg_lambda
+        node.leaf_weight = float(-G / denom) if denom > 0 else 0.0
+        return node
+
+    def _best_split(self, X: np.ndarray, g: np.ndarray, h: np.ndarray):
+        lam, mcw = self.reg_lambda, self.min_child_weight
+        best_gain, best = 0.0, None  # a split must have strictly positive gain after gamma
+        G_tot, H_tot = g.sum(), h.sum()
+        parent = G_tot**2 / (H_tot + lam) if H_tot + lam > 0 else 0.0
+        for f in range(X.shape[1]):
+            order = np.argsort(X[:, f], kind="stable")
+            xs = X[order, f]
+            GL, HL = np.cumsum(g[order])[:-1], np.cumsum(h[order])[:-1]
+            GR, HR = G_tot - GL, H_tot - HL
+            ok = (xs[:-1] < xs[1:]) & (HL >= mcw) & (HR >= mcw) & (HL + lam > 0) & (HR + lam > 0)
+            if not ok.any():
+                continue
+            with np.errstate(divide="ignore", invalid="ignore"):
+                gain = 0.5 * (GL**2 / (HL + lam) + GR**2 / (HR + lam) - parent) - self.gamma
+            gain = np.where(ok, gain, -np.inf)
+            i = int(np.argmax(gain))  # first maximum -> lowest threshold
+            if gain[i] > best_gain:
+                lo, hi = xs[i], xs[i + 1]
+                mid = lo * 0.5 + hi * 0.5  # no overflow for extreme finite values
+                best_gain, best = float(gain[i]), (f, float(mid if lo <= mid < hi else lo))
+        return best
+
+    def _build_tree(self, X: np.ndarray, g: np.ndarray, h: np.ndarray, depth: int = 0) -> XGBoostNode:
+        G, H = float(np.sum(g)), float(np.sum(h))
+        if depth >= self.max_depth or len(X) < 2:
+            return self._leaf(G, H)
+        split = self._best_split(X, g, h)
+        if split is None:
+            return self._leaf(G, H)
+        feature, threshold = split
+        mask = X[:, feature] <= threshold
+        node = XGBoostNode()
+        node.feature, node.threshold = feature, threshold
         node.left = self._build_tree(X[mask], g[mask], h[mask], depth + 1)
         node.right = self._build_tree(X[~mask], g[~mask], h[~mask], depth + 1)
-        
         return node
-    
-    def _tree_predict(self, x: np.ndarray, node: XGBoostNode) -> float:
-        """Predict leaf weight for single sample."""
-        if node.is_leaf():
-            return node.leaf_weight
-        
-        if x[node.feature] <= node.threshold:
-            return self._tree_predict(x, node.left)
-        else:
-            return self._tree_predict(x, node.right)
-    
-    def fit(self, X: np.ndarray, y: np.ndarray) -> "XGBoostClassifier":
-        """
-        Fit XGBoost classifier.
-        
-        Args:
-            X: (n_samples, n_features)
-            y: (n_samples,) binary labels (0, 1)
-        
-        Returns:
-            self
-        """
-        X = np.asarray(X, dtype=np.float64)
-        y = np.asarray(y, dtype=np.int32).ravel()
-        
-        if X.shape[0] != len(y):
-            raise ValueError("X and y must have same number of samples")
-        
-        self.classes_ = np.unique(y)
-        self.n_features_ = X.shape[1]
-        
-        # Initialize score to 0 (p=0.5)
-        self.scores_ = np.zeros(len(X))
-        self.loss_history_ = []
-        self.trees_ = []
-        
-        # Boosting
-        for tree_idx in range(self.max_trees):
-            # Compute p, gradients, hessians
-            proba = self._sigmoid(self.scores_)
-            g = proba - y
-            h = proba * (1.0 - proba)
-            
-            # Build tree
-            tree = self._build_tree(X, g, h)
-            self.trees_.append(tree)
-            
-            # Update scores
-            tree_pred = np.array([self._tree_predict(x, tree) for x in X])
-            self.scores_ += self.learning_rate * tree_pred
-            
-            # Compute loss
-            loss = self._log_loss(y, self.scores_)
-            self.loss_history_.append(loss)
-            
-            # Early stopping
-            if len(self.loss_history_) > 1:
-                if self.loss_history_[-2] - self.loss_history_[-1] < self.tol:
-                    break
-        
-        return self
-    
-    def predict_proba(self, X: np.ndarray) -> np.ndarray:
-        """
-        Predict class probabilities.
-        
-        Args:
-            X: (n_samples, n_features)
-        
-        Returns:
-            (n_samples, 2) probabilities
-        """
-        if len(self.trees_) == 0:
-            raise ValueError("Model not fitted")
-        
-        X = np.asarray(X, dtype=np.float64)
-        if X.shape[1] != self.n_features_:
-            raise ValueError(f"Feature mismatch: expected {self.n_features_}, got {X.shape[1]}")
-        
+
+    def _tree_predict(self, X: np.ndarray, node: XGBoostNode) -> np.ndarray:
+        """Leaf weights for every row of X."""
+        out = np.empty(len(X))
+        stack = [(node, np.arange(len(X)))]
+        while stack:
+            node, idx = stack.pop()
+            if node.is_leaf():
+                out[idx] = node.leaf_weight
+                continue
+            left = X[idx, node.feature] <= node.threshold
+            stack.append((node.left, idx[left]))
+            stack.append((node.right, idx[~left]))
+        return out
+
+    def _scores(self, X: np.ndarray) -> np.ndarray:
         scores = np.zeros(len(X))
         for tree in self.trees_:
-            tree_pred = np.array([self._tree_predict(x, tree) for x in X])
-            scores += self.learning_rate * tree_pred
-        
-        proba_1 = self._sigmoid(scores)
-        proba_0 = 1.0 - proba_1
-        return np.column_stack([proba_0, proba_1])
-    
+            scores += self.learning_rate * self._tree_predict(X, tree)
+        return scores
+
+    def fit(self, X: np.ndarray, y: np.ndarray) -> "XGBoostClassifier":
+        """Fit on X (n, d) finite and y (n,) in {0, 1}. Refitting discards all previous state."""
+        X = self._check_X(X)
+        try:
+            y = np.asarray(y, dtype=np.float64)
+        except (TypeError, ValueError) as exc:
+            raise ValueError("y must be numeric") from exc
+        if y.ndim != 1 or len(y) != len(X):
+            raise ValueError("X and y must have same number of samples (y 1D)")
+        if not np.isin(y, (0.0, 1.0)).all():
+            raise ValueError("y must contain only binary labels 0 and 1")
+
+        self._reset()
+        self.classes_ = np.array([0, 1])
+        self.n_features_ = X.shape[1]
+
+        scores = np.zeros(len(X))  # base score 0.5 -> margin 0
+        for _ in range(self.n_estimators):
+            p = self._sigmoid(scores)
+            tree = self._build_tree(X, p - y, p * (1.0 - p))
+            self.trees_.append(tree)
+            scores += self.learning_rate * self._tree_predict(X, tree)
+            self.loss_history_.append(self._log_loss(y, scores))
+        return self
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        """(n, 2) class probabilities."""
+        if not self.trees_:
+            raise ValueError("Model not fitted")
+        p1 = self._sigmoid(self._scores(self._check_X(X, self.n_features_)))
+        return np.column_stack([1.0 - p1, p1])
+
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """
-        Predict class labels.
-        
-        Args:
-            X: (n_samples, n_features)
-        
-        Returns:
-            (n_samples,) predictions
-        """
-        proba = self.predict_proba(X)
-        return (proba[:, 1] >= 0.5).astype(int)
-    
+        """Class labels with the M2 default rule probability >= 0.5."""
+        return (self.predict_proba(X)[:, 1] >= 0.5).astype(int)
+
     def _tree_depth(self, node: XGBoostNode, depth: int = 0) -> int:
-        """Compute tree depth."""
         if node.is_leaf():
             return depth
-        return max(
-            self._tree_depth(node.left, depth + 1),
-            self._tree_depth(node.right, depth + 1),
-        )
-    
+        return max(self._tree_depth(node.left, depth + 1), self._tree_depth(node.right, depth + 1))
+
     def to_dict(self) -> Dict[str, Any]:
-        """Serialize model."""
-        if len(self.trees_) == 0:
+        """Complete strict-JSON state (json.dumps(..., allow_nan=False) safe)."""
+        if not self.trees_:
             raise ValueError("Model not fitted")
-        
+
         def tree_to_dict(node: XGBoostNode) -> Dict[str, Any]:
             if node.is_leaf():
                 return {"leaf": float(node.leaf_weight)}
@@ -282,42 +217,51 @@ class XGBoostClassifier:
                 "left": tree_to_dict(node.left),
                 "right": tree_to_dict(node.right),
             }
-        
+
         return {
-            "max_trees": self.max_trees,
+            "n_estimators": self.n_estimators,
             "max_depth": self.max_depth,
-            "learning_rate": float(self.learning_rate),
-            "reg_lambda": float(self.reg_lambda),
-            "min_child_weight": float(self.min_child_weight),
-            "gamma": float(self.gamma),
+            "learning_rate": self.learning_rate,
+            "reg_lambda": self.reg_lambda,
+            "gamma": self.gamma,
+            "min_child_weight": self.min_child_weight,
             "n_features": int(self.n_features_),
+            "classes": [int(c) for c in self.classes_],
             "trees": [tree_to_dict(tree) for tree in self.trees_],
-            "loss_history": [float(l) for l in self.loss_history_],
+            "loss_history": [float(v) for v in self.loss_history_],
         }
-    
+
     @staticmethod
     def from_dict(d: Dict[str, Any]) -> "XGBoostClassifier":
-        """Deserialize model."""
-        def dict_to_tree(tree_dict: Dict[str, Any]) -> XGBoostNode:
+        """Rebuild a fitted model from to_dict() output (validates structure)."""
+        required = ("n_estimators", "max_depth", "learning_rate", "reg_lambda", "gamma", "min_child_weight",
+                    "n_features", "classes", "trees", "loss_history")
+        missing = [k for k in required if k not in d]
+        if missing:
+            raise ValueError(f"Missing XGBoost state keys: {missing}")
+        n_features = _int("n_features", d["n_features"], 1)
+
+        def dict_to_tree(t: Dict[str, Any]) -> XGBoostNode:
             node = XGBoostNode()
-            if "leaf" in tree_dict:
-                node.leaf_weight = float(tree_dict["leaf"])
-            else:
-                node.feature = int(tree_dict["feature"])
-                node.threshold = float(tree_dict["threshold"])
-                node.left = dict_to_tree(tree_dict["left"])
-                node.right = dict_to_tree(tree_dict["right"])
+            if "leaf" in t:
+                node.leaf_weight = float(t["leaf"])
+                if not np.isfinite(node.leaf_weight):
+                    raise ValueError("Non-finite leaf weight")
+                return node
+            node.feature = _int("feature", t["feature"], 0)
+            node.threshold = float(t["threshold"])
+            if node.feature >= n_features or not np.isfinite(node.threshold):
+                raise ValueError("Invalid split node")
+            node.left, node.right = dict_to_tree(t["left"]), dict_to_tree(t["right"])
             return node
-        
-        model = XGBoostClassifier(
-            max_trees=d["max_trees"],
-            max_depth=d["max_depth"],
-            learning_rate=d["learning_rate"],
-            reg_lambda=d["reg_lambda"],
-            min_child_weight=d["min_child_weight"],
-            gamma=d["gamma"],
-        )
+
+        model = XGBoostClassifier(*(d[k] for k in ("n_estimators", "max_depth", "learning_rate", "reg_lambda", "gamma", "min_child_weight")))
+        if list(d["classes"]) != [0, 1]:
+            raise ValueError("classes must be [0, 1]")
+        if len(d["trees"]) != model.n_estimators or len(d["loss_history"]) != model.n_estimators:
+            raise ValueError("trees/loss_history length must equal n_estimators")
         model.trees_ = [dict_to_tree(t) for t in d["trees"]]
-        model.loss_history_ = d["loss_history"]
-        model.n_features_ = d["n_features"]
+        model.loss_history_ = [float(v) for v in d["loss_history"]]
+        model.classes_ = np.array([0, 1])
+        model.n_features_ = n_features
         return model

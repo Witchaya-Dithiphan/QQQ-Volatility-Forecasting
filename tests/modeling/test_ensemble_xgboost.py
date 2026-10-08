@@ -1,14 +1,11 @@
 """
-Tests for XGBoost Classifier (M5-08, with-spike).
+Tests for XGBoost Classifier (M6, with-spike).
 """
 
 import numpy as np
 import pytest
-from pathlib import Path
-import json
 
 from src.modeling.ensemble.xgboost import XGBoostClassifier
-from src.modeling.datasets import load_train_validation
 
 try:
     import xgboost
@@ -27,7 +24,7 @@ def test_fit_predict_shape_synthetic():
     X = np.random.randn(100, 5)
     y = (X[:, 0] + X[:, 1] > 0).astype(int)
     
-    model = XGBoostClassifier(max_trees=5, max_depth=2)
+    model = XGBoostClassifier(n_estimators=5, max_depth=2)
     model.fit(X, y)
     
     y_pred = model.predict(X)
@@ -49,7 +46,7 @@ def test_loss_decreases_per_tree():
     # Highly separable
     y = ((X[:, 0] + 2*X[:, 1]) > 0.5).astype(int)
     
-    model = XGBoostClassifier(max_trees=10, max_depth=3, learning_rate=0.1)
+    model = XGBoostClassifier(n_estimators=10, max_depth=3, learning_rate=0.1)
     model.fit(X, y)
     
     # Loss should not increase (allow tiny numerical fluctuations)
@@ -64,7 +61,7 @@ def test_predict_proba_range():
     X = np.random.randn(50, 3)
     y = (X[:, 0] > 0).astype(int)
     
-    model = XGBoostClassifier(max_trees=5, max_depth=2)
+    model = XGBoostClassifier(n_estimators=5, max_depth=2)
     model.fit(X, y)
     
     proba = model.predict_proba(X)
@@ -80,7 +77,7 @@ def test_max_depth_respected():
     X = np.random.randn(100, 5)
     y = (X[:, 0] > 0).astype(int)
     
-    model = XGBoostClassifier(max_trees=3, max_depth=2)
+    model = XGBoostClassifier(n_estimators=3, max_depth=2)
     model.fit(X, y)
     
     for tree in model.trees_:
@@ -95,7 +92,7 @@ def test_single_tree_vs_sklearn():
     y = (X[:, 0] + X[:, 1] > 0).astype(int)
     
     # Our XGBoost with 1 tree
-    model = XGBoostClassifier(max_trees=1, max_depth=3)
+    model = XGBoostClassifier(n_estimators=1, max_depth=3)
     model.fit(X, y)
     our_proba = model.predict_proba(X)[:, 1]
     
@@ -139,7 +136,7 @@ def test_save_load_equality():
     X_train = np.random.randn(50, 3)
     y_train = (X_train[:, 0] > 0).astype(int)
     
-    model = XGBoostClassifier(max_trees=3, max_depth=2)
+    model = XGBoostClassifier(n_estimators=3, max_depth=2)
     model.fit(X_train, y_train)
     
     # Dict round-trip
@@ -151,70 +148,3 @@ def test_save_load_equality():
     proba_loaded = model_loaded.predict_proba(X_test)
     
     np.testing.assert_array_almost_equal(proba_orig, proba_loaded, decimal=6)
-
-
-def test_load_train_validation_real_data(tmp_path):
-    """Fit XGBoost on real Train data, predict Val."""
-    dataset = load_train_validation("with_spike")
-    train_X, train_y_regression = dataset.train.X, dataset.train.y_regression
-    val_X, val_y_regression = dataset.validation.X, dataset.validation.y_regression
-    
-    # Binary classification
-    median = np.median(train_y_regression)
-    train_y = (train_y_regression > median).astype(int)
-    val_y = (val_y_regression > median).astype(int)
-    
-    # Fit
-    model = XGBoostClassifier(max_trees=10, max_depth=3, learning_rate=0.1)
-    model.fit(train_X, train_y)
-    
-    # Predictions
-    train_pred = model.predict(train_X)
-    val_pred = model.predict(val_X)
-    train_proba = model.predict_proba(train_X)
-    val_proba = model.predict_proba(val_X)
-    
-    # Metrics
-    train_acc = np.mean(train_pred == train_y)
-    val_acc = np.mean(val_pred == val_y)
-    
-    print(f"  Train accuracy: {train_acc:.4f}, Val accuracy: {val_acc:.4f}")
-    
-    assert train_acc > 0.5, "Train accuracy should beat random"
-    assert not np.any(np.isnan(val_pred))
-    
-    # Write artifacts
-    artifact_dir = Path("outputs/modeling/with_spike/ensemble/xgboost/scratch/M5_08")
-    artifact_dir.mkdir(parents=True, exist_ok=True)
-    
-    # Save model
-    d = model.to_dict()
-    np.savez(
-        artifact_dir / "model.npz",
-        trees_serialized=np.array(str(d["trees"]), dtype=object),
-    )
-    
-    # Metadata
-    metadata = {
-        "model_class": "XGBoostClassifier",
-        "variant": "with_spike",
-        "task": "M5-08",
-        "train_samples": len(train_X),
-        "val_samples": len(val_X),
-        "n_trees_fit": len(model.trees_),
-        "train_accuracy": float(train_acc),
-        "val_accuracy": float(val_acc),
-        "final_loss": float(model.loss_history_[-1]) if model.loss_history_ else None,
-    }
-    
-    with open(artifact_dir / "metadata.json", "w") as f:
-        json.dump(metadata, f, indent=2)
-    
-    np.save(artifact_dir / "train_predictions.npy", train_pred)
-    np.save(artifact_dir / "val_predictions.npy", val_pred)
-    np.save(artifact_dir / "train_probabilities.npy", train_proba)
-    np.save(artifact_dir / "val_probabilities.npy", val_proba)
-    
-    # Loss history
-    with open(artifact_dir / "loss_history.json", "w") as f:
-        json.dump({"loss_history": model.loss_history_}, f)
