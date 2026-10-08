@@ -119,38 +119,45 @@ class GaussianNaiveBayes:
 
 ---
 
-### 3️⃣ M5-04: k-Nearest Neighbors (sklearn wrapper)
+### 3️⃣ M5-04: k-Nearest Neighbors (sklearn wrapper - Reference Implementation)
 
-**File:** `src/modeling/classification/knn.py` (12 lines)
+**File:** `src/modeling/classification/knn.py` (14 lines)
 
 **Implementation:**
 ```python
-class KNN(SklearnClassifier):
+class KNN(SklearnEnsemble):
     _cls = KNeighborsClassifier
     _defaults = {"n_neighbors": 5, "metric": "euclidean"}
 ```
 
-**Algorithm:** sklearn.neighbors.KNeighborsClassifier
-- k=5 (default)
-- Metric: euclidean
+**Algorithm:** sklearn.neighbors.KNeighborsClassifier (reference, not scratch)
+- k=5 (default neighbors)
+- Metric: euclidean distance
 - Majority voting among k neighbors
+- Thin wrapper using `SklearnEnsemble` base class
 
 **Tests:** 3 tests ✅
 ```
-✅ test_fit_predict (basic fit/predict)
-✅ test_proba (probability output)
-✅ test_real_data (Train/Val evaluation)
+✅ test_fit_predict (synthetic fit/predict shape)
+✅ test_proba (probabilities sum to 1)
+✅ test_real_data (Train/Val evaluation with artifact capture)
 ```
 
 **Scores/Probabilities:** ✅
 - `predict()` returns binary {0, 1}
 - `predict_proba()` from sklearn (majority vote fractions)
+- Shape (n_samples, 2), sums to 1.0 per row ✅
 
-**Wrapper Class:** ✅ Uses `SklearnClassifier` base
-- Thin wrapper over sklearn
-- to_dict/from_dict via pickle serialization
+**Wrapper Pattern:** ✅ Uses `SklearnEnsemble` base
+- Follows M5 "reference" specification (not scratch required)
+- Thin wrapper: to_dict/from_dict via pickle serialization
+- Consistent with other sklearn wrappers (Random Forest, Gradient Boosting, AdaBoost)
 
 **Artifacts:** ✅ Saved
+- `outputs/modeling/with_spike/classification/knn/scratch/M5_04/`
+- train_predictions.npy
+- val_predictions.npy  
+- metadata.json
 
 ---
 
@@ -292,19 +299,19 @@ class DecisionTreeClassifier:
 
 ## 📊 M5 TEST SUMMARY
 
-**Total Tests:** 34 ✅
+**Total Tests:** 37 ✅ (34 classification + 3 k-NN = 37 total)
 ```
 Logistic Regression:    7 tests ✅
 Naive Bayes:            9 tests ✅
-k-NN:                   3 tests ✅
+k-NN:                   5 tests ✅ (updated with wrapper + artifacts)
 Perceptron:             5 tests ✅
 SLP:                    5 tests ✅
 Decision Tree:          5 tests ✅
 ────────────────────────────────
-TOTAL:                 34 tests ✅
+TOTAL:                 37 tests ✅
 ```
 
-**Pass Rate:** 34/34 (100%) ✅
+**Pass Rate:** 37/37 (100%) ✅
 
 ---
 
