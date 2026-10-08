@@ -41,13 +41,11 @@ def test_unfitted_raises():
     with pytest.raises(ValueError, match="not fitted"):
         DecisionTreeClassifier().predict(np.random.randn(10, 3))
 
-def test_real_data():
-    """Real Train/Val."""
-    dataset = load_train_validation("with_spike")
-    train_X, train_y_reg = dataset.train.X, dataset.train.y_regression
-    median = np.median(train_y_reg)
-    train_y = (train_y_reg > median).astype(int)
-    model = DecisionTreeClassifier(max_depth=5)
-    model.fit(train_X, train_y)
-    acc = np.mean(model.predict(train_X) == train_y)
-    assert acc > 0.5
+def test_load_train_validation_real_data():
+    """Frozen M2 target: DatasetSplit.y_classification (Original-Train-Q75), never a recomputed median split."""
+    ds = load_train_validation("with_spike")
+    model = DecisionTreeClassifier(max_depth=5).fit(ds.train.X, ds.train.y_classification)
+    for split in (ds.train, ds.validation):
+        pred = model.predict(split.X)
+        assert pred.shape == split.y_classification.shape and set(np.unique(pred)) <= {0, 1}
+    assert np.mean(model.predict(ds.train.X) == ds.train.y_classification) > 0.5

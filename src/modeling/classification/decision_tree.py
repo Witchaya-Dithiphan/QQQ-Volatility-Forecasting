@@ -1,207 +1,136 @@
 """
-Decision Tree Classifier (scratch implementation, ID3-style with Gini impurity).
+Decision Tree Classifier (scratch, NumPy only): greedy binary CART with Gini impurity.
+
+Splits are `x[feature] <= threshold` at midpoints between consecutive distinct sorted values. Ties between equally good
+splits go to the lowest feature index, then the lowest threshold. A node splits whenever a valid split exists (even with
+zero impurity gain, as XOR needs) until it is pure or hits max_depth / min_samples_split / min_samples_leaf.
+Leaves store class counts for classes [0, 1] so a one-class leaf maps to the right probability column.
 """
+from typing import Any, Dict, Optional
 
 import numpy as np
-from typing import Optional, Dict, Any
+
+from ._common import NOT_FITTED, check_param, check_X, check_Xy
+
+_TIE = 1e-12  # relative tolerance on weighted child impurity when comparing splits
 
 
 class DecisionTreeNode:
-    """Internal tree node."""
+    """Internal tree node. A leaf has `value` (counts of class 0 and 1); an inner node has feature/threshold/left/right."""
+
     def __init__(self):
         self.feature: Optional[int] = None
         self.threshold: Optional[float] = None
         self.left: Optional["DecisionTreeNode"] = None
         self.right: Optional["DecisionTreeNode"] = None
-        self.value: Optional[np.ndarray] = None  # class counts (for leaf)
-    
+        self.value: Optional[np.ndarray] = None
+
     def is_leaf(self) -> bool:
         return self.value is not None
 
+    def to_dict(self) -> Dict[str, Any]:
+        if self.is_leaf():
+            return {"value": self.value.tolist()}
+        return {"feature": int(self.feature), "threshold": float(self.threshold), "left": self.left.to_dict(), "right": self.right.to_dict()}
+
+    @staticmethod
+    def from_dict(d: Dict[str, Any]) -> "DecisionTreeNode":
+        node = DecisionTreeNode()
+        if "value" in d:
+            node.value = np.array(d["value"], dtype=np.int64)
+        else:
+            node.feature, node.threshold = int(d["feature"]), float(d["threshold"])
+            node.left, node.right = DecisionTreeNode.from_dict(d["left"]), DecisionTreeNode.from_dict(d["right"])
+        return node
+
 
 class DecisionTreeClassifier:
-    """
-    Scratch decision tree classifier using Gini impurity.
-    Greedy ID3-style recursive splitting. No pruning.
-    """
-    
-    def __init__(self, max_depth: int = 10, min_samples_split: int = 2, random_state: int = 42):
-        """
-        Args:
-            max_depth: Maximum tree depth.
-            min_samples_split: Minimum samples required to split.
-            random_state: Random seed.
-        """
+    def __init__(self, max_depth: int = 10, min_samples_split: int = 2, min_samples_leaf: int = 1, random_state: int = 42):
+        """`random_state` is accepted for runner/stability API compatibility; the algorithm is fully deterministic."""
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
+        self.min_samples_leaf = min_samples_leaf
         self.random_state = random_state
-        
+
         self.tree_: Optional[DecisionTreeNode] = None
-        self.classes_: Optional[np.ndarray] = None
+        self.classes_ = np.array([0, 1])
         self.n_features_: Optional[int] = None
-    
-    def _gini(self, y: np.ndarray) -> float:
-        """Compute Gini impurity."""
-        _, counts = np.unique(y, return_counts=True)
-        proba = counts / len(y)
-        return 1.0 - np.sum(proba ** 2)
-    
-    def _split_gain(self, parent: np.ndarray, left: np.ndarray, right: np.ndarray) -> float:
-        """Compute information gain from split."""
-        n = len(parent)
-        n_left = len(left)
-        n_right = len(right)
-        
-        if n_left == 0 or n_right == 0:
-            return 0.0
-        
-        gini_parent = self._gini(parent)
-        gini_left = self._gini(left)
-        gini_right = self._gini(right)
-        
-        weighted_gini = (n_left / n) * gini_left + (n_right / n) * gini_right
-        return gini_parent - weighted_gini
-    
-    def _build_tree(self, X: np.ndarray, y: np.ndarray, depth: int = 0) -> DecisionTreeNode:
-        """Recursively build tree."""
+
+    def _best_split(self, X, y):
+        n, msl = len(y), self.min_samples_leaf
+        best = None  # (cost, feature, threshold)
+        for j in range(X.shape[1]):
+            order = np.argsort(X[:, j], kind="stable")
+            xs, ys = X[order, j], y[order]
+            n_left = np.arange(1, n)
+            ones_left = np.cumsum(ys)[:-1]
+            ones_right = ys.sum() - ones_left
+            left = np.stack([n_left - ones_left, ones_left])
+            right = np.stack([(n - n_left) - ones_right, ones_right])
+            valid = (xs[:-1] < xs[1:]) & (n_left >= msl) & (n - n_left >= msl)
+            if not valid.any():
+                continue
+            # n_c * gini_c = n_c - sum_k count_k^2 / n_c
+            cost = (n_left - (left ** 2).sum(axis=0) / n_left) + ((n - n_left) - (right ** 2).sum(axis=0) / (n - n_left))
+            cost = np.where(valid, cost, np.inf)
+            i = int(np.flatnonzero(cost <= cost.min() + _TIE * n)[0])
+            if best is None or cost[i] < best[0] - _TIE * n:
+                threshold = xs[i] / 2.0 + xs[i + 1] / 2.0  # halve first: a + b overflows near +-float64 max
+                best = (cost[i], j, threshold if xs[i] <= threshold < xs[i + 1] else xs[i])
+        return best
+
+    def _build(self, X, y, depth) -> DecisionTreeNode:
         node = DecisionTreeNode()
-        
-        # Base cases: leaf
-        if (depth >= self.max_depth or 
-            len(np.unique(y)) == 1 or 
-            len(y) < self.min_samples_split):
-            _, counts = np.unique(y, return_counts=True)
+        counts = np.bincount(y, minlength=2)
+        split = None
+        if depth < self.max_depth and counts.min() > 0 and len(y) >= self.min_samples_split and len(y) >= 2 * self.min_samples_leaf:
+            split = self._best_split(X, y)
+        if split is None:
             node.value = counts
             return node
-        
-        # Find best split
-        best_gain = 0.0
-        best_feature = None
-        best_threshold = None
-        
-        for feat_idx in range(X.shape[1]):
-            feature_values = X[:, feat_idx]
-            thresholds = np.unique(feature_values)
-            
-            for threshold in thresholds:
-                left_mask = feature_values <= threshold
-                right_mask = ~left_mask
-                
-                if np.sum(left_mask) == 0 or np.sum(right_mask) == 0:
-                    continue
-                
-                gain = self._split_gain(y, y[left_mask], y[right_mask])
-                
-                if gain > best_gain:
-                    best_gain = gain
-                    best_feature = feat_idx
-                    best_threshold = threshold
-        
-        # No good split found
-        if best_feature is None:
-            _, counts = np.unique(y, return_counts=True)
-            node.value = counts
-            return node
-        
-        # Split and recurse
-        mask = X[:, best_feature] <= best_threshold
-        node.feature = best_feature
-        node.threshold = best_threshold
-        node.left = self._build_tree(X[mask], y[mask], depth + 1)
-        node.right = self._build_tree(X[~mask], y[~mask], depth + 1)
-        
+        node.feature, node.threshold = split[1], float(split[2])
+        mask = X[:, node.feature] <= node.threshold
+        node.left, node.right = self._build(X[mask], y[mask], depth + 1), self._build(X[~mask], y[~mask], depth + 1)
         return node
-    
+
     def fit(self, X: np.ndarray, y: np.ndarray) -> "DecisionTreeClassifier":
-        """
-        Fit decision tree.
-        Args:
-            X: (n_samples, n_features)
-            y: (n_samples,) class labels
-        Returns:
-            self
-        """
-        X = np.asarray(X, dtype=np.float64)
-        y = np.asarray(y, dtype=np.int32).ravel()
-        
-        if X.shape[0] != len(y):
-            raise ValueError("X and y must have same number of samples")
-        
-        self.classes_ = np.unique(y)
+        check_param("max_depth", self.max_depth, integer=True)
+        check_param("min_samples_split", self.min_samples_split, integer=True)
+        check_param("min_samples_leaf", self.min_samples_leaf, integer=True)
+        X, y = check_Xy(X, y)
         self.n_features_ = X.shape[1]
-        self.tree_ = self._build_tree(X, y)
+        self.tree_ = self._build(X, y, 0)
         return self
-    
-    def _predict_sample(self, x: np.ndarray, node: DecisionTreeNode) -> int:
-        """Predict single sample by traversing tree."""
-        if node.is_leaf():
-            return self.classes_[np.argmax(node.value)]
-        
-        if x[node.feature] <= node.threshold:
-            return self._predict_sample(x, node.left)
-        else:
-            return self._predict_sample(x, node.right)
-    
-    def predict(self, X: np.ndarray) -> np.ndarray:
-        """
-        Predict class labels.
-        Args:
-            X: (n_samples, n_features)
-        Returns:
-            (n_samples,) predictions
-        """
+
+    def _leaf_counts(self, X) -> np.ndarray:
         if self.tree_ is None:
-            raise ValueError("Model not fitted")
-        
-        X = np.asarray(X, dtype=np.float64)
-        if X.shape[1] != self.n_features_:
-            raise ValueError(f"Feature mismatch: expected {self.n_features_}, got {X.shape[1]}")
-        
-        predictions = np.array([self._predict_sample(x, self.tree_) for x in X])
-        return predictions
-    
-    def _predict_proba_sample(self, x: np.ndarray, node: DecisionTreeNode) -> np.ndarray:
-        """Get class probabilities for single sample."""
-        if node.is_leaf():
-            # Return probabilities for ALL classes, not just those in leaf
-            proba = np.zeros(len(self.classes_))
-            for i, c in enumerate(self.classes_):
-                if c < len(node.value):
-                    proba[i] = node.value[i] / np.sum(node.value)
-            return proba
-        
-        if x[node.feature] <= node.threshold:
-            return self._predict_proba_sample(x, node.left)
-        else:
-            return self._predict_proba_sample(x, node.right)
-    
-    def predict_proba(self, X: np.ndarray) -> np.ndarray:
-        """
-        Predict class probabilities.
-        Args:
-            X: (n_samples, n_features)
-        Returns:
-            (n_samples, n_classes) probabilities
-        """
-        if self.tree_ is None:
-            raise ValueError("Model not fitted")
-        
-        X = np.asarray(X, dtype=np.float64)
-        if X.shape[1] != self.n_features_:
-            raise ValueError(f"Feature mismatch: expected {self.n_features_}, got {X.shape[1]}")
-        
-        n_classes = len(self.classes_)
-        probas = np.zeros((len(X), n_classes))
-        
+            raise ValueError(NOT_FITTED)
+        X = check_X(X, self.n_features_)
+        out = np.empty((len(X), 2))
         for i, x in enumerate(X):
-            proba = self._predict_proba_sample(x, self.tree_)
-            probas[i] = proba
-        
-        return probas
-    
+            node = self.tree_
+            while not node.is_leaf():
+                node = node.left if x[node.feature] <= node.threshold else node.right
+            out[i] = node.value
+        return out
+
+    def predict_proba(self, X: np.ndarray) -> np.ndarray:
+        counts = self._leaf_counts(X)
+        return counts / counts.sum(axis=1, keepdims=True)
+
+    def predict(self, X: np.ndarray) -> np.ndarray:
+        return self.classes_[(self.predict_proba(X)[:, 1] >= 0.5).astype(int)]  # M2 convention: probability >= 0.5 is positive
+
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "max_depth": self.max_depth,
-            "min_samples_split": self.min_samples_split,
-            "max_features": self.max_features,
-        }
+        if self.tree_ is None:
+            raise ValueError(NOT_FITTED)
+        return {"max_depth": self.max_depth, "min_samples_split": self.min_samples_split, "min_samples_leaf": self.min_samples_leaf,
+                "random_state": self.random_state, "n_features": self.n_features_, "classes": self.classes_.tolist(),
+                "tree": self.tree_.to_dict()}
+
+    @staticmethod
+    def from_dict(d: Dict[str, Any]) -> "DecisionTreeClassifier":
+        model = DecisionTreeClassifier(d["max_depth"], d["min_samples_split"], d["min_samples_leaf"], d["random_state"])
+        model.n_features_, model.classes_ = d["n_features"], np.array(d["classes"])
+        model.tree_ = DecisionTreeNode.from_dict(d["tree"])
+        return model

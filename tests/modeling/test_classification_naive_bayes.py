@@ -78,7 +78,7 @@ def test_zero_variance_smoothing():
     y = np.array([0, 0, 0, 1])
     
     # First feature is constant within class 0
-    model = GaussianNaiveBayes(epsilon=1e-9)
+    model = GaussianNaiveBayes(var_smoothing=1e-9)
     model.fit(X, y)
     
     # Should not crash
@@ -158,29 +158,10 @@ def test_save_load_equality(tmp_path):
 
 
 def test_load_train_validation_real_data():
-    """Fit Gaussian NB on real with-spike Train/Validation data."""
-    dataset = load_train_validation("with_spike")
-    train_X, train_y_regression = dataset.train.X, dataset.train.y_regression
-    val_X, val_y_regression = dataset.validation.X, dataset.validation.y_regression
-    
-    # Convert to binary classification
-    median = np.median(train_y_regression)
-    train_y = (train_y_regression > median).astype(int)
-    val_y = (val_y_regression > median).astype(int)
-    
-    # Fit
-    model = GaussianNaiveBayes()
-    model.fit(train_X, train_y)
-    
-    # Predict
-    train_pred = model.predict(train_X)
-    val_pred = model.predict(val_X)
-    
-    # Check accuracy
-    train_acc = np.mean(train_pred == train_y)
-    val_acc = np.mean(val_pred == val_y)
-    
-    print(f"  Train accuracy: {train_acc:.4f}, Val accuracy: {val_acc:.4f}")
-    
-    assert train_acc > 0.5, "Train accuracy should beat random"
-    assert not np.any(np.isnan(val_pred))
+    """Frozen M2 target: DatasetSplit.y_classification (Original-Train-Q75), never a recomputed median split."""
+    ds = load_train_validation("with_spike")
+    model = GaussianNaiveBayes().fit(ds.train.X, ds.train.y_classification)
+    for split in (ds.train, ds.validation):
+        pred = model.predict(split.X)
+        assert pred.shape == split.y_classification.shape and set(np.unique(pred)) <= {0, 1}
+    assert np.mean(model.predict(ds.train.X) == ds.train.y_classification) > 0.5

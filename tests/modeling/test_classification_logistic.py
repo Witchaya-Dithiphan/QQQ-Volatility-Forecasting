@@ -88,28 +88,14 @@ def test_save_load_equality():
 
 
 def test_load_train_validation_real_data():
-    """Fit on real Train, predict Val."""
-    dataset = load_train_validation("with_spike")
-    train_X, train_y_regression = dataset.train.X, dataset.train.y_regression
-    val_X, val_y_regression = dataset.validation.X, dataset.validation.y_regression
-    
-    # Binary classification
-    median = np.median(train_y_regression)
-    train_y = (train_y_regression > median).astype(int)
-    val_y = (val_y_regression > median).astype(int)
-    
-    model = LogisticRegression(learning_rate=0.01, max_iter=1000)
-    model.fit(train_X, train_y)
-    
-    train_pred = model.predict(train_X)
-    val_pred = model.predict(val_X)
-    
-    train_acc = np.mean(train_pred == train_y)
-    val_acc = np.mean(val_pred == val_y)
-    
-    print(f"  Train acc: {train_acc:.4f}, Val acc: {val_acc:.4f}")
-    # Accuracy doesn't need to beat random; just need non-NaN, reasonable predictions
-    assert not np.any(np.isnan(train_pred)) and not np.any(np.isnan(val_pred))
+    """Frozen M2 target: DatasetSplit.y_classification (Original-Train-Q75), never a recomputed median split."""
+    ds = load_train_validation("with_spike")
+    model = LogisticRegression().fit(ds.train.X, ds.train.y_classification)
+    for split in (ds.train, ds.validation):
+        pred = model.predict(split.X)
+        assert pred.shape == split.y_classification.shape and set(np.unique(pred)) <= {0, 1}
+    assert np.mean(model.predict(ds.train.X) == ds.train.y_classification) > 0.5
+
 
 @pytest.mark.skipif(not HAS_SKLEARN, reason="sklearn not available")
 def test_compare_sklearn():
@@ -130,3 +116,13 @@ def test_compare_sklearn():
     acc_ours = np.mean(y_pred_ours == y)
     acc_sk = np.mean(y_pred_sk == y)
     assert np.abs(acc_ours - acc_sk) < 0.15, f"Ours: {acc_ours:.3f}, sklearn: {acc_sk:.3f}"
+
+
+def test_final_iteration_overflow_raises_without_warning():
+    import warnings
+    model = LogisticRegression(learning_rate=1e308, max_iter=1, standardize=False)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        with pytest.raises(ValueError, match="Gradient descent diverged; reduce learning_rate"):
+            model.fit(np.array([[100.0], [-100.0]]), np.array([0, 1]))
+    assert model.coefficients_ is None and model.intercept_ is None

@@ -1,7 +1,4 @@
-"""Tests for Single-Layer Perceptron, tanh + MSE (M5-12, with-spike)."""
-
-import json
-from pathlib import Path
+"""Tests for Single-Layer Perceptron (sigmoid + BCE) (M5-12, with-spike)."""
 
 import numpy as np
 
@@ -47,31 +44,10 @@ def test_predict_proba():
 
 
 def test_load_train_validation_real_data():
-    dataset = load_train_validation("with_spike")
-    train_X, train_y_reg = dataset.train.X, dataset.train.y_regression
-    val_X, val_y_reg = dataset.validation.X, dataset.validation.y_regression
-
-    median = np.median(train_y_reg)
-    train_y = (train_y_reg > median).astype(int)
-    val_y = (val_y_reg > median).astype(int)
-
-    model = SLP(max_iter=200).fit(train_X, train_y)
-    train_pred, val_pred = model.predict(train_X), model.predict(val_X)
-    assert not np.any(np.isnan(train_pred)) and not np.any(np.isnan(val_pred))
-    assert not np.any(np.isnan(model.loss_history_))
-
-    artifact_dir = Path("outputs/modeling/with_spike/classification/slp/scratch/M5_12")
-    artifact_dir.mkdir(parents=True, exist_ok=True)
-    np.save(artifact_dir / "train_predictions.npy", train_pred)
-    np.save(artifact_dir / "val_predictions.npy", val_pred)
-    metadata = {
-        "model_class": "SLP",
-        "variant": "with_spike",
-        "task": "M5-12",
-        "train_samples": len(train_X),
-        "val_samples": len(val_X),
-        "final_loss": float(model.loss_history_[-1]),
-        "train_accuracy": float(np.mean(train_pred == train_y)),
-        "val_accuracy": float(np.mean(val_pred == val_y)),
-    }
-    (artifact_dir / "metadata.json").write_text(json.dumps(metadata, indent=2))
+    """Frozen M2 target: DatasetSplit.y_classification (Original-Train-Q75), never a recomputed median split."""
+    ds = load_train_validation("with_spike")
+    model = SLP(max_iter=200).fit(ds.train.X, ds.train.y_classification)
+    for split in (ds.train, ds.validation):
+        pred = model.predict(split.X)
+        assert pred.shape == split.y_classification.shape and set(np.unique(pred)) <= {0, 1}
+    assert np.mean(model.predict(ds.train.X) == ds.train.y_classification) > 0.5

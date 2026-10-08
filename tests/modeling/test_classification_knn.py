@@ -1,7 +1,4 @@
 """Tests for k-Nearest Neighbors (M5-04, reference/sklearn wrapper)."""
-import json
-from pathlib import Path
-
 import numpy as np
 
 from src.modeling.classification.knn import KNN
@@ -26,42 +23,11 @@ def test_proba():
     assert np.allclose(proba.sum(axis=1), 1.0)
 
 
-def test_real_data():
-    """Load Train/Val, fit, predict, save artifacts."""
-    dataset = load_train_validation("with_spike")
-    train_X, train_y_reg = dataset.train.X, dataset.train.y_regression
-    val_X, val_y_reg = dataset.validation.X, dataset.validation.y_regression
-    
-    median = np.median(train_y_reg)
-    train_y = (train_y_reg > median).astype(int)
-    val_y = (val_y_reg > median).astype(int)
-    
-    m = KNN(n_neighbors=5).fit(train_X, train_y)
-    
-    train_pred = m.predict(train_X)
-    val_pred = m.predict(val_X)
-    
-    train_acc = np.mean(train_pred == train_y)
-    val_acc = np.mean(val_pred == val_y)
-    
-    print(f"  Train acc: {train_acc:.4f}, Val acc: {val_acc:.4f}")
-    assert not np.any(np.isnan(train_pred)) and not np.any(np.isnan(val_pred))
-    
-    # Save artifacts
-    out_dir = Path("outputs/modeling/with_spike/classification/knn/scratch/M5_04")
-    out_dir.mkdir(parents=True, exist_ok=True)
-    
-    np.save(out_dir / "train_predictions.npy", train_pred)
-    np.save(out_dir / "val_predictions.npy", val_pred)
-    
-    metadata = {
-        "model": "KNN",
-        "n_neighbors": 5,
-        "metric": "euclidean",
-        "train_accuracy": float(train_acc),
-        "val_accuracy": float(val_acc),
-        "train_samples": len(train_X),
-        "val_samples": len(val_X),
-    }
-    with open(out_dir / "metadata.json", "w") as f:
-        json.dump(metadata, f, indent=2)
+def test_load_train_validation_real_data():
+    """Frozen M2 target: DatasetSplit.y_classification (Original-Train-Q75), never a recomputed median split."""
+    ds = load_train_validation("with_spike")
+    model = KNN(n_neighbors=5).fit(ds.train.X, ds.train.y_classification)
+    for split in (ds.train, ds.validation):
+        pred = model.predict(split.X)
+        assert pred.shape == split.y_classification.shape and set(np.unique(pred)) <= {0, 1}
+    assert np.mean(model.predict(ds.train.X) == ds.train.y_classification) > 0.5
