@@ -7,8 +7,8 @@ from src.modeling.metrics import classification_metrics, loss, select_threshold
 from tests.modeling.ensemble_helpers import ENSEMBLE_DIR, imported_modules, real_q75, strict_roundtrip, synthetic
 
 # Found by exhaustive stump search: round-1 error .25, then every stump has weighted error >= .5.
-EARLY_X = np.array([[1, 1], [0, 0], [0, 0], [0, 0], [2, 1], [2, 1], [1, 2], [2, 1]], dtype=float)
-EARLY_Y = np.array([1, 1, 1, 0, 1, 1, 0, 0])
+EARLY_X = np.array([[2, 0], [0, 0], [0, 0], [2, 0], [0, 0], [2, 0], [0, 0], [2, 0]], dtype=float)
+EARLY_Y = np.array([0, 0, 0, 1, 1, 1, 0, 1])
 
 
 def test_no_sklearn_in_production():
@@ -160,3 +160,54 @@ def test_q75_real_data_smoke():
     assert loss("exponential_loss", yva, scores=model.decision_function(Xva))["value"] is not None
     loaded = AdaBoost.from_dict(strict_roundtrip(model.to_dict()))
     np.testing.assert_array_equal(loaded.predict(Xva), model.predict(Xva))
+
+
+@pytest.mark.parametrize("constant", [True, False])
+def test_constant_prediction_is_minimum_and_survives_strict_reload(constant):
+    X = np.ones((5, 1)) if constant else np.arange(5.0).reshape(-1, 1)
+    y = np.array([0, 0, 1, 0, 0])
+    model = AdaBoost(n_estimators=1).fit(X, y)
+    assert model.estimator_errors_ == [pytest.approx(0.2)]
+    np.testing.assert_array_equal(model.predict(X), np.zeros(5))
+    loaded = AdaBoost.from_dict(strict_roundtrip(model.to_dict()))
+    np.testing.assert_array_equal(loaded.decision_function(X), model.decision_function(X))
+
+
+def test_boundary_ties_and_unnormalized_weights():
+    from src.modeling.ensemble.adaboost import _best_stump
+    X = np.ones((4, 2))
+    err, stump = _best_stump(X, np.array([-1, 1, -1, 1]), np.full(4, 3.0))
+    assert err == pytest.approx(0.5)
+    assert stump == {"feature": 0, "threshold": 1.0, "polarity": 1}
+    # An internal threshold ties with the constant prediction: lower threshold wins.
+    err, stump = _best_stump(np.arange(3.0).reshape(-1, 1), np.array([1, -1, 1]), np.ones(3))
+    assert err == pytest.approx(1 / 3)
+    assert stump == {"feature": 0, "threshold": 0.5, "polarity": -1}
+
+
+@pytest.mark.parametrize("epsilon", [0, 0.5, 0.6])
+def test_epsilon_range_at_construction_and_fit(epsilon):
+    with pytest.raises(ValueError, match="epsilon"):
+        AdaBoost(epsilon=epsilon)
+    model = AdaBoost()
+    model.epsilon = epsilon
+    with pytest.raises(ValueError, match="epsilon"):
+        model.fit(np.arange(5.0).reshape(-1, 1), np.array([0, 0, 1, 0, 0]))
+
+
+@pytest.mark.parametrize("later", [False, True])
+def test_no_candidate_has_honest_status(monkeypatch, later):
+    import src.modeling.ensemble.adaboost as module
+    candidates = iter([(0.2, {"feature": 0, "threshold": 4.0, "polarity": 1}), None] if later else [None])
+    monkeypatch.setattr(module, "_best_stump", lambda *args: next(candidates))
+    model = AdaBoost(n_estimators=2)
+    X, y = np.arange(5.0).reshape(-1, 1), np.array([0, 0, 1, 0, 0])
+    if later:
+        model.fit(X, y)
+        assert model.status_ == "completed_early" and len(model.stumps_) == 1
+    else:
+        with pytest.raises(AdaBoostFailure):
+            model.fit(X, y)
+        assert model.status_ == "failed" and model.stumps_ == []
+    assert model.stop_error_ == 0.5
+    assert np.isfinite(model.log_sample_weights_).all()
