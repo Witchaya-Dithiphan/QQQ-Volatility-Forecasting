@@ -1,0 +1,8 @@
+# Canonical bytes for protocol and provenance text, including Windows checkouts.
+*.py text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+requirements*.txt text eol=lf
+*.in text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf

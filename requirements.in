@@ -1,0 +1,11 @@
+numpy
+pandas
+pytest
+matplotlib
+seaborn
+nbformat
+nbconvert
+ipykernel
+scikit-learn
+xgboost
+joblib

@@ -49,6 +49,7 @@ data/processed/*
 outputs/figures/*
 outputs/metrics/*
 outputs/models/*
+outputs/modeling/
 outputs/reports/*
 !outputs/figures/.gitkeep
 !outputs/metrics/.gitkeep

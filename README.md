@@ -4,7 +4,7 @@
 > การสร้าง `.venv`, การติดตั้ง dependencies, การรัน Phase 1/Phase 2 และ tests บน Windows
 >
 > **Modeling scope ล่าสุด:** ดู [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md)
-> ซึ่งเป็น source of truth สำหรับ requirement matrix, inventory 18 รายการเบื้องต้น,
+> ซึ่งเป็น source of truth สำหรับ requirement matrix, inventory 19 รายการ,
 > scratch/reference contract, With-Spike-first milestones และ Non-Spike reruns
 
 สำหรับ workspace ที่ตั้งค่าครบแล้ว ใช้คำสั่งต่อไปนี้จาก project root:
@@ -200,16 +200,17 @@ Model plan ด้านล่างยึด requirement summary ที่ระ
 - `Verified by saved results`: มี persisted results ที่ตรวจย้อนกลับได้
 
 จากหลักฐาน repository ปัจจุบัน data preparation เป็น `Implemented` และ split/label
-มี saved reports แต่ model inventory 18 รายการเบื้องต้นยังเป็น `Planned`: ไฟล์
+มี saved reports แต่ model inventory 19 รายการยังเป็น `Planned`: ไฟล์
 `src/models/regression.py` และ `src/models/classification.py` มีเพียง module
 docstring และยังไม่มี saved model metrics ใน `outputs/metrics/` หรือ model reports
 ใน `outputs/reports/`
 
 ## Modeling Scope
 
-รายการหลักเบื้องต้นมี 18 รายการ: Regression 4, Classification 12 และ Clustering 2
-โดยนับ Perceptron/SLP เป็นหนึ่งรายการ รายการนี้เป็นการตีความจาก PDF ไม่ใช่จำนวนที่
-PDF ระบุโดยตรง และไม่รวม dataset variants, reference implementations,
+รายการหลักมี 19 รายการ: Regression 4, Classification 13 และ Clustering 2
+โดยแยก Perceptron และ Single-layer Perceptron (SLP) เป็นคนละ model ตาม course
+interpretation ที่ผู้ใช้ยืนยันเมื่อ 2026-10-08 ยอดรวมนี้ไม่ได้พิมพ์ไว้โดยตรงใน PDF
+และไม่รวม dataset variants, reference implementations,
 preprocessing configurations หรือ hyperparameter trials เป็นโมเดลใหม่
 
 รายละเอียด authoritative อยู่ใน [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md)
@@ -314,7 +315,7 @@ apply ไปยัง Validation/Test โดยห้าม fit ใหม่ เ
 
 ## From-Scratch and Reference Implementations
 
-ทั้ง 18 รายการตาม inventory เบื้องต้นต้องมี from-scratch implementation ในระดับที่
+ทั้ง 19 รายการตาม inventory ต้องมี from-scratch implementation ในระดับที่
 ตรงกับชื่อ algorithm; Scikit-learn/PyTorch/XGBoost library ใช้เฉพาะ reference
 implementation สำหรับ verification และ quantitative benchmarking ไม่ใช้แทนงาน
 from scratch การเปรียบเทียบต้องใช้ splits, features, target definitions,
@@ -332,7 +333,7 @@ hyperparameters และ metrics ที่สอดคล้องกันเ�
 8. computational limitations
 9. comparison กับ Scikit-learn บน protocol เดียวกัน
 
-Objective/algorithm contracts สำหรับทั้ง 18 รายการอยู่ใน `MODEL_TRAINING_PLAN.md`
+Objective/algorithm contracts สำหรับทั้ง 19 รายการอยู่ใน `MODEL_TRAINING_PLAN.md`
 ตัวอย่างคือ SSE/MSE สำหรับ linear regression, penalized squared error สำหรับ
 Elastic Net, Binary Cross-Entropy สำหรับ Logistic Regression และ weighted weak-learner
 updates สำหรับ AdaBoost variant ที่ต้อง freezeก่อน implement
@@ -412,8 +413,8 @@ metrics และ search protocol ยังเป็น `Planned` จึงย�
 ## Model Selection Risks and Open Questions
 
 - ตรวจ `_69-1-01076641_Project-description.pdf` ครบ 5 หน้าแล้ว; ไฟล์ยัง untracked
-- ต้องยืนยันว่า Perceptron/SLP นับหนึ่งหรือสอง deliverables และ PCA เป็นขั้นตอนหรือ
-  configuration ที่ต้องส่งแยกเพียงใด
+- ยืนยันแล้วว่า Perceptron และ SLP เป็นคนละ deliverable; ยังต้องปิดว่า PCA เป็นขั้นตอน
+  หรือ configuration ที่ต้องส่งแยกเพียงใด
 - ต้องค้นคำว่า `Elastic Net`, `AdaBoost` และ `Adaptive Boosting` ใน
   `Machine Learning (1).pdf` และ `Machine Learning (2).pdf`; ขณะนี้ PDF ไม่พร้อมให้
   ตรวจ จึงห้ามเขียนว่า “Definitely not taught in class”

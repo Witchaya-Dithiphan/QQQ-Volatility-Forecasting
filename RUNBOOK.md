@@ -11,7 +11,7 @@ Python หรือ packages คนละ environment
 - [PHASE2_SPIKE_READINESS.md](PHASE2_SPIKE_READINESS.md) — หลักฐานการตรวจรับ Phase 2
 - [PROJECT_STATUS.md](PROJECT_STATUS.md) — สถานะ implementation
 - [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) — modeling requirements,
-  inventory 18 รายการ และ implementation milestones; คำสั่ง modeling ในแผนยังไม่พร้อมใช้
+  inventory 19 รายการ และ implementation milestones; คำสั่ง modeling ในแผนยังไม่พร้อมใช้
 
 > หลักฐานตรวจรับเดิมใช้ Python 3.11.9 แต่ audit วันที่ 2026-10-08 พบว่า `.venv`
 > ปัจจุบันรายงาน Python 3.12.3 ต้อง freeze submission environment ก่อนเริ่ม modeling

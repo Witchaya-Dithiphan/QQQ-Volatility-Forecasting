@@ -4,7 +4,7 @@
 > แผนการวิเคราะห์ และไม่ใช้แทนคู่มือปฏิบัติงาน
 >
 > Modeling phase ใช้ [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) เป็น source of
-> truth สำหรับ inventory 18 รายการ, With-Spike-first และ Non-Spike reruns
+> truth สำหรับ inventory 19 รายการ, With-Spike-first และ Non-Spike reruns
 
 ## สถานะและขอบเขต
 

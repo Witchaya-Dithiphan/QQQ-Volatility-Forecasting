@@ -1,8 +1,2 @@
-numpy
-pandas
-pytest
-matplotlib
-seaborn
-nbformat
-nbconvert
-ipykernel
+# Compatibility entry point; resolved and tested in Python 3.12.3.
+-r requirements-lock.txt

@@ -94,7 +94,7 @@ flowchart TD
         K --> L
     end
     subgraph TODO[Modeling — Planned / Not Started]
-        L --> M[18-item scratch/reference inventory]
+        L --> M[19-item scratch/reference inventory]
         M --> N[Full / diagnostic evaluation]
         N --> O[Paired comparison after both variants]
     end
@@ -372,7 +372,7 @@ Spike-specific test checklist สำหรับ Task 10:
 
 ### Modeling และโครงการทั้งหมด
 
-- [ ] Model inventory 18 รายการมี scratch core logic, reference comparison และ save/load test
+- [ ] Model inventory 19 รายการมี scratch core logic, reference comparison และ save/load test
 - [ ] Paired models ใช้ algorithms, search space, seed, preprocessing policy และ metrics เดียวกัน
 - [ ] Regression รายงาน MAE/RMSE/R² และ Classification รายงาน Accuracy/Precision/Recall/F1/ROC-AUC/PR-AUC/Confusion Matrix
 - [ ] Metrics แยก Full/Non-Spike/Spike-Affected Test โดย Full Test เป็นผลหลัก
@@ -397,7 +397,7 @@ Spike-specific test checklist สำหรับ Task 10:
 ### Open questions สำหรับ Modeling
 
 ข้อกำกวม Phase 2 เรื่อง diagnostic flags, boundary และ RSI policyถูกปิดแล้ว Open
-decisions ปัจจุบันคือ Perceptron/SLP counting, PCA scope, faithful SVM/XGBoost scope,
+decisions ปัจจุบันไม่รวม Perceptron/SLP counting แล้ว เพราะยืนยันให้แยกสอง model; ที่เหลือคือ PCA scope, faithful SVM/XGBoost scope,
 AdaBoost variant, polynomial scope, clustering evaluation, class-imbalance policy,
 Python/dependency freeze และ extracurricular approval ตาม `MODEL_TRAINING_PLAN.md`
 

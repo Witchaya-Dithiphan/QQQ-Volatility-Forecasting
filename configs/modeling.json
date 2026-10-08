@@ -1,0 +1,932 @@
+{
+  "adaboost": {
+    "alpha_factor": 0.5,
+    "epsilon": 1e-12,
+    "error_le_epsilon": "completed_perfect",
+    "first_error_ge_half": "failed",
+    "labels": [
+      -1,
+      1
+    ],
+    "later_error_ge_half": "completed_early",
+    "search_both_polarities": true,
+    "stump_tie": [
+      "feature_index",
+      "threshold",
+      "normal_polarity"
+    ],
+    "weights": "log_space_logsumexp",
+    "zero_vote_label": 1
+  },
+  "artifacts": {
+    "assignment_columns": [
+      "Date",
+      "cluster_id",
+      "distance",
+      "assignment_method"
+    ],
+    "clustering_extension": [
+      "extension.json",
+      "validation_assignments.csv",
+      "extension_metrics.json",
+      "limitations.json"
+    ],
+    "clustering_train": [
+      "config.json",
+      "manifest.json",
+      "model.npz",
+      "preprocessor.npz",
+      "train_assignments.csv",
+      "internal_metrics.json",
+      "cluster_summary.json",
+      "figures",
+      "load_verification.json"
+    ],
+    "failed": [
+      "stage",
+      "exception_type",
+      "message",
+      "traceback_path",
+      "timing",
+      "hashes"
+    ],
+    "incompatible": [
+      "mismatches"
+    ],
+    "mandatory_completed_only": true,
+    "pilot_satisfies_finalized": false,
+    "prediction_columns": [
+      "Date",
+      "target",
+      "raw_prediction_or_score",
+      "final_prediction",
+      "threshold_or_clipping_indicator"
+    ],
+    "run_roles": [
+      "pilot_only",
+      "candidate",
+      "finalized_scratch",
+      "finalized_reference",
+      "internal_fold",
+      "optional_stability"
+    ],
+    "skipped": [
+      "reason",
+      "required"
+    ],
+    "supervised_finalized": [
+      "test_identity.json",
+      "test_metrics.json",
+      "test_predictions.csv",
+      "test_access.json"
+    ],
+    "supervised_tuned": [
+      "config.json",
+      "manifest.json",
+      "model.npz",
+      "preprocessor.npz",
+      "search_results.json",
+      "validation_metrics.json",
+      "validation_predictions.csv",
+      "load_verification.json"
+    ]
+  },
+  "config_id": "cfg-f904b7f92596",
+  "config_sha256": "f904b7f925961bf8e5f8fb24f3905c70ef13b583e921787d62be8771b620a406",
+  "data": {
+    "classification_target": "target_high_volatility",
+    "date_column": "Date",
+    "diagnostics": "segmentation_only",
+    "feature_columns": [
+      "return_1d",
+      "return_5d",
+      "historical_volatility_5d",
+      "historical_volatility_20d",
+      "intraday_range",
+      "sma_ratio_5_20",
+      "rsi_14",
+      "volume_zscore_20"
+    ],
+    "q75_source": "original_train_only",
+    "recompute_features_targets": false,
+    "regression_target": "target_volatility_5d",
+    "test": "full_original",
+    "validation": "full_original",
+    "variants": [
+      "with_spike",
+      "non_spike"
+    ]
+  },
+  "environment": {
+    "dependency_lock": "requirements-lock.txt",
+    "python": "3.12.3",
+    "reference_dependencies": [
+      "scikit-learn",
+      "xgboost",
+      "joblib"
+    ]
+  },
+  "experiment": {
+    "failure_policy": "record_failure_no_reference_substitution",
+    "max_candidates": 12,
+    "non_spike_full_milestone": 9,
+    "pilot": {
+      "fresh_fit": true,
+      "milestone": 3,
+      "model": "multiple_linear",
+      "pilot_only": true,
+      "train_validation_only": true
+    },
+    "polynomial_max_candidates": 16,
+    "reference_comparison": "same_features_preprocessing_seed_split",
+    "resampling": false,
+    "search_strategy": "explicit_deterministic",
+    "seed": 42,
+    "shuffle": false,
+    "stability_after_mandatory": true,
+    "stability_seeds": [
+      7,
+      42,
+      2026
+    ],
+    "variant_order": [
+      "with_spike",
+      "non_spike"
+    ]
+  },
+  "losses": {
+    "adaboost": "exponential_loss",
+    "decision_tree": "log_loss",
+    "gaussian_nb": "log_loss",
+    "gradient_boosting": "binary_logistic_loss",
+    "knn": "log_loss",
+    "logistic": "binary_cross_entropy",
+    "mlp": "binary_cross_entropy",
+    "perceptron": "perceptron_criterion",
+    "random_forest": "log_loss",
+    "slp": "binary_cross_entropy",
+    "stacking": "log_loss",
+    "svm": "hinge_loss",
+    "xgboost": "binary_logistic_loss"
+  },
+  "models": {
+    "adaboost": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "learning_rate": [
+          0.5,
+          1
+        ],
+        "n_estimators": [
+          25,
+          50,
+          100
+        ]
+      },
+      "parameters": {
+        "external_class_weight": false
+      },
+      "preprocess": "none",
+      "scope": "discrete_weighted_stumps",
+      "task": "classification"
+    },
+    "agglomerative": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "k": [
+          2,
+          3,
+          4,
+          5,
+          6
+        ],
+        "linkage": [
+          "ward",
+          "average"
+        ]
+      },
+      "parameters": {
+        "metric": "euclidean",
+        "oos_extension": "frozen_nearest_centroid",
+        "standard_predict": false
+      },
+      "preprocess": "standardize",
+      "scope": "train_structure",
+      "task": "clustering"
+    },
+    "decision_tree": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "max_depth": [
+          2,
+          3,
+          5
+        ],
+        "min_samples_leaf": [
+          5,
+          10
+        ]
+      },
+      "parameters": {
+        "criterion": "gini",
+        "tie": [
+          "feature_index",
+          "threshold"
+        ]
+      },
+      "preprocess": "none",
+      "scope": "gini",
+      "task": "classification"
+    },
+    "elastic_net": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "alpha": [
+          0.0001,
+          0.001,
+          0.01,
+          0.1
+        ],
+        "l1_ratio": [
+          0.25,
+          0.5,
+          0.75
+        ]
+      },
+      "parameters": {
+        "intercept": true,
+        "max_iter": 5000,
+        "objective": "squared_error_over_2n_plus_alpha_l1_plus_half_alpha_l2",
+        "selection": "cyclic",
+        "tol": 1e-06
+      },
+      "preprocess": "standardize",
+      "scope": "coordinate_descent",
+      "task": "regression"
+    },
+    "gaussian_nb": {
+      "class_weight": "not_supported",
+      "grid": {
+        "var_smoothing": [
+          1e-09,
+          1e-08,
+          1e-07
+        ]
+      },
+      "parameters": {
+        "priors": "train_empirical"
+      },
+      "preprocess": "none",
+      "scope": "gaussian_log_space",
+      "task": "classification"
+    },
+    "gradient_boosting": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "learning_rate": [
+          0.03,
+          0.1
+        ],
+        "max_depth": [
+          1,
+          2
+        ],
+        "n_estimators": [
+          50,
+          100
+        ]
+      },
+      "parameters": {
+        "loss": "binary_logistic"
+      },
+      "preprocess": "none",
+      "scope": "binary_logistic_regression_trees",
+      "task": "classification"
+    },
+    "kmeans": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "k": [
+          2,
+          3,
+          4,
+          5,
+          6
+        ]
+      },
+      "parameters": {
+        "init": "k-means++",
+        "max_iter": 300,
+        "n_init": 10,
+        "tol": 1e-06
+      },
+      "preprocess": "standardize",
+      "scope": "kmeans_plus_plus",
+      "task": "clustering"
+    },
+    "knn": {
+      "class_weight": "not_supported",
+      "grid": {
+        "k": [
+          3,
+          5,
+          9,
+          15
+        ],
+        "weights": [
+          "uniform",
+          "distance"
+        ]
+      },
+      "parameters": {
+        "tie": "deterministic"
+      },
+      "preprocess": "standardize",
+      "scope": "euclidean",
+      "task": "classification"
+    },
+    "logistic": {
+      "class_weight": [
+        null,
+        "balanced"
+      ],
+      "grid": {
+        "class_weight": [
+          null,
+          "balanced"
+        ],
+        "l2": [
+          0,
+          0.001,
+          0.01
+        ]
+      },
+      "parameters": {
+        "balanced_weight": "n_samples_over_2_class_count",
+        "learning_rate": 0.05,
+        "max_iter": 5000,
+        "objective": "weighted_mean_bce_plus_half_lambda_l2",
+        "penalize_intercept": false,
+        "tol": 1e-06
+      },
+      "preprocess": "standardize",
+      "scope": "sigmoid_bce_gradient_descent",
+      "task": "classification"
+    },
+    "mlp": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "hidden_layers": [
+          [
+            16
+          ],
+          [
+            32
+          ],
+          [
+            16,
+            8
+          ]
+        ],
+        "l2": [
+          0,
+          0.0001
+        ],
+        "learning_rate": [
+          0.001,
+          0.01
+        ]
+      },
+      "parameters": {
+        "batch": 32,
+        "max_epochs": 1000,
+        "patience": 50,
+        "shuffle": false
+      },
+      "preprocess": "standardize",
+      "scope": "relu_hidden_sigmoid_bce",
+      "task": "classification"
+    },
+    "multiple_linear": {
+      "class_weight": [
+        null
+      ],
+      "grid": {},
+      "parameters": {
+        "intercept": true,
+        "solver": "numpy.linalg.pinv"
+      },
+      "preprocess": "standardize",
+      "scope": "pinv_ols",
+      "task": "regression"
+    },
+    "perceptron": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "learning_rate": [
+          0.001,
+          0.01,
+          0.1
+        ]
+      },
+      "parameters": {
+        "max_epochs": 1000,
+        "output": "decision_score",
+        "report_mistake_rate": true,
+        "shuffle": false
+      },
+      "preprocess": "standardize",
+      "scope": "online_mistake_update",
+      "task": "classification"
+    },
+    "polynomial": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "degree": [
+          2,
+          3
+        ],
+        "feature": [
+          "return_1d",
+          "return_5d",
+          "historical_volatility_5d",
+          "historical_volatility_20d",
+          "intraday_range",
+          "sma_ratio_5_20",
+          "rsi_14",
+          "volume_zscore_20"
+        ]
+      },
+      "parameters": {
+        "intercept": true,
+        "standardize_before_powers": true
+      },
+      "preprocess": "standardize",
+      "scope": "univariate_powers_no_interactions",
+      "task": "regression"
+    },
+    "random_forest": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "max_depth": [
+          3,
+          5
+        ],
+        "n_estimators": [
+          50,
+          100
+        ]
+      },
+      "parameters": {
+        "bootstrap": true,
+        "final_candidates": 7,
+        "max_features": "sqrt",
+        "min_samples_leaf": 5,
+        "pca_uses_best_no_pca": true
+      },
+      "preprocess": "none",
+      "scope": "bootstrap_forest",
+      "task": "classification"
+    },
+    "simple_linear": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "feature": [
+          "return_1d",
+          "return_5d",
+          "historical_volatility_5d",
+          "historical_volatility_20d",
+          "intraday_range",
+          "sma_ratio_5_20",
+          "rsi_14",
+          "volume_zscore_20"
+        ]
+      },
+      "parameters": {
+        "intercept": true
+      },
+      "preprocess": "none",
+      "scope": "univariate_ols_intercept",
+      "task": "regression"
+    },
+    "slp": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "batch": [
+          32,
+          "full"
+        ],
+        "l2": [
+          0,
+          0.0001
+        ],
+        "learning_rate": [
+          0.001,
+          0.01
+        ]
+      },
+      "parameters": {
+        "max_epochs": 1000,
+        "patience": 50,
+        "shuffle": false
+      },
+      "preprocess": "standardize",
+      "scope": "single_sigmoid_bce",
+      "task": "classification"
+    },
+    "stacking": {
+      "class_weight": [
+        null
+      ],
+      "grid": {},
+      "parameters": {
+        "protocol": "stacking"
+      },
+      "preprocess": "base_specific",
+      "scope": "expanding_train_oos_meta",
+      "task": "classification"
+    },
+    "svm": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "C": [
+          0.1,
+          1,
+          10
+        ]
+      },
+      "parameters": {
+        "final_candidates": 12,
+        "kernel": "linear",
+        "objective": "half_l2_plus_C_sum_hinge"
+      },
+      "preprocess": "standardize",
+      "scope": "linear_soft_margin_subgradient",
+      "task": "classification"
+    },
+    "xgboost": {
+      "class_weight": [
+        null
+      ],
+      "grid": {
+        "tuples": [
+          [
+            50,
+            1,
+            0.1,
+            1,
+            0
+          ],
+          [
+            50,
+            2,
+            0.1,
+            1,
+            0
+          ],
+          [
+            100,
+            1,
+            0.03,
+            1,
+            0
+          ],
+          [
+            100,
+            2,
+            0.03,
+            1,
+            0
+          ],
+          [
+            100,
+            2,
+            0.1,
+            1,
+            0
+          ],
+          [
+            100,
+            2,
+            0.1,
+            10,
+            0
+          ],
+          [
+            100,
+            2,
+            0.1,
+            1,
+            0.1
+          ],
+          [
+            100,
+            2,
+            0.03,
+            10,
+            0.1
+          ]
+        ]
+      },
+      "parameters": {
+        "exact_splits": true,
+        "gradient_hessian": true,
+        "regularized_gain_leaf_weights": true,
+        "shrinkage": true,
+        "tuple_fields": [
+          "n_estimators",
+          "max_depth",
+          "learning_rate",
+          "reg_lambda",
+          "gamma"
+        ]
+      },
+      "preprocess": "none",
+      "scope": "exact_second_order_regularized_trees",
+      "task": "classification"
+    }
+  },
+  "neural": {
+    "batch_order": "contiguous_chronological",
+    "best_epoch_tie": "earliest",
+    "internal_tail_fraction": 0.15,
+    "last_short_batch": true,
+    "min_delta": 1e-06,
+    "monitor": "binary_cross_entropy",
+    "patience": 50,
+    "purge_original_trading_days": 5,
+    "refit_early_stopping": false,
+    "refit_epochs": "selected_best_epoch",
+    "refit_full_train": true,
+    "refit_seed": 42,
+    "scaler_fit": "subtrain"
+  },
+  "persistence": {
+    "code_order": "posix_lexicographic",
+    "code_paths": [
+      "config.py",
+      "configs/modeling.json",
+      "src/modeling/**/*.py",
+      "src/models/**/*.py"
+    ],
+    "code_stream": "path_utf8_nul_uint64be_byte_length_file_bytes",
+    "labels_exact": true,
+    "output_path": "outputs/modeling/<variant>/<task>/<model>/<implementation>/<run_id>/",
+    "overwrite": false,
+    "reference": "joblib",
+    "reload_atol": 1e-12,
+    "reload_rtol": 1e-10,
+    "resume_hashes": [
+      "config",
+      "inputs",
+      "code",
+      "dependency_lock",
+      "runtime"
+    ],
+    "resume_require_artifacts": true,
+    "resume_require_load_verification": true,
+    "resume_status": "completed",
+    "runtime_fields": [
+      "python_full_version",
+      "platform",
+      "machine",
+      "numpy",
+      "pandas",
+      "scikit-learn",
+      "xgboost",
+      "joblib",
+      "normalized_numpy_show_config_sha256"
+    ],
+    "scratch": "npz_strict_json"
+  },
+  "plan_revision": "modeling-config-2026-10-08-v1",
+  "plan_section_sha256": "b1539343569a764ffbdccd9c950d49ab4f084f63e13e6de6b75d37dbbca32b91",
+  "preprocessing": {
+    "dtype": "float64",
+    "fit_scope": "variant_train_only",
+    "pca": {
+      "basis": "projector_feature_order_modified_gram_schmidt",
+      "components": [
+        2,
+        4,
+        6
+      ],
+      "covariance_ddof": 1,
+      "degenerate_relative_tolerance": 1e-10,
+      "eigensolver": "eigh",
+      "include_no_pca": true,
+      "models": [
+        "random_forest",
+        "svm"
+      ],
+      "negative_eigenvalue_tolerance": 1e-12,
+      "rank_eigenvalue_floor": 1e-12,
+      "rank_failure": "invalid_candidate",
+      "sign": "largest_absolute_positive_lowest_index_tie"
+    },
+    "standardizer": {
+      "constant_output": 0,
+      "constant_scale": 1,
+      "ddof": 0,
+      "record_warnings": true,
+      "variance_floor": 1e-12
+    }
+  },
+  "references": {
+    "adaboost": {
+      "api_difference": "record_installed_syntax_in_manifest_and_tests",
+      "comparison": "behavioral-reference",
+      "constructor": "AdaBoostClassifier",
+      "parameters": {
+        "criterion": "gini",
+        "estimator": "DecisionTreeClassifier",
+        "max_depth": 1,
+        "random_state": 42
+      }
+    },
+    "elastic_net": {
+      "comparison": "objective-parity",
+      "constructor": "ElasticNet",
+      "parameters": {
+        "fit_intercept": true,
+        "max_iter": 5000,
+        "selection": "cyclic",
+        "tol": 1e-06
+      }
+    },
+    "logistic": {
+      "comparison": "objective-behavioral",
+      "constructor": "SGDClassifier",
+      "l2_mapping": "lambda_zero_penalty_none_else_l2_alpha_lambda",
+      "parameters": {
+        "eta0": 0.05,
+        "learning_rate": "constant",
+        "loss": "log_loss",
+        "random_state": 42,
+        "shuffle": false
+      }
+    },
+    "mlp": {
+      "comparison": "behavioral-reference",
+      "constructor": "MLPClassifier",
+      "parameters": {
+        "activation": "relu",
+        "batch_size": 32,
+        "early_stopping": false,
+        "random_state": 42,
+        "shuffle": false,
+        "solver": "sgd",
+        "tol": 0
+      },
+      "selected_parameters": [
+        "max_iter_selected_epoch",
+        "n_iter_no_change_selected_epoch_plus_one",
+        "hidden_layer_sizes",
+        "learning_rate_init",
+        "alpha"
+      ]
+    },
+    "others": {
+      "comparison": "behavioral-reference",
+      "internal_state_equality": false,
+      "serialize_constructor_parameters": true
+    },
+    "slp": {
+      "comparison": "behavioral-reference",
+      "constructor": "SGDClassifier",
+      "parameters": {
+        "early_stopping": false,
+        "learning_rate": "constant",
+        "loss": "log_loss",
+        "random_state": 42,
+        "shuffle": false,
+        "tol": null
+      },
+      "selected_parameters": [
+        "max_iter_selected_epoch",
+        "eta0_selected_lr",
+        "alpha_selected_l2",
+        "penalty_none_if_zero"
+      ]
+    },
+    "svm": {
+      "comparison": "behavioral-reference",
+      "constructor": "LinearSVC",
+      "parameters": {
+        "fit_intercept": true,
+        "loss": "hinge",
+        "random_state": 42
+      }
+    }
+  },
+  "schema_version": 1,
+  "selection": {
+    "classification": [
+      "average_precision",
+      "roc_auc"
+    ],
+    "clustering": {
+      "mapping": "train_majority_only",
+      "mapping_tie_class": 1,
+      "primary": "train_silhouette",
+      "secondary": [
+        "inertia",
+        "cluster_sizes",
+        "stability"
+      ]
+    },
+    "defaults": {
+      "decision": 0,
+      "probability": 0.5
+    },
+    "probability_epsilon": 1e-15,
+    "record_negative_count": true,
+    "regression": [
+      "clipped_rmse",
+      "clipped_mae"
+    ],
+    "regression_clip_min": 0,
+    "retain_raw": true,
+    "score_only_probability": false,
+    "threshold": [
+      "f1",
+      "recall",
+      "lower_threshold"
+    ],
+    "threshold_split": "validation",
+    "undefined": {
+      "reason_required": true,
+      "value": null
+    }
+  },
+  "stacking": {
+    "bases": [
+      "logistic",
+      "decision_tree",
+      "knn"
+    ],
+    "blocks": "numpy.array_split",
+    "folds": 4,
+    "initial_original_fraction": 0.4,
+    "invalid_fold": "failed",
+    "meta": "logistic",
+    "meta_class_weight": null,
+    "meta_features": [
+      "logistic_probability",
+      "tree_probability",
+      "knn_probability"
+    ],
+    "meta_fit": "train_oos_only",
+    "position_join": "exact_one_to_one_date",
+    "purge_original_trading_days": 5,
+    "refit_bases": "full_variant_train",
+    "train_boundary": "position < validation_start - purge"
+  },
+  "test_gate": {
+    "after_test_revision": "new_protocol_and_run_no_test_selection",
+    "command": "finalize-test",
+    "default_allow_test": false,
+    "freeze_non_spike_before_test": true,
+    "record": [
+      "test_accessed",
+      "utc_timestamp",
+      "config_sha256",
+      "test_input_sha256",
+      "git_revision",
+      "code_snapshot_sha256",
+      "caller_command"
+    ],
+    "require_clean_git": true,
+    "require_frozen_config": true,
+    "require_load_verification": true,
+    "require_output_policy": true,
+    "require_selected_hyperparameters": true,
+    "require_validation_artifacts": true
+  }
+}

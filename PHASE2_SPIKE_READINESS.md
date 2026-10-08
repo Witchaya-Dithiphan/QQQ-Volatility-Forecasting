@@ -395,5 +395,5 @@ Mypy แบบตาม imports ยังพบ known issue เดิมที�
 งานที่ยังไม่เสร็จและห้ามอ้างว่าเสร็จ:
 
 - Optional sensitivity report artifact
-- Model training/evaluation: inventory เบื้องต้น 18 รายการ, With-Spike-first และ
+- Model training/evaluation: inventory 19 รายการ, With-Spike-first และ
   Non-Spike fresh reruns ตาม `MODEL_TRAINING_PLAN.md`

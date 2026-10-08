@@ -5,7 +5,7 @@
 > คำสั่งในส่วนหลักฐานด้านล่างเป็นบันทึกของรอบตรวจรับเดิม
 >
 > **Modeling handoff ล่าสุด:** [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md)
-> เป็น source of truth สำหรับ inventory 18 รายการ, With-Spike-first, scratch/reference,
+> เป็น source of truth สำหรับ inventory 19 รายการ, With-Spike-first, scratch/reference,
 > milestones และ Non-Spike reruns
 
 เมื่อ workspace มี Snapshot, Phase 1 artifacts และ accepted Phase 2 contract ครบแล้ว:
@@ -51,7 +51,7 @@ Historical volatility features เช่น `historical_volatility_5d` และ
 - **ข้อมูลพร้อม แต่โค้ดโมเดลยังไม่มี:** Original/With-Spike/Non-Spike Train,
   Validation และ Test พร้อมเป็น tabular inputs แต่ `src/models/` ยังไม่มี model
   implementation
-- **วางแผนไว้:** 18-item model inventory, With-Spike-first training, Non-Spike
+- **วางแผนไว้:** 19-item model inventory, With-Spike-first training, Non-Spike
   fresh reruns, evaluation และ persisted model/metric artifacts
 
 คำว่า **With-Spike** ในเอกสารนี้หมายถึง Original Train ที่ยังเก็บ extreme events
@@ -293,8 +293,9 @@ With-Spike/Non-Spike splits และ Phase 2 artifacts พร้อมเป็
 ### แผนโมเดลและเกณฑ์ประเมิน
 
 แผน authoritative อยู่ใน [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) และอ้าง
-Course PDF ที่ตรวจครบ 5 หน้าแล้ว Inventory เบื้องต้นมี Regression 4,
-Classification 12 และ Clustering 2 โดยนับ Perceptron/SLP เป็นหนึ่งรายการ
+Course PDF ที่ตรวจครบ 5 หน้าแล้ว Inventory มี Regression 4,
+Classification 13 และ Clustering 2 โดยแยก Perceptron และ SLP เป็นคนละรายการ
+ตาม course interpretation ที่ผู้ใช้ยืนยันเมื่อ 2026-10-08
 
 #### Regression
 
@@ -431,7 +432,7 @@ test และไม่ใช่ test failure
 
 1. หลัง clone ให้หา Snapshot จากผู้ส่ง ตรวจ checksum และรัน verification/tests
 2. ยืนยันว่า Phase 1/2 accepted artifacts/checksumsตรงกับ contract; ไม่สร้าง Phase 2 ซ้ำโดยไม่จำเป็น
-3. ใช้ `MODEL_TRAINING_PLAN.md` freeze 18 algorithms, scratch/reference contract,
+3. ใช้ `MODEL_TRAINING_PLAN.md` freeze 19 algorithms, scratch/reference contract,
    dependencies, hyperparameters, seeds, preprocessing และ metrics
 4. ทำ Train/Validation-only pilotหนึ่งโมเดลทั้งสอง variantsเพื่อพิสูจน์ reuse โดยไม่เปิด Test
 5. หยุด Non-Spikeหลัง pilot แล้วทำ With-Spike inventory/submission packageให้ครบ
