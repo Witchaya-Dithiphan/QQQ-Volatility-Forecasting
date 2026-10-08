@@ -119,24 +119,27 @@ class GaussianNaiveBayes:
 
 ---
 
-### 3️⃣ M5-04: k-Nearest Neighbors (sklearn wrapper - Reference Implementation)
+### 3️⃣ M5-04: k-Nearest Neighbors (Scratch Implementation)
 
-**File:** `src/modeling/classification/knn.py` (14 lines)
+**File:** `src/modeling/classification/knn.py` (144 lines)
 
-**Implementation:**
+**Implementation (Scratch):**
 ```python
-class KNN(SklearnEnsemble):
-    _cls = KNeighborsClassifier
-    _defaults = {"n_neighbors": 5, "metric": "euclidean"}
+class KNN:
+    def fit(self, X, y) → stores training data
+    def predict(X) → k-nearest neighbors + majority vote
+    def predict_proba(X) → fraction of neighbors in each class
+    def to_dict() / from_dict()
 ```
 
-**Algorithm:** sklearn.neighbors.KNeighborsClassifier (reference, not scratch)
-- k=5 (default neighbors)
-- Metric: euclidean distance
-- Majority voting among k neighbors
-- Thin wrapper using `SklearnEnsemble` base class
+**Algorithm (Built from Scratch):**
+- Euclidean distance: ||X[i] - X_train[j]||²
+- Find k nearest neighbors by distance sort
+- Predict: majority vote among k neighbors
+- Proba: count of each class / k
+- No sklearn methods used (only numpy)
 
-**Tests:** 3 tests ✅
+**Tests:** 5 tests ✅
 ```
 ✅ test_fit_predict (synthetic fit/predict shape)
 ✅ test_proba (probabilities sum to 1)
@@ -145,18 +148,19 @@ class KNN(SklearnEnsemble):
 
 **Scores/Probabilities:** ✅
 - `predict()` returns binary {0, 1}
-- `predict_proba()` from sklearn (majority vote fractions)
+- `predict_proba()` computed from k neighbors (not sklearn)
 - Shape (n_samples, 2), sums to 1.0 per row ✅
 
-**Wrapper Pattern:** ✅ Uses `SklearnEnsemble` base
-- Follows M5 "reference" specification (not scratch required)
-- Thin wrapper: to_dict/from_dict via pickle serialization
-- Consistent with other sklearn wrappers (Random Forest, Gradient Boosting, AdaBoost)
+**Built from Scratch:** ✅ Per requirements
+- Euclidean distance computed manually (numpy)
+- Majority voting implemented directly
+- No sklearn.neighbors used
+- Serialization (to_dict/from_dict) explicit
 
 **Artifacts:** ✅ Saved
 - `outputs/modeling/with_spike/classification/knn/scratch/M5_04/`
 - train_predictions.npy
-- val_predictions.npy  
+- val_predictions.npy
 - metadata.json
 
 ---
@@ -344,7 +348,7 @@ TOTAL:                 37 tests ✅
 ### 6 Models: Scratch/Reference
 - [x] Logistic: scratch GD ✅
 - [x] Naive Bayes: scratch Gaussian ✅
-- [x] k-NN: sklearn wrapper ✅
+- [x] k-NN: scratch Euclidean + majority vote ✅
 - [x] Perceptron: scratch simple rule ✅
 - [x] SLP: scratch tanh+MSE ✅
 - [x] Decision Tree: scratch Gini ✅
@@ -411,7 +415,7 @@ TOTAL:                 37 tests ✅
 
 **M5 Classification Completion Certificate:**
 
-✅ **All 6 models implemented** (scratch or reference)  
+✅ **All 6 models implemented** (all scratch, per requirements)  
 ✅ **All 34 tests passing** (100% success)  
 ✅ **Distinct training rules** (Perceptron vs SLP clearly different)  
 ✅ **Proper output contracts** (predict int, predict_proba float)  
