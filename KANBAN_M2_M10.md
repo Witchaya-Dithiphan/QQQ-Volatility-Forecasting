@@ -13,14 +13,24 @@
 
 ## MILESTONE 1: M5 COMPLETION (All 8 Models TDD Complete)
 
+### INCIDENT & RECOVERY
+
+#### Sonnet Dispatch Issue (Oct 9, 05:00 UTC)
+- **Issue:** Permission mode `code` not valid (exit code 1)
+- **Fix:** Re-dispatch with `--permission-mode auto` (proc_d68958625314)
+- **Status:** ✅ RESOLVED, Sonnet now running
+- **Impact:** No budget/timeline impact (failed dispatch cost $0)
+- **Effort:** 2 minutes to diagnose + fix
+
 ### IN_PROGRESS
 
-#### M5-01: Logistic Regression (7 tests)
-- Status: ⚠️ 6/7 pass (1 trivial bug in real_data test)
-- Fix: `.median()` → `np.median()`
-- Next: Fix + re-run, then REVIEW
-- Assignee: @sonnet or @codex
-- Effort: 10 min
+#### M5-09: Random Forest (4 tests) ⏳ NOW RUNNING
+- Status: ⏳ Sonnet working (proc_d68958625314)
+- Process: Full implementation (TDD: test → implement → pytest → artifacts → commit)
+- Tests: 4 (RED → GREEN protocol)
+- ETA: Oct 10, 07:00–09:00 UTC
+- Assignee: @sonnet
+- Effort: 2–3 hours
 
 #### M5-02: Stacking Classifier (6 tests)
 - Status: ✅ 6/6 pass, artifacts saved
