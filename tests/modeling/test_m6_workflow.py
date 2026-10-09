@@ -149,8 +149,13 @@ def test_stacking_workflow_uses_only_configured_base_preprocessing():
     inputs, original = synthetic()
     model, _ = training.fit_candidate('stacking', {}, inputs.train, original, CONFIG, OPTIONS['stacking'])
     assert model.base_learners_[0].scaler_ is None  # the outer Train-only scaler already transformed logistic inputs
-    assert model.base_learners_[2].scaler_ is None  # frozen stacking kNN uses raw features
-    np.testing.assert_array_equal(model.base_learners_[2].X_train_, inputs.train.X)
+    assert type(model) is training.StackingClassifier
+    assert model.base_learners_[2].scaler_ is None
+    assert model.preprocessors_[1] is None
+    assert model.preprocessors_[0] is not model.preprocessors_[2]
+    for scaler in (model.preprocessors_[0], model.preprocessors_[2]):
+        np.testing.assert_allclose(scaler.mean_, inputs.train.X.mean(axis=0))
+    np.testing.assert_array_equal(model.base_learners_[2].X_train_, model.preprocessors_[2].transform(inputs.train.X))
 
 def test_adaboost_loss_uses_native_votes_not_probability(tmp_path):
     inputs, original = synthetic()
@@ -276,8 +281,13 @@ def test_reference_stack_meta_preprocessing_matches_scratch():
     inputs, original = synthetic()
     model, _ = fit_reference('stacking', {}, inputs.train, original, CONFIG, OPTIONS['stacking'])
     state = model.preprocessing_state(8)
-    assert state['meta_preprocessor']['kind'] == 'standardize'
-    assert len(state['meta_preprocessor']['scaler']['mean']) == 3
+    scratch, _ = training.fit_candidate('stacking', {}, inputs.train, original, CONFIG, OPTIONS['stacking'])
+    assert state['meta_preprocessor']['kind'] == 'none'
+    assert state['meta_preprocessor']['scaler'] is None
+    assert [p['kind'] for p in state['preprocessors']] == ['standardize', 'none', 'standardize']
+    for index in (0, 2):
+        assert state['preprocessors'][index]['scaler'] == training._state.scaler_state(scratch.preprocessors_[index])
+    np.testing.assert_array_equal(model.bases[2].estimator._fit_X, model.bases[2].transform(inputs.train.X))
 
 
 def test_optional_reference_dependency_is_honestly_skipped(monkeypatch, tmp_path):
@@ -354,8 +364,9 @@ def test_reduced_runs_are_not_required_delivery(tmp_path):
     assert not read_manifest(path)['required']
     assert not read_manifest(path.parent.parent / 'reference/smokeonly')['required']
 
-def test_scratch_stacking_preprocessor_includes_meta_scaler():
+def test_scratch_stacking_preprocessor_records_unscaled_meta():
     inputs, original = synthetic()
     model, _ = training.fit_candidate('stacking', {}, inputs.train, original, CONFIG, OPTIONS['stacking'])
     state = training._preprocessor_state('stacking', model, 8)
-    assert state['meta_preprocessor']['scaler']['mean'] == model.meta_learner_.scaler_.mean_.tolist()
+    assert model.meta_learner_.scaler_ is None
+    assert state['meta_preprocessor'] == {'kind': 'none', 'scaler': None}

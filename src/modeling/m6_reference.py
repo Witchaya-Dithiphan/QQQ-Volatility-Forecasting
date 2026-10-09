@@ -66,8 +66,9 @@ class ReferenceStacking:
         tree = DecisionTreeClassifier(max_depth=config['models']['decision_tree']['grid']['max_depth'][0],
                                       min_samples_leaf=config['models']['decision_tree']['grid']['min_samples_leaf'][0],
                                       random_state=self.seed).fit(X, y)
-        knn = KNeighborsClassifier(n_neighbors=config['models']['knn']['grid']['k'][0], weights='uniform').fit(X, y)
-        return [ReferenceModel(logistic, scaler), ReferenceModel(tree), ReferenceModel(knn)]
+        knn_scaler = Standardizer(config['preprocessing']['standardizer']['variance_floor']).fit(X)
+        knn = KNeighborsClassifier(n_neighbors=config['models']['knn']['grid']['k'][0], weights='uniform').fit(knn_scaler.transform(X), y)
+        return [ReferenceModel(logistic, scaler), ReferenceModel(tree), ReferenceModel(knn, knn_scaler)]
 
     @staticmethod
     def _features(X, bases):
@@ -93,9 +94,8 @@ class ReferenceStacking:
             records.append({'fold': fold, 'train_positions': positions[allowed].tolist(),
                             'validation_positions': positions[block].tolist()})
         oos = np.vstack(features)
-        meta_scaler = Standardizer(self.config['preprocessing']['standardizer']['variance_floor']).fit(oos)
-        meta = _logistic(self.config, self.seed, self.budget).fit(meta_scaler.transform(oos), np.concatenate(labels))
-        self.meta = ReferenceModel(meta, meta_scaler)
+        meta = _logistic(self.config, self.seed, self.budget).fit(oos, np.concatenate(labels))
+        self.meta = ReferenceModel(meta)
         self.bases = self._fit_bases(train.X, train.y_classification)
         self.protocol = {'folds': records, 'meta_fit': 'train_oos_only', 'oos_positions': positions[np.concatenate(blocks)].tolist()}
         return self

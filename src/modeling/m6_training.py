@@ -7,7 +7,6 @@ is accepted. sklearn/xgboost dependencies live exclusively in m6_reference.
 from __future__ import annotations
 
 import argparse
-import copy
 import json
 import traceback
 from pathlib import Path
@@ -84,30 +83,6 @@ class ForestPCA:
         return cls(RandomForest.from_dict(state['forest']), _state.scaler_from_state(state['scaler']), _state.pca_from_state(state['pca']))
 
 
-class StackingWorkflowAdapter(StackingClassifier):
-    """Bridge M6's base preprocessing/legacy loader to the current M5 state API."""
-    def _new_bases(self):
-        bases = super()._new_bases()
-        # M6 already scales logistic externally; frozen kNN consumes raw features.
-        bases[0].standardize = bases[2].standardize = False
-        return bases
-
-    @classmethod
-    def from_dict(cls, state):
-        from .classification import LogisticRegression, KNN
-        legacy = copy.deepcopy(state)
-        for target in (legacy['bases'][0], legacy['meta']):
-            for key in list(target):
-                if key not in ('coefficients', 'intercept'):
-                    del target[key]
-        legacy['bases'][2] = {k: legacy['bases'][2][k] for k in ('n_neighbors', 'X_train', 'y_train')}
-        model = super().from_dict(legacy)  # retain the M6 structural/fold validation
-        model.base_learners_[0] = LogisticRegression.from_dict(state['bases'][0])
-        model.base_learners_[2] = KNN.from_dict(state['bases'][2])
-        model.meta_learner_ = LogisticRegression.from_dict(state['meta'])
-        return model
-
-
 def fit_candidate(name, params, train, original_dates, config, fit_options=None):
     options = dict(fit_options or {})
     allowed = {'svm': {'max_iter', 'patience'}, 'mlp': {'max_epochs', 'patience'}, 'stacking': {'logistic_max_iter'}}
@@ -141,7 +116,7 @@ def fit_candidate(name, params, train, original_dates, config, fit_options=None)
         model.fit(train.X, y, original_positions=original_positions(train.dates, original_dates))
         return model, {**model.selection_, 'refit_epochs': model.epochs_trained_, 'refit_rows': len(y), 'refit_seed': seed}
     elif name == 'stacking':
-        model = StackingWorkflowAdapter(random_state=seed, **options)
+        model = StackingClassifier(random_state=seed, **options)
         if model.protocol_ != config['stacking']:
             raise ValueError('Stacking adapter requires the frozen configured protocol')
         model.fit(train.X, y, dates=train.dates, original_dates=original_dates,
@@ -194,7 +169,7 @@ def _numeric_arrays(state):
 def _preprocessor_state(name, model, n_features):
     if name == 'stacking':
         return {'kind': 'base_specific', 'preprocessors': model.to_dict()['preprocessors'], 'feature_count': n_features,
-                'meta_preprocessor': {'kind': 'standardize', 'scaler': _state.scaler_state(model.meta_learner_.scaler_)}}
+                'meta_preprocessor': {'kind': 'none', 'scaler': None}}
     scaler, pca = getattr(model, 'scaler_', None), getattr(model, 'pca_', None)
     return {'kind': 'standardize' if scaler else 'none', 'feature_count': n_features,
             'scaler': _state.scaler_state(scaler) if scaler else None, 'pca': _state.pca_state(pca)}
@@ -205,7 +180,7 @@ def load_m6_model(path):
     expected = _numeric_arrays(state)
     if set(arrays) != set(expected) or not all(np.array_equal(arrays[k], expected[k]) for k in arrays):
         raise ValueError('Model NPZ/JSON state mismatch')
-    cls = {'forest_pca': ForestPCA, 'stacking_workflow': StackingWorkflowAdapter}.get(state['adapter'], _CLASSES[state['name']])
+    cls = {'forest_pca': ForestPCA, 'stacking_workflow': StackingClassifier}.get(state['adapter'], _CLASSES[state['name']])
     return cls.from_dict(state['model'])
 
 
@@ -313,7 +288,7 @@ def train_m6_model(name, variant, out_root, run_id, *, config=None, inputs=None,
         if model is None:
             raise ValueError('All M6 candidates failed; see search_results.json')
         manifest['stage'] = 'persisting'
-        adapter = 'forest_pca' if isinstance(model, ForestPCA) else 'stacking_workflow' if name == 'stacking' else None
+        adapter = 'forest_pca' if isinstance(model, ForestPCA) else None
         state = {'name': name, 'adapter': adapter, 'model': model.to_dict()}
         save_npz(path / 'model.npz', _numeric_arrays(state), state)
         preprocessing = _preprocessor_state(name, model, inputs.train.X.shape[1])
