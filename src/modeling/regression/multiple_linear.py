@@ -8,9 +8,9 @@ from typing import Optional, Dict, Any
 
 class MultiLinearRegression:
     """
-    Scratch multiple linear regression using normal equation.
+    Scratch multiple linear regression using pseudoinverse.
     
-    Fit: β = (X^T X)^-1 X^T y (via np.linalg.lstsq for stability)
+    Fit: β = pinv([1, X]) @ y, including collinear designs
     Predict: ŷ = X β + intercept
     """
     
@@ -37,7 +37,7 @@ class MultiLinearRegression:
         X_aug = np.column_stack([np.ones(n_samples), X])
         
         # Solve: X_aug @ [intercept, coef1, coef2, ...] = y
-        solution, _, _, _ = np.linalg.lstsq(X_aug, y, rcond=None)
+        solution = np.linalg.pinv(X_aug) @ y
         
         self.intercept_ = solution[0]
         self.coefficients_ = solution[1:]

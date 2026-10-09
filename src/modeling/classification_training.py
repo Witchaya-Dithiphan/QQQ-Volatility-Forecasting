@@ -179,13 +179,8 @@ def _preprocessor(model, n_features: int) -> tuple[dict, dict]:
 
 
 def _identity(split: DatasetSplit) -> dict:
-    source = Path(split.source)
-    try:
-        source = source.relative_to(PROJECT_ROOT)
-    except ValueError:
-        pass
-    return {"path": source.as_posix(), "sha256": split.sha256, "rows": len(split.X),
-            "date_range": {"start": str(split.dates[0])[:10], "end": str(split.dates[-1])[:10]}}
+    from .workflow import identity
+    return identity(split, load_config())
 
 
 def _verify_reload(path: Path, name: str, model, inputs: TrainValidation, config: dict, score: np.ndarray, threshold: float) -> dict:
@@ -216,6 +211,8 @@ def train_classifier(name: str, variant: str, output_root, run_id: str, *, confi
     """Run the frozen candidate search for one M5 classifier and persist a verified `supervised_tuned` run."""
     if name not in M5_MODELS:
         raise ValueError(f"Unsupported M5 classifier: {name}")
+    from .workflow import preflight
+    preflight(output_root, variant, "classification", name, ("scratch", "reference") if reference else ("scratch",), run_id)
     config = config or load_config()
     inputs = inputs or load_train_validation(variant)
     if inputs.variant != variant:

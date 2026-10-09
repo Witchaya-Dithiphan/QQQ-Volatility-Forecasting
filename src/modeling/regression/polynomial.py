@@ -64,7 +64,7 @@ class PolynomialRegression:
         
         self.target_mean_ = np.mean(y)
         self.target_std_ = np.std(y)
-        y_std = (y - self.target_mean_) / (self.target_std_ + 1e-10)
+        y_std = (y - self.target_mean_) / (self.target_std_ if self.target_std_ > 0 else 1.0)
         
         # Build polynomial design matrix: [1, x, x², x³, ...]
         n = len(X_std)

@@ -34,6 +34,9 @@ def file_sha256(path: Path) -> str:
 
 def code_snapshot_hash(root: Path = PROJECT_ROOT) -> str:
     paths = [root / "config.py", root / "configs/modeling.json"]
+    # Package initialization executes on every runtime import.
+    if (root / "src/__init__.py").is_file():
+        paths.append(root / "src/__init__.py")
     for directory in ("src/modeling", "src/models"):
         paths.extend((root / directory).rglob("*.py"))
     digest = hashlib.sha256()

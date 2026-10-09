@@ -253,6 +253,9 @@ def train_m6_model(name, variant, out_root, run_id, *, config=None, inputs=None,
                    hashes=None, candidate_overrides=None, fit_options=None, reference=True, resume=False):
     if name not in M6_MODELS or variant not in ('with_spike', 'non_spike'):
         raise ValueError('Invalid M6 model/variant')
+    if not resume:
+        from .workflow import preflight
+        preflight(out_root, variant, "classification", name, ("scratch", "reference") if reference else ("scratch",), run_id)
     config = load_config() if config is None else config
     validate_config(config)
     if hashes is None:

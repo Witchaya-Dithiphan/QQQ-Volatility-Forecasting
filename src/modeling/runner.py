@@ -1,5 +1,8 @@
 """M2 CLI checks and a test-only no-op artifact proof; no training commands."""
 from __future__ import annotations
+from .test_access import install_test_access_guard
+install_test_access_guard()
+
 import argparse
 import json
 from pathlib import Path
@@ -66,6 +69,11 @@ def run_noop(variant: str, output_root: Path, run_id: str) -> Path:
 
 
 def main() -> None:
+    import sys
+    if "--help" in sys.argv or "-h" in sys.argv or "--milestone" in sys.argv:
+        from .orchestration import main as orchestrate
+        raise SystemExit(orchestrate())
+
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=["check-config", "check-data", "train", "tune", "evaluate", "finalize-test"])
     parser.add_argument("--variant", choices=["with_spike", "non_spike"], default="with_spike")
