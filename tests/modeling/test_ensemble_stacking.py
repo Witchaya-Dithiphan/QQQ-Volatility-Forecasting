@@ -75,10 +75,12 @@ def test_actual_purge_array_split_and_train_only_fit(monkeypatch, gapped):
         assert not set(positions[allowed]) & set(positions[block])
         assert positions[allowed[-1]] < positions[block[0]] - 5
         assert np.all(np.diff(dates[block]) > np.timedelta64(0, 'D'))
-        np.testing.assert_array_equal(scaling[i], X[allowed])
+        np.testing.assert_array_equal(scaling[2*i], X[allowed])
+        np.testing.assert_array_equal(scaling[2*i+1], X[allowed])
         np.testing.assert_allclose(calls[3*i][1], scale_fit(Standardizer(), X[allowed]).transform(X[allowed]))
-        for call in calls[3*i+1:3*i+3]:
-            np.testing.assert_array_equal(call[1], X[allowed])
+        np.testing.assert_array_equal(calls[3*i+1][1], X[allowed])
+        np.testing.assert_array_equal(calls[3*i+2][1], calls[3*i][1])
+        for call in calls[3*i:3*i+3]:
             np.testing.assert_array_equal(call[2], y[allowed])
     # Four OOS triplets, one meta logistic, then three full-Train refits.
     assert [c[0] for c in calls] == ['logistic', 'tree', 'knn'] * 4 + ['logistic'] + ['logistic', 'tree', 'knn']
@@ -87,9 +89,14 @@ def test_actual_purge_array_split_and_train_only_fit(monkeypatch, gapped):
     np.testing.assert_array_equal(m.oos_positions_, positions[eligible])
     np.testing.assert_array_equal(scaling[-1], X)
     np.testing.assert_array_equal(calls[-2][1], X)
-    np.testing.assert_array_equal(calls[-1][1], X)
+    np.testing.assert_array_equal(scaling[-2], X)
+    np.testing.assert_array_equal(calls[-1][1], m.preprocessors_[2].transform(X))
+    np.testing.assert_array_equal(m.base_learners_[2].X_train_, calls[-1][1])
+    assert m.preprocessors_[0] is not m.preprocessors_[2]
+    for learner in (m.base_learners_[0], m.base_learners_[2], m.meta_learner_):
+        assert learner.standardize is False and learner.scaler_ is None
     np.testing.assert_array_equal(m.base_learners_[2].y_train_, y)
-    assert len(scaling) == 5
+    assert len(scaling) == 10
     assert m.status_ == 'completed'
 
 
@@ -117,7 +124,9 @@ def test_frozen_defaults_and_bounded_test_override():
     assert m.config_['decision_tree']['max_depth'] == cfg['models']['decision_tree']['grid']['max_depth'][0]
     assert m.config_['decision_tree']['min_samples_leaf'] == 5
     assert m.config_['knn']['n_neighbors'] == 3
-    assert m.config_['preprocessing'] == ['standardize', 'none', 'none']
+    assert m.config_['preprocessing'] == ['standardize', 'none', 'standardize']
+    assert m.config_['preprocessing_policy'] == 'base_specific'
+    assert m.config_['meta_preprocessing'] == 'none'
     assert m.config_['meta_class_weight'] is None
     for n in (0, 5001, True, 1.5):
         with pytest.raises(ValueError):
@@ -145,11 +154,14 @@ def test_probability_threshold_determinism_and_tree_pure_leaves():
     assert (a.predict(X) == 1).all()
 
 
-def test_complete_strict_json_npz_roundtrip(tmp_path):
-    m, X, *_ = fitted(True)
+@pytest.mark.parametrize('gapped', [False, True])
+def test_complete_strict_json_npz_roundtrip(tmp_path, gapped):
+    m, X, *_ = fitted(gapped)
     state = json.loads(json.dumps(m.to_dict(), allow_nan=False))
     assert state['protocol'] == load_config()['stacking']
-    assert len(state['bases']) == 3 and len(state['preprocessors']) == 3
+    assert state['bases'] == [base.to_dict() for base in m.base_learners_]
+    assert state['meta'] == m.meta_learner_.to_dict()
+    assert len(state['preprocessors']) == 3
     path = tmp_path / 'model.npz'
     save_npz(path, {'oos_positions': m.oos_positions_}, state)
     arrays, state = load_npz(path)
@@ -231,6 +243,7 @@ def test_real_q75_variants_validation_isolation(monkeypatch, variant):
     assert data.train.y_classification.mean() < .4  # accepted Q75, not median
     before = m.to_dict()
     restored = StackingClassifier.from_dict(json.loads(json.dumps(before, allow_nan=False)))
+    assert restored.to_dict() == before
     np.testing.assert_array_equal(m.predict_proba(data.validation.X), restored.predict_proba(data.validation.X))
     np.testing.assert_array_equal(m.predict(data.validation.X), restored.predict(data.validation.X))
     score = m.predict_proba(data.validation.X)[:, 1]
@@ -317,3 +330,23 @@ def test_m2_variant_adapter_ignores_external_validation(monkeypatch, variant):
     m = model().fit_variant(variant)
     assert calls == ([variant] if variant == 'with_spike' else [variant, 'with_spike'])
     np.testing.assert_array_equal(m.base_learners_[2].y_train_, y)
+
+
+@pytest.mark.parametrize('change', ['base_scaling', 'meta_scaling', 'knn_scaling', 'knn_weights', 'knn_dimensions', 'logistic_dimensions', 'logistic_budget', 'logistic_history', 'scaler_scale', 'scaler_missing', 'tree_dimensions', 'tree_counts'])
+def test_complete_model_state_corruption_rejected(change):
+    m, *_ = fitted()
+    state = m.to_dict()
+    if change == 'base_scaling': state['bases'][0]['standardize'] = True
+    if change == 'meta_scaling': state['meta']['standardize'] = True
+    if change == 'knn_scaling': state['bases'][2]['standardize'] = True
+    if change == 'knn_weights': state['bases'][2]['weights'] = 'distance'
+    if change == 'knn_dimensions': state['bases'][2]['X_train'][0].pop()
+    if change == 'logistic_dimensions': state['bases'][0]['coefficients'].pop()
+    if change == 'logistic_budget': state['meta']['max_iter'] += 1
+    if change == 'logistic_history': state['meta']['n_iter'] += 1
+    if change == 'scaler_scale': state['preprocessors'][2]['scale'][0] *= 2
+    if change == 'scaler_missing': state['preprocessors'][2] = None
+    if change == 'tree_dimensions': state['bases'][1]['n_features'] += 1
+    if change == 'tree_counts': state['bases'][1]['tree'] = {'value': [-1, 3]}
+    with pytest.raises(ValueError):
+        StackingClassifier.from_dict(state)

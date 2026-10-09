@@ -1,11 +1,11 @@
 """NumPy-only M6 stacking on purged Original Train positions.
 
 Default bases select the first frozen M5 grid values: unweighted logistic
-(l2=0, learning_rate=.05, 5000 updates), Gini tree (depth=2, leaf>=5),
-uniform kNN (k=3). Only logistic is standardized, as required by the M6
-scratch brief. Meta logistic is unweighted with the same update budget.
-The unchanged M5 logistic has no tolerance argument; its fixed update count
-is recorded rather than claiming tolerance-based convergence.
+(l2=0, learning_rate=.05, max_iter=5000), Gini tree (depth=2, leaf>=5),
+uniform kNN (k=3). Stacking owns separate Train-only standardizers for
+logistic and kNN; their internal scaling is disabled. Tree and meta features
+are unscaled. Meta logistic is unweighted with the same iteration budget
+and the current M5 gradient-tolerance stopping rule.
 
 logistic_max_iter is the sole bounded test injection (integer 1..5000),
 and applies to both logistic learners. Dates are mandatory: filtered row
@@ -86,17 +86,10 @@ def _join(dates, original, supplied=None):
     return positions
 
 
-def _tree_state(node):
-    if node.is_leaf():
-        return {'counts': node.value.tolist()}
-    return {'feature': node.feature, 'threshold': float(node.threshold),
-            'left': _tree_state(node.left), 'right': _tree_state(node.right)}
-
-
 def _load_tree(state, n_features, depth, max_depth):
     node = DecisionTreeNode()
-    if set(state) == {'counts'}:
-        counts = np.asarray(state['counts'])
+    if set(state) == {'value'}:
+        counts = np.asarray(state['value'])
         if counts.shape != (2,) or counts.dtype.kind not in 'iu' or (counts < 0).any() or counts.sum() <= 0:
             raise ValueError('Invalid tree counts')
         node.value = counts
@@ -131,10 +124,11 @@ class StackingClassifier:
                               'min_samples_leaf': frozen['models']['decision_tree']['grid']['min_samples_leaf'][0],
                               'random_state': random_state},
             'knn': {'n_neighbors': frozen['models']['knn']['grid']['k'][0]},
-            'preprocessing': ['standardize', 'none', 'none'],
+            'preprocessing': ['standardize', 'none', 'standardize'],
+            'preprocessing_policy': 'base_specific', 'meta_preprocessing': 'none',
             'variance_floor': frozen['preprocessing']['standardizer']['variance_floor'],
             'meta_class_weight': None, 'logistic_l2': 0,
-            'logistic_stopping': 'fixed_updates_M5', 'knn_weights': 'uniform',
+            'logistic_stopping': 'gradient_tolerance_M5', 'knn_weights': 'uniform',
         }
         self._clear()
 
@@ -145,16 +139,17 @@ class StackingClassifier:
         self.status_, self.error_ = 'pending', None
 
     def _new_bases(self):
-        return [LogisticRegression(**self.config_['logistic']),
-                _StackingTree(**self.config_['decision_tree']), KNN(**self.config_['knn'])]
+        return [LogisticRegression(**self.config_['logistic'], standardize=False),
+                _StackingTree(**self.config_['decision_tree']), KNN(**self.config_['knn'], standardize=False)]
 
     def _fit_bases(self, X, y):
         scaler = Standardizer(self.config_['variance_floor']).fit(X)
+        knn_scaler = Standardizer(self.config_['variance_floor']).fit(X)
         bases = self._new_bases()
         bases[0].fit(scaler.transform(X), y)
         bases[1].fit(X, y)
-        bases[2].fit(X, y)
-        return bases, [scaler, None, None]
+        bases[2].fit(knn_scaler.transform(X), y)
+        return bases, [scaler, None, knn_scaler]
 
     @staticmethod
     def _features(X, bases, preprocessors):
@@ -203,7 +198,7 @@ class StackingClassifier:
             self.oos_meta_features_ = np.vstack(features)
             self.oos_labels_ = np.concatenate(labels)
             self.oos_positions_ = positions[np.concatenate(blocks)].copy()
-            self.meta_learner_ = LogisticRegression(**self.config_['logistic']).fit(self.oos_meta_features_, self.oos_labels_)
+            self.meta_learner_ = LogisticRegression(**self.config_['logistic'], standardize=False).fit(self.oos_meta_features_, self.oos_labels_)
             self.base_learners_, self.preprocessors_ = self._fit_bases(X, y)
             self.classes_ = np.array([0, 1], dtype=np.int64)
             self.n_features_ = X.shape[1]
@@ -250,16 +245,19 @@ class StackingClassifier:
 
     def to_dict(self):
         self._fitted()
-        scaler = self.preprocessors_[0]
+        def scaler_state(scaler):
+            if scaler is None:
+                return None
+            return {'mean': scaler.mean_.tolist(), 'variance': scaler.variance_.tolist(),
+                    'scale': scaler.scale_.tolist(), 'constant': scaler.constant_.tolist(),
+                    'warnings': list(scaler.warnings_)}
         state = {'type': 'StackingClassifier', 'version': 1,
             'random_state': self.random_state, 'config': copy.deepcopy(self.config_),
             'protocol': copy.deepcopy(self.protocol_), 'classes': self.classes_.tolist(),
             'n_features': self.n_features_, 'status': self.status_,
-            'bases': [self.base_learners_[0].to_dict(), _tree_state(self.base_learners_[1].tree_), self.base_learners_[2].to_dict()],
+            'bases': [self.base_learners_[0].to_dict(), self.base_learners_[1].to_dict(), self.base_learners_[2].to_dict()],
             'meta': self.meta_learner_.to_dict(),
-            'preprocessors': [{'mean': scaler.mean_.tolist(), 'variance': scaler.variance_.tolist(),
-                'scale': scaler.scale_.tolist(), 'constant': scaler.constant_.tolist(),
-                'warnings': list(scaler.warnings_)}, None, None],
+            'preprocessors': [scaler_state(scaler) for scaler in self.preprocessors_],
             'oos_positions': self.oos_positions_.tolist(),
             'oos_meta_features': self.oos_meta_features_.tolist(), 'oos_labels': self.oos_labels_.tolist(),
             'original_positions': self.original_positions_.tolist(),
@@ -308,21 +306,28 @@ class StackingClassifier:
             for block in np.array_split(m.oos_labels_, 4):
                 _labels(block, len(block))
             def logistic(data, dimension):
-                if set(data) != {'coefficients', 'intercept'}:
-                    raise ValueError('Invalid logistic state')
+                template = LogisticRegression(**m.config_['logistic'], standardize=False)
+                parameters = ('learning_rate', 'max_iter', 'tol', 'l2', 'class_weight', 'standardize', 'random_state')
+                expected_keys = set(parameters) | {'coefficients', 'intercept', 'scaler', 'loss_history', 'n_iter', 'converged'}
+                if set(data) != expected_keys or any(data[key] != getattr(template, key) for key in parameters) or data['standardize'] is not False or data['scaler'] is not None:
+                    raise ValueError('Invalid logistic state/config')
                 coefficients = np.asarray(data['coefficients'], dtype=float)
+                history = np.asarray(data['loss_history'], dtype=float)
                 if coefficients.shape != (dimension,) or not np.isfinite(coefficients).all() or not np.isscalar(data['intercept']) or not np.isfinite(data['intercept']):
                     raise ValueError('Invalid logistic dimensions/state')
-                learner = LogisticRegression(**m.config_['logistic'])
-                learner.coefficients_, learner.intercept_ = coefficients, float(data['intercept'])
-                return learner
+                if type(data['n_iter']) is not int or not 1 <= data['n_iter'] <= template.max_iter or history.shape != (data['n_iter'],) or not np.isfinite(history).all() or type(data['converged']) is not bool:
+                    raise ValueError('Invalid logistic convergence state')
+                return LogisticRegression.from_dict(data)
             bases = m._new_bases()
             bases[0] = logistic(state['bases'][0], n)
-            bases[1].tree_ = _load_tree(state['bases'][1], n, 0, bases[1].max_depth)
-            bases[1].classes_, bases[1].n_features_ = np.array([0, 1]), n
+            tree = state['bases'][1]
+            if set(tree) != {'max_depth', 'min_samples_split', 'min_samples_leaf', 'random_state', 'n_features', 'classes', 'tree'} or any(tree[key] != getattr(bases[1], key) for key in ('max_depth', 'min_samples_split', 'min_samples_leaf', 'random_state')) or tree['n_features'] != n or tree['classes'] != [0, 1]:
+                raise ValueError('Invalid tree state/config')
+            _load_tree(tree['tree'], n, 0, bases[1].max_depth)
+            bases[1] = DecisionTreeClassifier.from_dict(tree)
             knn = state['bases'][2]
-            if set(knn) != {'n_neighbors', 'X_train', 'y_train'} or knn['n_neighbors'] != m.config_['knn']['n_neighbors']:
-                raise ValueError('Invalid kNN state')
+            if set(knn) != {'n_neighbors', 'weights', 'standardize', 'scaler', 'X_train', 'y_train'} or knn['n_neighbors'] != m.config_['knn']['n_neighbors'] or knn['weights'] != 'uniform' or knn['standardize'] is not False or knn['scaler'] is not None:
+                raise ValueError('Invalid kNN state/config')
             data = _matrix(knn['X_train'])
             if data.shape != (len(m.train_dates_), n):
                 raise ValueError('Invalid kNN dimensions')
@@ -332,28 +337,32 @@ class StackingClassifier:
             for record in records:
                 rows = np.searchsorted(m.original_positions_, record['train_positions'])
                 _labels(labels[rows], len(rows))
-            bases[2].fit(data, labels)
+            bases[2] = KNN.from_dict(knn)
             if not np.isfinite(bases[2].X_train_).all():
                 raise ValueError('Invalid kNN numeric range')
-            scaler_state = state['preprocessors'][0]
-            if state['preprocessors'][1:] != [None, None] or set(scaler_state) != {'mean', 'variance', 'scale', 'constant', 'warnings'}:
-                raise ValueError('Invalid preprocessing schema')
-            scaler = Standardizer(m.config_['variance_floor'])
-            for name in ('mean', 'variance', 'scale'):
-                a = np.asarray(scaler_state[name], dtype=float)
-                if a.shape != (n,) or not np.isfinite(a).all():
-                    raise ValueError('Invalid scaler dimensions/state')
-                setattr(scaler, name + '_', a)
-            constant = np.asarray(scaler_state['constant'])
-            if constant.shape != (n,) or constant.dtype.kind != 'b' or (scaler.variance_ < 0).any() or (scaler.scale_ <= 0).any():
-                raise ValueError('Invalid scaler statistics')
-            scaler.constant_ = constant
-            if not np.array_equal(constant, scaler.variance_ <= scaler.variance_floor) or not np.array_equal(scaler.scale_, np.where(constant, 1., np.sqrt(scaler.variance_))):
-                raise ValueError('Inconsistent scaler statistics')
-            scaler.warnings_ = [f'Constant feature {i}: variance <= {scaler.variance_floor}' for i in np.flatnonzero(constant)]
-            if scaler.warnings_ != scaler_state['warnings']:
-                raise ValueError('Invalid scaler warnings')
-            m.base_learners_, m.preprocessors_ = bases, [scaler, None, None]
+            scalers = []
+            if state['preprocessors'][1] is not None:
+                raise ValueError('Invalid tree preprocessing')
+            for scaler_state in (state['preprocessors'][0], state['preprocessors'][2]):
+                if not isinstance(scaler_state, dict) or set(scaler_state) != {'mean', 'variance', 'scale', 'constant', 'warnings'}:
+                    raise ValueError('Invalid preprocessing schema')
+                scaler = Standardizer(m.config_['variance_floor'])
+                for name in ('mean', 'variance', 'scale'):
+                    a = np.asarray(scaler_state[name], dtype=float)
+                    if a.shape != (n,) or not np.isfinite(a).all():
+                        raise ValueError('Invalid scaler dimensions/state')
+                    setattr(scaler, name + '_', a)
+                constant = np.asarray(scaler_state['constant'])
+                if constant.shape != (n,) or constant.dtype.kind != 'b' or (scaler.variance_ < 0).any() or (scaler.scale_ <= 0).any():
+                    raise ValueError('Invalid scaler statistics')
+                scaler.constant_ = constant
+                if not np.array_equal(constant, scaler.variance_ <= scaler.variance_floor) or not np.array_equal(scaler.scale_, np.where(constant, 1., np.sqrt(scaler.variance_))):
+                    raise ValueError('Inconsistent scaler statistics')
+                scaler.warnings_ = [f'Constant feature {i}: variance <= {scaler.variance_floor}' for i in np.flatnonzero(constant)]
+                if scaler.warnings_ != scaler_state['warnings']:
+                    raise ValueError('Invalid scaler warnings')
+                scalers.append(scaler)
+            m.base_learners_, m.preprocessors_ = bases, [scalers[0], None, scalers[1]]
             m.meta_learner_ = logistic(state['meta'], 3)
             m.classes_, m.n_features_, m.status_ = np.array([0, 1]), n, 'completed'
             return m
