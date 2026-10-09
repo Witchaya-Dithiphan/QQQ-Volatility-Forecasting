@@ -405,3 +405,29 @@ Python/dependency freeze และ extracurricular approval ตาม `MODEL_TRA
 gate แล้ว ขั้นถัดไปคือ shared frameworkและ With-Spike-first modeling ตาม
 `MODEL_TRAINING_PLAN.md`; paired comparison ต้องรอ fresh Non-Spike rerunsภายหลัง
 implementation, metrics และ performance results ของโมเดลยังเป็น **Planned / Not Started**
+
+---
+
+## Recovery Gate (2026-10-09)
+
+**Status: FAIL/BLOCKED**
+
+The inherited audit reports 26 legacy run directories and zero modern completed
+runs. This fix pass did not re-audit model outputs or access any Test CSV.
+Legacy runs remain ineligible for resume or finalization.
+
+Shared artifact validation materializes every manifest-declared NPZ member with
+`allow_pickle=False`. Both M5 and M6 status helpers classify existing directories
+before attempting current-hash resume validation. Ledger isolation is local to
+three intentional authorization tests; the default ledger path remains tested.
+
+Verification: 25 legacy tests; required targeted suite 204 passed (15 narrow
+NumPy PyYAML warnings); config sync check passed. Ledger and modeling output diffs
+are empty. See `RECOVERY_GATE_REPORT.md` for exact commands and evidence.
+
+Only M6 has a proven model-training CLI in source. M5 exposes the library function
+`train_classifier`; M3/M4/M7 have no proven retrain entrypoint. No retraining,
+tuning, model evaluation, or commit was performed. Stop at FAIL/BLOCKED.
+
+The Recovery Gate task started from clean HEAD `afb4ae5`; the KANBAN and
+PROJECT_STATUS edits are part of this task, including the earlier partial edits.

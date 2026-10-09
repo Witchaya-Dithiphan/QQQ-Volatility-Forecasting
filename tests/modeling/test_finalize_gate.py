@@ -6,8 +6,16 @@ import numpy as np
 import pytest
 from src.modeling import persistence as ps, runner, datasets as ds
 from src.modeling.configuration import load_config
-from src.modeling.artifacts import write_json, file_sha256
+from src.modeling.artifacts import write_json
 from src.modeling.contracts import FEATURE_COLUMNS, REGRESSION_TARGET, CLASSIFICATION_TARGET
+
+
+@pytest.fixture
+def _isolate_test_ledger(tmp_path_factory, monkeypatch):
+    ledger_dir = tmp_path_factory.mktemp("ledger")
+    ledger = ledger_dir / ".test_ledger.json"
+    ledger.write_text("{}\n", encoding="utf-8")
+    monkeypatch.setattr("src.modeling.persistence._test_ledger_path", lambda: ledger)
 
 
 @pytest.fixture
@@ -52,7 +60,7 @@ def test_finalize_prerequisites_default_deny(tuned, monkeypatch, block):
         ps.authorize_finalize_test(path, caller_command=command)
 
 
-def test_authorized_synthetic_test_access_records_provenance(tuned, tmp_path, monkeypatch):
+def test_authorized_synthetic_test_access_records_provenance(tuned, tmp_path, monkeypatch, _isolate_test_ledger):
     path, manifest, hashes = tuned
     authorization = ps.authorize_finalize_test(path, caller_command="finalize-test --run synthetic")
     import pandas as pd
@@ -60,13 +68,9 @@ def test_authorized_synthetic_test_access_records_provenance(tuned, tmp_path, mo
     for col in ["Close", "Volume", "Open", "High", "Low", *FEATURE_COLUMNS]: frame[col] = [1., 2.]
     frame[REGRESSION_TARGET] = [.1, .3]
     frame[CLASSIFICATION_TARGET] = [0, 1]
-    test_path = tmp_path / "synthetic-input.csv"
-    frame.to_csv(test_path, index=False)
-    digest = file_sha256(test_path)
-    # Synthetic input is outside the run artifact directory to preserve inventory.
-    fixture_path = tmp_path.parent / (tmp_path.name + "-fixture.csv")
-    test_path.rename(fixture_path)
-    monkeypatch.setattr(ds, "TEST_PATH", fixture_path)
+    digest = "a" * 64
+    split = ds.split_from_frame(frame, threshold=.25, sha256=digest)
+    monkeypatch.setattr(ds, "_read_verified", lambda *args, **kwargs: split)
     monkeypatch.setattr(ds, "_load_reports", lambda: ({"artifacts": {"test_labeled": {"sha256": digest}}}, {"classification_contract": {"threshold": .25}, "inputs": {"test": {"sha256": digest}}}))
     result = ds.load_test(allow_test=True, authorization=authorization)
     assert len(result.X) == 2
@@ -78,14 +82,14 @@ def test_authorized_synthetic_test_access_records_provenance(tuned, tmp_path, mo
     with pytest.raises((PermissionError, FileExistsError)): ds.load_test(allow_test=True, authorization=authorization)
 
 
-def test_authorization_rechecked_after_issue(tuned, monkeypatch):
+def test_authorization_rechecked_after_issue(tuned, monkeypatch, _isolate_test_ledger):
     path, _, _ = tuned
     authorization = ps.authorize_finalize_test(path, caller_command="finalize-test")
     monkeypatch.setattr(ps, "_git_state", lambda: (True, "rev"))
     with pytest.raises(PermissionError): authorization.validate()
 
 
-def test_access_snapshot_manifest_records_actual_access(tuned):
+def test_access_snapshot_manifest_records_actual_access(tuned, _isolate_test_ledger):
     path, original, _ = tuned
     authorization = ps.authorize_finalize_test(path, caller_command="finalize-test")
     authorization.record_access("a" * 64)
@@ -95,3 +99,19 @@ def test_access_snapshot_manifest_records_actual_access(tuned):
     assert snapshot["status"] == "running" and snapshot["stage"] == "test_accessed"
     assert snapshot["lifecycle"] == "supervised_finalized"
     assert json.loads((path / "manifest.json").read_text())["test_accessed"] is False
+
+
+def test_default_ledger_path_without_disk_access(monkeypatch):
+    from config import PROJECT_ROOT
+    monkeypatch.setattr(Path, "mkdir", lambda *args, **kwargs: None)
+    monkeypatch.setattr(Path, "exists", lambda self: True)
+    assert ps._test_ledger_path() == PROJECT_ROOT / "outputs" / ".test_ledger.json"
+
+
+def test_unsafe_npz_rejects_finalization(tuned):
+    path, manifest, _ = tuned
+    np.savez(path / "model.npz", unsafe=np.array([{"value": 1}], dtype=object))
+    ps.capture_artifacts(manifest, path)
+    replace_manifest(path, manifest)
+    with pytest.raises(PermissionError, match="incomplete or incompatible"):
+        ps.authorize_finalize_test(path, caller_command="finalize-test")

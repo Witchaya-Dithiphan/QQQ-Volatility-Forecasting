@@ -22,7 +22,7 @@ from .configuration import load_config
 from .datasets import DatasetSplit, TrainValidation, load_train_validation
 from .expected_runs import _candidates
 from .metrics import classification_metrics, loss, select_candidate, select_threshold
-from .persistence import _git_state, capture_artifacts, create_run_directory, load_npz, make_manifest, save_npz, transition, verify_reload
+from .persistence import _git_state, capture_artifacts, classify_run_directory, create_run_directory, load_npz, make_manifest, read_manifest, resume_check, save_npz, transition, verify_reload
 
 M5_MODELS = ("logistic", "gaussian_nb", "knn", "perceptron", "slp", "decision_tree")
 _CLASSES = {"logistic": LogisticRegression, "gaussian_nb": GaussianNaiveBayes, "knn": KNN, "perceptron": Perceptron,
@@ -64,6 +64,25 @@ def select_slp_epochs(params: dict, train: DatasetSplit, original_dates, config:
     y = train.y_classification
     model.fit(train.X[subtrain], y[subtrain], eval_set=(train.X[tail], y[tail]))  # scaler is fit on the sub-train only
     return {"selected_epochs": model.best_epoch_, "selection_model": model, "subtrain_idx": subtrain, "tail_idx": tail}
+
+
+def m5_status(out_root, variant, name, run_id, *, hashes=None, implementation='scratch'):
+    import re
+    if name not in M5_MODELS or variant not in ('with_spike', 'non_spike') or implementation not in ('scratch', 'reference'):
+        raise ValueError('Invalid M5 run identity')
+    if not re.fullmatch(r'[A-Za-z0-9_-]+', run_id):
+        raise ValueError('Unsafe run ID')
+    path = Path(out_root) / variant / 'classification' / name / implementation / run_id
+    if not path.exists():
+        return {'can_skip': False, 'status': 'missing', 'mismatches': {}}
+    cl = classify_run_directory(path)
+    if cl['status'] != 'completed':
+        return {'can_skip': False, 'status': 'legacy_incompatible', 'mismatches': {'classification': cl}}
+    manifest = read_manifest(path)
+    if hashes is None:
+        from .runner import current_hashes
+        hashes = current_hashes(variant)
+    return resume_check(manifest, hashes, path)
 
 
 # ---- candidate fitting ---------------------------------------------------------------------------

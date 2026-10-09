@@ -150,6 +150,13 @@ def _check_artifacts(manifest: dict, run_dir: Path) -> dict:
         if not path.resolve().is_relative_to(run_dir.resolve()): raise ValueError("Artifact path escape")
         actual = file_sha256(path) if path.is_file() else None
         if actual != expected: issues[name] = {"expected": expected, "actual": actual}
+        if path.is_file() and path.suffix.lower() == ".npz":
+            try:
+                with np.load(path, allow_pickle=False) as archive:
+                    for member in archive.files:
+                        archive[member]  # Materialize every member; opening alone permits object arrays.
+            except Exception:
+                issues.setdefault("unsafe_object_npz", []).append(name)
     actual_names = {path.relative_to(run_dir).as_posix() for path in _artifact_files(run_dir)}
     if actual_names != set(manifest["artifact_checksums"]):
         issues["file_inventory"] = {"expected": sorted(manifest["artifact_checksums"]), "actual": sorted(actual_names)}
@@ -331,6 +338,49 @@ def _finalize_test_access_ledger(manifest: dict, test_sha256: str) -> None:
     })
     # Use text write (overwrite mode) for ledger updates
     ledger_path.write_text(json.dumps(ledger, sort_keys=True, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def classify_run_directory(run_dir: Path) -> dict:
+    """Return {"status": "legacy_incompatible", "reasons": [...]} for any run that lacks a valid modern manifest.
+
+    Returns completed only for a valid manifest, safe complete artifacts and passed reload.
+    Never deletes or modifies files.
+    """
+    reasons: list[str] = []
+    if not (run_dir / "manifest.json").exists():
+        reasons.append("missing_manifest")
+        if (run_dir / "metadata.json").exists():
+            reasons.append("has_legacy_metadata")
+        for npz_path in run_dir.glob("*.npz"):
+            try:
+                with np.load(npz_path, allow_pickle=False) as archive:
+                    for key in archive.files:
+                        _ = archive[key]  # triggers ValueError on object-dtype arrays
+            except Exception:
+                reasons.append("unsafe_object_npz")
+                break
+        return {"status": "legacy_incompatible", "reasons": reasons}
+    try:
+        manifest = read_manifest(run_dir)
+    except Exception:
+        return {"status": "legacy_incompatible", "reasons": ["invalid_manifest"]}
+    if manifest["status"] != "completed":
+        reasons.append("not_completed")
+        return {"status": "legacy_incompatible", "reasons": reasons}
+    try:
+        artifact_issues = _check_artifacts(manifest, run_dir)
+    except Exception:
+        return {"status": "legacy_incompatible", "reasons": ["incomplete_artifacts"]}
+    if artifact_issues:
+        reasons.append("incomplete_artifacts")
+        if "unsafe_object_npz" in artifact_issues:
+            reasons.append("unsafe_object_npz")
+    lv = manifest.get("load_verification")
+    if not isinstance(lv, dict) or lv.get("passed") is not True or not (run_dir / "load_verification.json").exists():
+        reasons.append("missing_or_failed_load_verification")
+    if reasons:
+        return {"status": "legacy_incompatible", "reasons": reasons}
+    return {"status": manifest["status"], "reasons": []}
 
 
 def authorize_finalize_test(run_dir: Path, *, caller_command: str) -> FinalizeTestAuthorization:

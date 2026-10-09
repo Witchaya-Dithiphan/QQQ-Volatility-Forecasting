@@ -236,8 +236,12 @@ def m6_status(out_root, variant, name, run_id, *, hashes=None, implementation='s
     if not re.fullmatch(r'[A-Za-z0-9_-]+', run_id):
         raise ValueError('Unsafe run ID')
     path = Path(out_root) / variant / 'classification' / name / implementation / run_id
-    if not (path / 'manifest.json').is_file():
+    if not path.exists():
         return {'can_skip': False, 'status': 'missing', 'mismatches': {}}
+    from .persistence import classify_run_directory
+    cl = classify_run_directory(path)
+    if cl['status'] != 'completed':
+        return {'can_skip': False, 'status': 'legacy_incompatible', 'mismatches': {'classification': cl}}
     manifest = read_manifest(path)
     if hashes is None:
         from .runner import current_hashes

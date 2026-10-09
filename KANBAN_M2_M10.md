@@ -15,6 +15,12 @@
 
 ### INCIDENT & RECOVERY
 
+#### Recovery Gate Audit (Oct 9, 2026)
+- **Finding:** All 26 run directories under `outputs/modeling/with_spike` are `legacy_incompatible` — zero have `manifest.json`, zero meet modern artifact contract
+- **Impact:** ALL model cards below marked DONE/IN_REVIEW reflect legacy pass only; **none can be resumed or used as final**
+- **Action:** Shared strict NPZ validation and classification-first M5/M6 status; 25 legacy tests passing. Recovery Gate **FAIL/BLOCKED**; legacy cards do not establish modern completion.
+- **Report:** See `RECOVERY_GATE_REPORT.md` for actual verification. Only M6 has a proven model-training CLI; M5 has library `train_classifier`; M3/M4/M7 have no proven retrain entrypoint. No retraining authorized or performed.
+
 #### Sonnet Dispatch Issue (Oct 9, 05:00 UTC)
 - **Issue:** Permission mode `code` not valid (exit code 1)
 - **Fix:** Re-dispatch with `--permission-mode auto` (proc_d68958625314)
