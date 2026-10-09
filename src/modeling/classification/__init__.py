@@ -7,3 +7,7 @@ from .perceptron import Perceptron
 from .slp import SLP
 
 __all__ = ["DecisionTreeClassifier", "GaussianNaiveBayes", "KNN", "LogisticRegression", "Perceptron", "SLP"]
+
+from .svm import LinearSVM
+from .mlp import MLPClassifier
+__all__ += ['LinearSVM', 'MLPClassifier']
