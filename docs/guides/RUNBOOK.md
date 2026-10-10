@@ -7,11 +7,11 @@ Python หรือ packages คนละ environment
 
 เอกสารที่เกี่ยวข้อง:
 
-- [README.md](README.md) — ภาพรวมโปรเจกต์และ Quick Start
-- [HANDOFF.md](HANDOFF.md) — รายละเอียดการส่งต่องานและ data contracts
-- [PHASE2_SPIKE_READINESS.md](PHASE2_SPIKE_READINESS.md) — หลักฐานการตรวจรับ Phase 2
-- [PROJECT_STATUS.md](PROJECT_STATUS.md) — สถานะ implementation
-- [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) — modeling requirements,
+- [README.md](../../README.md) — ภาพรวมโปรเจกต์และ Quick Start
+- [HANDOFF.md](../status/HANDOFF.md) — รายละเอียดการส่งต่องานและ data contracts
+- [PHASE2_SPIKE_READINESS.md](../archive/PHASE2_SPIKE_READINESS.md) — หลักฐานการตรวจรับ Phase 2
+- [PROJECT_STATUS.md](../status/PROJECT_STATUS.md) — สถานะ implementation
+- [MODEL_TRAINING_PLAN.md](../archive/MODEL_TRAINING_PLAN.md) — modeling requirements,
   inventory 19 รายการ และ implementation milestones; คำสั่ง modeling ในแผนยังไม่พร้อมใช้
 
 > หลักฐานตรวจรับเดิมใช้ Python 3.11.9 (recorded 2026-10-07); audit วันที่ 2026-10-08
@@ -175,7 +175,7 @@ Raw Snapshot หรือ manifest
 ```
 
 Windows อาจ skip tests ที่ต้องใช้ symlink privilege ตามข้อจำกัดที่บันทึกใน
-[PHASE2_SPIKE_READINESS.md](PHASE2_SPIKE_READINESS.md)
+[PHASE2_SPIKE_READINESS.md](../archive/PHASE2_SPIKE_READINESS.md)
 
 ## 8. รันแบบ isolated โดยไม่แก้ artifacts หลัก
 
@@ -229,8 +229,8 @@ Runner ปฏิเสธการเขียนทับโดยค่าเ�
 ตัวอย่าง CLI ใน `MODEL_TRAINING_PLAN.md` เป็น proposed interface เท่านั้น จนกว่าจะมี
 implementation และ tests ห้ามคัดลอกตัวอย่างนั้นมาใช้เป็น runbook command
 
-แผนของชั้น modeling รอบใหม่ (เริ่ม 2026-10-10) อยู่ที่ [AGENTS.md](AGENTS.md),
-[ARCHITECTURE.md](ARCHITECTURE.md) และ [ROADMAP.md](ROADMAP.md) โดยจะสร้าง `src/ml/`
+แผนของชั้น modeling รอบใหม่ (เริ่ม 2026-10-10) อยู่ที่ [AGENTS.md](../../AGENTS.md),
+[ARCHITECTURE.md](../plan/ARCHITECTURE.md) และ [ROADMAP.md](../plan/ROADMAP.md) โดยจะสร้าง `src/ml/`
 ขึ้นใหม่และมี CLI คือ `python -m src.ml.run train|report|finalize`
 **คำสั่งเหล่านั้นจะใช้ได้ก็ต่อเมื่อ implement เสร็จแล้วเท่านั้น** หัวข้อนี้จะถูกอัปเดต
 พร้อมผลการรันจริงเมื่อถึงเวลานั้น

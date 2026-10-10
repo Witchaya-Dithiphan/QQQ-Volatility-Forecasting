@@ -1,7 +1,7 @@
 # MODEL CARDS — สเปก 19 โมเดล
 
 > สเปกรายตัวที่ใช้ลงมือเขียนโค้ดได้เลย โดยไม่ต้องอ่านบทสนทนาหรือถามใคร
-> กฎกลางอยู่ใน [`AGENTS.md`](AGENTS.md) · เหตุผลเชิงสถาปัตยกรรมอยู่ใน [`ARCHITECTURE.md`](ARCHITECTURE.md)
+> กฎกลางอยู่ใน [`AGENTS.md`](../../AGENTS.md) · เหตุผลเชิงสถาปัตยกรรมอยู่ใน [`ARCHITECTURE.md`](ARCHITECTURE.md)
 > **grid ทุกตัวมาจาก `configs/modeling.json` ห้ามแต่งเอง** — ชื่อโมเดล = key ใน config = ชื่อไฟล์ = `BaseModel.name`
 
 ---
@@ -20,6 +20,30 @@ np.random.default_rng(42).integers(0, 200, 200)              -> [ 17 154 130  87
 ```
 
 **ใช้ `np.random.RandomState(seed)` เสมอในโมเดลที่ต้องเทียบ RNG กับ sklearn** (`random_forest`, `mlp`, `slp`, `kmeans`)
+
+### 0.1.1 API ของ scikit-learn 1.9 ที่เปลี่ยนไป
+
+`penalty=` ของ `LogisticRegression` **deprecated ตั้งแต่ 1.8 และจะถูกถอดใน 1.10** เวอร์ชันที่ lock ไว้คือ 1.9.1
+จึงต้องเขียนแบบใหม่ ไม่งั้นจะได้ `FutureWarning` เต็มไปหมดและพังเมื่ออัปเกรด:
+
+| เดิม | ใช้แทนด้วย |
+| --- | --- |
+| `penalty="l2"` | `l1_ratio=0` |
+| `penalty="l1"` | `l1_ratio=1` |
+| `penalty="elasticnet"` | `l1_ratio=<float>` |
+| `penalty=None` | `C=np.inf` |
+
+`AdaBoostClassifier` ก็ถอด `algorithm="SAMME.R"` ออกแล้วและ `SAMME` เป็นค่า default — ดู card #15
+
+### 0.1.2 สิ่งที่ card นี้ override จาก `configs/modeling.json`
+
+`references` ใน config เป็นของเดิมจากสถาปัตยกรรมที่เลิกใช้แล้ว (ADR-001) และบางตัวเลือก reference
+ที่ทำให้ parity ไม่มีทางผ่าน card นี้จึงแก้ไว้ 2 จุด โดยมีหลักฐานการทดลองกำกับ:
+
+| โมเดล | config เดิม | card นี้ใช้ | เหตุผล |
+| --- | --- | --- | --- |
+| `logistic` | `SGDClassifier` | **`LogisticRegression`** | SGD อัปเดตทีละตัวอย่าง ส่วน scratch เป็น full-batch → path ต่างกันถาวร แต่ objective เป็น convex จึงมี optimum เดียว เทียบกับ LBFGS แล้ว**ตรงกันที่ 1e-8** (พิสูจน์แล้ว ดู card #5) |
+| `svm` | `LinearSVC` (เทียบน้ำหนัก) | `LinearSVC` (**เทียบ objective**) | hinge ไม่เรียบ ทั้งสอง solver หยุดคนละจุดใกล้ optimum — วัดจริงที่ C=1.0 พบว่า **scratch ได้ objective ต่ำกว่า sklearn** (34.8258 < 34.9859) คือเราดีกว่า ไม่ใช่ผิด ดู card #17 |
 
 ### 0.2 นิยาม "ตรงกับ reference" รายโมเดล
 
@@ -251,19 +275,51 @@ b    ← b - lr·∇b        lr = 0.05, max_iter = 5000, tol = 1e-6
 
 **Preprocess** `standardize`
 
-**Reference** `SGDClassifier(loss="log_loss", learning_rate="constant", eta0=0.05, shuffle=False, random_state=42)`
-— **ไม่ใช่ `LogisticRegression`** เพราะ scratch ใช้ gradient descent ธรรมดา ส่วน `LogisticRegression` ใช้ LBFGS
-`l2_mapping` ใน config ระบุ: `λ=0 → penalty=None`, มิฉะนั้น `penalty="l2", alpha=λ`
+**Reference** **`LogisticRegression`** (override จาก config ที่ระบุ `SGDClassifier` — ดู §0.1.2)
+
+```python
+import numpy as np
+from sklearn.linear_model import LogisticRegression
+
+sample_weight_sum = len(y) if class_weight is None else len(y)   # 'balanced' ก็ได้ n เท่ากัน
+if l2 == 0:
+    ref = LogisticRegression(C=np.inf, fit_intercept=True, tol=1e-12, max_iter=200000)
+else:
+    ref = LogisticRegression(C=1.0 / (l2 * sample_weight_sum), l1_ratio=0,
+                             fit_intercept=True, tol=1e-12, max_iter=200000)
+# class_weight="balanced" ส่งต่อให้ sklearn ตรง ๆ ได้
+```
+
+**เหตุผลที่เปลี่ยน reference** `SGDClassifier` อัปเดตทีละตัวอย่าง ส่วน scratch เป็น full-batch
+→ เดินคนละ path ตลอดกาล ไม่มีทางตรง แต่ objective นี้เป็น **convex** จึงมี optimum เดียว
+LBFGS กับ full-batch GD จึงลู่เข้าจุดเดียวกัน **ทดสอบจริงแล้วตรงกันที่ 1e-8**:
+
+```text
+lam=0.01    C=0.25   max abs coef diff = 1.05e-08   max abs prob diff = 7.43e-09
+lam=0.001   C=2.50   max abs coef diff = 2.45e-09   max abs prob diff = 1.78e-09
+balanced    C=0.25   max abs coef diff = 2.51e-08
+lam=0       C=inf    max abs coef diff = 7.37e-10
+```
+
+**การแปลง C — ที่มาของสูตร**
+
+```text
+ของเรา   : J   = (Σ w_i·BCE_i) / (Σ w_i)  +  (λ/2)·||b||²
+sklearn  : J_sk = C · Σ w_i·logloss_i     +  0.5·||b||²
+หาร J ด้วย λ แล้วจับคู่สัมประสิทธิ์ →  C = 1 / (λ · Σ w_i)
+กรณีไม่ถ่วงน้ำหนัก Σw = n  →  C = 1/(λ·n)
+'balanced' ก็ยังได้ Σw = n พอดี เพราะ w_i = n/(2·n_c)
+```
 
 **จุดที่ parity พลาด**
 
-- `SGDClassifier` อัปเดตทีละตัวอย่าง (stochastic) แต่ scratch เป็น full-batch → **ไม่ตรงอยู่แล้วโดยธรรมชาติ**
-  ให้เทียบที่ค่า objective สุดท้ายและ ROC-AUC แล้วบันทึกเหตุผล หรือเทียบกับ
-  `LogisticRegression(C=1/(n·λ), penalty="l2", tol=1e-10, max_iter=10000)` ที่ optimum เดียวกันแทน
-- **`C` ของ sklearn คูณกับพจน์ loss ไม่ใช่ penalty** — `LogisticRegression` ลด `C·Σloss + 0.5||w||²`
-  ขณะที่เราลด `mean loss + (λ/2)||w||²` ความสัมพันธ์คือ `C = 1/(n·λ)` ไม่ใช่ `C = 1/λ`
+- **`C` คูณกับพจน์ loss ไม่ใช่ penalty** — ใช้ `C = 1/λ` เฉย ๆ จะผิดไป n เท่า
+- **`penalty=` deprecated ใน sklearn 1.9** ใช้ `l1_ratio=0` และ `C=np.inf` แทน (§0.1.1)
+- `tol` ต้องเล็กจริง (1e-12) และ `max_iter` ใหญ่ ไม่งั้น LBFGS หยุดก่อนถึง optimum
 - `np.log(σ(t))` overflow เมื่อ `|t|` ใหญ่ — ใช้ `np.logaddexp(0, -margin)` แทน
-- intercept ต้องไม่ถูก penalize (`penalize_intercept: false`)
+- intercept ต้องไม่ถูก penalize ทั้งสองฝั่ง (`penalize_intercept: false`)
+- scratch ต้องรัน iteration ให้พอ (lr 0.05 ตาม config อาจต้องมากกว่า 5000 รอบถึงจะถึง 1e-8)
+  ถ้า `max_iter` ของ config ไม่พอ ให้เทียบที่ **objective value** แทน แล้วบันทึกจำนวนรอบที่ใช้
 
 **Unit test** ข้อมูลแยกกันชัด 2 กลุ่ม → accuracy = 1.0 · gradient check เทียบกับ numerical gradient ที่ 1e-6 ·
 objective ลดลงทุก iteration
@@ -742,19 +798,38 @@ decision_function = w·x + b          (ไม่ใช่ probability)
 
 **Preprocess** `standardize` + PCA components {2, 4, 6}
 
-**Reference** `LinearSVC(C=C, loss="hinge", fit_intercept=True, max_iter=100000, tol=1e-6, random_state=42)`
+**Reference** `LinearSVC(C=C, loss="hinge", fit_intercept=True, intercept_scaling=1000, tol=1e-12, max_iter=2000000, random_state=42)`
+
+**เกณฑ์ parity ของโมเดลนี้คือ objective ไม่ใช่น้ำหนัก — มีหลักฐาน**
+
+hinge loss **ไม่เรียบ** (ไม่ differentiable ที่ margin = 1) ทำให้ solver สองตัวหยุดคนละจุดใกล้ optimum ได้
+โดยที่ไม่มีใครผิด วัดจริงบนปัญหาสังเคราะห์ `fit_intercept=False`:
+
+```text
+C=0.1   obj_scratch=5.615042   obj_sklearn=5.615042    rel_gap=1.2e-08   max|dw|=1.4e-06   label agree=1.0000
+C=1.0   obj_scratch=34.825849  obj_sklearn=34.985936   rel_gap=4.6e-03   max|dw|=4.7e-02   label agree=0.9900
+```
+
+ที่ C=1.0 **scratch ได้ objective ต่ำกว่า sklearn** (34.8258 < 34.9859) แปลว่า subgradient descent
+ของเราเข้าใกล้ optimum ได้ดีกว่า liblinear ในรอบนั้น — ถ้าตั้งเกณฑ์เป็น "น้ำหนักต้องเท่ากัน"
+เราจะเสียเวลาไล่แก้สิ่งที่ไม่ได้พัง ดังนั้นเกณฑ์ของโมเดลนี้คือ:
+
+1. `rel_gap = |J_scratch - J_sklearn| / J_sklearn < 1e-3` **และ** `J_scratch <= J_sklearn * (1 + 1e-3)`
+2. label agreement ≥ 0.99
+3. ผ่าน KKT check (ดู unit test)
 
 **จุดที่ parity พลาด**
 
-- sklearn `LinearSVC` ใช้ liblinear (coordinate descent) ไม่ใช่ subgradient → **path ต่างกันแน่นอน**
-  ให้เทียบที่ **ค่า objective** และ decision function ที่ optimum แทนการเทียบ path
-- `loss="hinge"` ไม่ใช่ `"squared_hinge"` ซึ่งเป็น default ของ sklearn
-- liblinear penalize intercept ด้วย ส่วนสูตรเราไม่ — ตั้ง `intercept_scaling` ให้ใหญ่เพื่อลดผลกระทบ
-  หรือบันทึกความต่างนี้ไว้
+- `loss="hinge"` ไม่ใช่ `"squared_hinge"` ซึ่งเป็น **default ของ sklearn**
+- liblinear **penalize intercept** ส่วนสูตรเราไม่ → ตั้ง `intercept_scaling=1000` เพื่อลดผลกระทบให้เล็กลง
+  และควรทำ unit test หลักด้วย `fit_intercept=False` ซึ่งตัดปัญหานี้ทิ้งทั้งหมด
 - `C` คูณกับพจน์ hinge ไม่ใช่พจน์ norm (ตรงกับ config `half_l2_plus_C_sum_hinge`)
+- step size ของ subgradient ต้องเป็น `1/t` (เหมาะกับ strongly convex) ไม่ใช่ค่าคงที่
+  ไม่งั้นจะแกว่งรอบ optimum ไม่ลู่เข้า
 
 **Unit test** ข้อมูลแยกได้ margin กว้าง → support vector ต้องเป็นจุดที่ margin = 1 ·
-ตรวจ KKT: จุดที่อยู่นอก margin ต้องมี subgradient contribution = 0 · objective ลดลง monotone
+**KKT check:** จุดที่ `y(w·x) > 1` ต้องไม่มีส่วนร่วมใน subgradient เลย · objective ลดลง monotone ·
+`fit_intercept=False, C=0.1` → น้ำหนักต้องตรง sklearn ที่ 1e-5 (กรณีนี้ตรงจริงตามตารางข้างบน)
 
 **ความเสี่ยง** สูง (R3) **แผนสำรอง:** คง linear SVM ไว้แล้วอธิบาย kernel trick ในรายงานโดยไม่ implement
 

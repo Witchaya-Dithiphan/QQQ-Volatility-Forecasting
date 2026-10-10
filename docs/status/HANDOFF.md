@@ -1,11 +1,11 @@
 # QQQ Volatility Forecasting - เอกสารส่งต่องาน
 
-> **คู่มือการติดตั้งและรันหลัก:** [RUNBOOK.md](RUNBOOK.md) ใช้ Python 3.14.8
+> **คู่มือการติดตั้งและรันหลัก:** [RUNBOOK.md](../guides/RUNBOOK.md) ใช้ Python 3.14.8
 > (re-frozen 2026-10-10; รอบตรวจรับเดิมใช้ 3.11.9 และผ่าน 3.12.3 มาแล้ว ดู audit
 > trail ใน RUNBOOK.md) และแยกขั้นตอนสำหรับ clone ใหม่, การรันซ้ำที่ project root
 > และ isolated verification คำสั่งในส่วนหลักฐานด้านล่างเป็นบันทึกของรอบตรวจรับเดิม
 >
-> **Modeling handoff ล่าสุด:** [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md)
+> **Modeling handoff ล่าสุด:** [MODEL_TRAINING_PLAN.md](../archive/MODEL_TRAINING_PLAN.md)
 > เป็น source of truth สำหรับ inventory 19 รายการ, With-Spike-first, scratch/reference,
 > milestones และ Non-Spike reruns
 
@@ -135,7 +135,7 @@ data, reports, figures, models หรือ metrics เพราะ `.gitignore`
   audit วันที่ 2026-10-08 รายงาน **Python 3.12.3** M2 freeze เดิมตาม
   `configs/modeling.json`/`config_schema.py`; audit วันที่ 2026-10-10 re-freeze
   เป็น **Python 3.14.8** หลังยืนยัน pipeline/tests ให้ผลตรงกับหลักฐานเดิม (ดู
-  audit trail ใน [RUNBOOK.md](RUNBOOK.md)) ปัจจุบันยังไม่มี `.python-version`,
+  audit trail ใน [RUNBOOK.md](../guides/RUNBOOK.md)) ปัจจุบันยังไม่มี `.python-version`,
   `pyproject.toml`, CI หรือ environment file บังคับเวอร์ชันเดียวแบบ machine-readable
   นอกจาก modeling config gate
 - `requirements.txt` ระบุ `numpy`, `pandas`, `pytest`, `matplotlib`, `seaborn`,
@@ -159,7 +159,7 @@ py -3.14 -m venv .venv
 ```
 
 > ใช้ `py -3.11` ไม่ได้แล้ว — environment ถูก freeze ที่ Python **3.14.8** และมี gate ตรวจเวอร์ชัน
-> อยู่ใน test suite ถ้าสร้าง venv ด้วย 3.11 จะ fail ทันที (ดู [RUNBOOK.md](RUNBOOK.md))
+> อยู่ใน test suite ถ้าสร้าง venv ด้วย 3.11 จะ fail ทันที (ดู [RUNBOOK.md](../guides/RUNBOOK.md))
 
 ### macOS/Linux
 
@@ -302,7 +302,7 @@ With-Spike/Non-Spike splits และ Phase 2 artifacts พร้อมเป็
 
 ### แผนโมเดลและเกณฑ์ประเมิน
 
-แผน authoritative อยู่ใน [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) และอ้าง
+แผน authoritative อยู่ใน [MODEL_TRAINING_PLAN.md](../archive/MODEL_TRAINING_PLAN.md) และอ้าง
 Course PDF ที่ตรวจครบ 5 หน้าแล้ว Inventory มี Regression 4,
 Classification 13 และ Clustering 2 โดยแยก Perceptron และ SLP เป็นคนละรายการ
 ตาม course interpretation ที่ผู้ใช้ยืนยันเมื่อ 2026-10-08

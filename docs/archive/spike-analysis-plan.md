@@ -1,6 +1,6 @@
 # Phase 2 — Spike Analysis Plan
 
-> **วิธีติดตั้งและรัน pipeline ปัจจุบัน:** ดู [RUNBOOK.md](RUNBOOK.md) เอกสารนี้เป็น
+> **วิธีติดตั้งและรัน pipeline ปัจจุบัน:** ดู [RUNBOOK.md](../guides/RUNBOOK.md) เอกสารนี้เป็น
 > แผนการวิเคราะห์ และไม่ใช้แทนคู่มือปฏิบัติงาน
 >
 > Modeling phase ใช้ [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) เป็น source of

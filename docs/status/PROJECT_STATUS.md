@@ -1,6 +1,6 @@
 # QQQ Volatility Forecasting — Project Status
 
-> **วิธีรันปัจจุบัน:** ดู [RUNBOOK.md](RUNBOOK.md) สำหรับการติดตั้ง environment และ
+> **วิธีรันปัจจุบัน:** ดู [RUNBOOK.md](../guides/RUNBOOK.md) สำหรับการติดตั้ง environment และ
 > การรัน Data/Spike pipelines เอกสารนี้ใช้สรุปสถานะ implementation
 
 > ## ⚠️ สถานะปัจจุบัน — ตรวจด้วยการรันจริงเมื่อ 2026-10-10 บน `main` (`779c78d`)
@@ -14,8 +14,8 @@
 > | Notebook 03/04 | ❌ 0 cells ทั้งคู่ |
 > | Deadline | **18 ต.ค. 2026** (เลื่อนจาก 12 ต.ค. ที่ระบุใน PDF) |
 >
-> รายละเอียดครบและรายการที่เอกสารเดิมขัดกับโค้ด: **[docs/audit/REALITY_AUDIT.md](docs/audit/REALITY_AUDIT.md)**
-> แผนงานชั้น modeling รอบใหม่: [ARCHITECTURE.md](ARCHITECTURE.md) · [ROADMAP.md](ROADMAP.md) · [AGENTS.md](AGENTS.md)
+> รายละเอียดครบและรายการที่เอกสารเดิมขัดกับโค้ด: **[docs/audit/REALITY_AUDIT.md](../audit/REALITY_AUDIT.md)**
+> แผนงานชั้น modeling รอบใหม่: [ARCHITECTURE.md](../plan/ARCHITECTURE.md) · [ROADMAP.md](../plan/ROADMAP.md) · [AGENTS.md](../../AGENTS.md)
 
 ### บันทึกประวัติก่อนหน้า (หลักฐาน ไม่ใช่สถานะปัจจุบัน)
 
@@ -127,7 +127,7 @@ flowchart TD
 - Course PDF มีใน checkout แต่ยัง untracked; `.venv` ปัจจุบันเป็น Python 3.12.3
   ขณะที่หลักฐานตรวจรับเดิมใช้ Python 3.11.9 (ค่าของ audit รอบนี้ ณ เวลาที่บันทึก)
 - **อัปเดต 2026-10-10:** frozen environment re-frozen เป็น Python 3.14.8; ดู audit
-  trail ใน [RUNBOOK.md](RUNBOOK.md)
+  trail ใน [RUNBOOK.md](../guides/RUNBOOK.md)
 
 ## 5. Features, Targets และ Spike Design Decisions
 

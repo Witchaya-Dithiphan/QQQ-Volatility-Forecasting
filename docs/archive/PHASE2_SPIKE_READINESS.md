@@ -2,7 +2,7 @@
 
 > **วิธีรันปัจจุบัน:** เอกสารนี้เก็บหลักฐานการตรวจรับตามรอบที่บันทึกไว้ (Python 3.11.9
 > ตามหลักฐานเดิม) สำหรับวิธีติดตั้งและรันบน frozen environment ปัจจุบัน
-> (Python 3.14.8) ให้ใช้ [RUNBOOK.md](RUNBOOK.md)
+> (Python 3.14.8) ให้ใช้ [RUNBOOK.md](../guides/RUNBOOK.md)
 >
 > Phase 2 gate เปิดสำหรับ modeling แล้ว แต่ scope/model inventory ล่าสุดให้ใช้
 > [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) เป็น source of truth; เอกสารนี้

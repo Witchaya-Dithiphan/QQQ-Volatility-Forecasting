@@ -9,21 +9,23 @@
 
 ```
 QQQ-Volatility-Forecasting/
-├── AGENTS.md                    ★ contract กลาง — Codex และ Claude อ่านไฟล์นี้
-├── CLAUDE.md                    ★ ชี้ไป AGENTS.md (ไม่มีเนื้อหาซ้ำ)
-├── ARCHITECTURE.md              ★ ดีไซน์ + ADR
-├── MODEL_CARDS.md               ★ สเปก 19 โมเดล
-├── ROADMAP.md                   ★ แผนรายวันถึง 18 ต.ค.
-├── RISKS_AND_DOD.md             ★ ความเสี่ยง + definition of done
-├── REPORT_AND_SLIDES_OUTLINE.md ★ โครงรายงาน/สไลด์ ผูกกับ rubric
-├── README.md                    ปรับให้ตรงความจริง
-├── RUNBOOK.md                   ปรับ: เพิ่มคำสั่งชั้น modeling
-├── PROJECT_STATUS.md            แหล่งสถานะเดียว (ฉบับอื่นชี้มาที่นี่)
-├── HANDOFF.md                   แก้ข้อที่ขัดกับโค้ด
-├── PHASE2_SPIKE_READINESS.md    คงไว้ (หลักฐาน Phase 2)
+├── README.md                    ภาพรวม + quick start   ┐
+├── AGENTS.md                    ★ contract กลาง        ├ 3 ไฟล์นี้ต้องอยู่ root
+├── CLAUDE.md                    ★ ชี้ไป AGENTS.md      ┘ เพราะเป็น convention ของเครื่องมือ
+│
 ├── docs/
+│   ├── README.md                ★ index ของเอกสารทั้งหมด
+│   ├── tasks/                   ★ งานแบ่งตามคน
+│   │   ├── claude-linear-family.md    core framework + 11 โมเดล
+│   │   └── codex-tree-family.md       8 โมเดล (เขียนให้ Codex ใช้ได้ทันที)
+│   ├── plan/                    ★ ARCHITECTURE · MODEL_CARDS · PROJECT_STRUCTURE
+│   │                              ROADMAP · RISKS_AND_DOD · REPORT_AND_SLIDES_OUTLINE
+│   ├── guides/RUNBOOK.md        ติดตั้งและรัน pipeline
+│   ├── status/                  PROJECT_STATUS · HANDOFF
 │   ├── audit/REALITY_AUDIT.md   ★ สถานะจริง 2026-10-10
-│   └── superpowers/specs/       ★ design spec
+│   ├── superpowers/             spec + implementation plan จาก workflow skill
+│   └── archive/                 MODEL_TRAINING_PLAN · PHASE2_SPIKE_READINESS
+│                                spike-analysis-plan (เก็บเป็นหลักฐาน ห้ามใช้สั่งงาน)
 │
 ├── configs/modeling.json        คงไว้ — ใช้เป็น "ข้อมูล" (grid + inventory) ไม่ใช่ schema ที่ต้อง validate
 │

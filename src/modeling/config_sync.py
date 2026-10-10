@@ -53,7 +53,7 @@ def main() -> None:
     mode.add_argument("--check", action="store_true")
     mode.add_argument("--write-plan", action="store_true")
     parser.add_argument("--config", type=Path, default=CONFIG_PATH)
-    parser.add_argument("--plan", type=Path, default=PROJECT_ROOT / "MODEL_TRAINING_PLAN.md")
+    parser.add_argument("--plan", type=Path, default=PROJECT_ROOT / "docs" / "archive" / "MODEL_TRAINING_PLAN.md")
     args = parser.parse_args()
     synchronize(args.config, args.plan, write=args.write_plan)
     print("Modeling config and generated plan block match")

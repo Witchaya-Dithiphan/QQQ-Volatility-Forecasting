@@ -8,7 +8,7 @@
 
 **Tech Stack:** Python 3.14.8 · NumPy 2.5.3 · pandas 3.0.6 · matplotlib 3.11.2 · scikit-learn 1.9.1 (reference เท่านั้น) · xgboost 3.4.1 (reference เท่านั้น) · pytest 9.1.1
 
-**อ่านก่อนเริ่ม:** [`AGENTS.md`](../../../AGENTS.md) · [`ARCHITECTURE.md`](../../../ARCHITECTURE.md) · [`PROJECT_STRUCTURE.md`](../../../PROJECT_STRUCTURE.md)
+**อ่านก่อนเริ่ม:** [`AGENTS.md`](../../../AGENTS.md) · [`ARCHITECTURE.md`](../../plan/ARCHITECTURE.md) · [`PROJECT_STRUCTURE.md`](../../plan/PROJECT_STRUCTURE.md)
 
 **คำสั่งรัน test ตลอดแผนนี้ใช้:** `.\.venv\Scripts\python.exe -m pytest ... -v`
 
@@ -1685,7 +1685,7 @@ BODY
 ## หลังจบแผนนี้
 
 โมเดลที่เหลือ 18 ตัวไม่มีแผนรายขั้นในเอกสารนี้ เพราะแต่ละตัวมีสเปกของตัวเองอยู่ใน
-[`MODEL_CARDS.md`](../../../MODEL_CARDS.md) แล้ว และทุกตัวทำตาม pattern เดียวกันเป๊ะ:
+[`MODEL_CARDS.md`](../../plan/MODEL_CARDS.md) แล้ว และทุกตัวทำตาม pattern เดียวกันเป๊ะ:
 
 1. เขียน unit test ของกลไกภายในบนตัวอย่างที่คำนวณมือได้ → ให้ fail
 2. เขียนโมเดลตาม `BaseModel` → ให้ test ผ่าน
@@ -1700,7 +1700,7 @@ BODY
 ### งานที่จงใจเลื่อนไปแผนถัดไป
 
 `run.py report` และ `run.py finalize` ถูกวางเป็น stub ที่คืน exit code 1 และบอกเหตุผล
-เพราะทั้งคู่ต้องรอให้มีโมเดลครบก่อนจึงจะมีความหมาย ตาม [`ROADMAP.md`](../../../ROADMAP.md)
+เพราะทั้งคู่ต้องรอให้มีโมเดลครบก่อนจึงจะมีความหมาย ตาม [`ROADMAP.md`](../../plan/ROADMAP.md)
 จะ implement วันที่ 16–17:
 
 - `report` — รวม `validation_metrics.json` ของทุกโมเดลเป็น leaderboard, วาด ROC ซ้อนกัน,

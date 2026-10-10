@@ -5,6 +5,18 @@
 >
 > ทีมมี 2 คนทำงานคนละ branch ด้วย agent คนละตัว **คุณจะไม่เห็นงานของอีกฝั่งจนกว่าจะ merge**
 > ทุกอย่างในไฟล์นี้จึงเป็นข้อผูกพัน ไม่ใช่คำแนะนำ
+>
+> ---
+>
+> ## อ่านจบแล้วไปที่ task ของตัวเอง
+>
+> | คุณใช้ | งานของคุณ |
+> | --- | --- |
+> | **Codex CLI** | [`docs/tasks/codex-tree-family.md`](docs/tasks/codex-tree-family.md) — 8 โมเดล tree/ensemble/margin |
+> | **Claude Code** | [`docs/tasks/claude-linear-family.md`](docs/tasks/claude-linear-family.md) — core framework + 11 โมเดล |
+>
+> สเปกคณิตศาสตร์รายโมเดลอยู่ที่ [`docs/plan/MODEL_CARDS.md`](docs/plan/MODEL_CARDS.md)
+> · ดัชนีเอกสารทั้งหมด [`docs/README.md`](docs/README.md)
 
 ---
 
@@ -33,9 +45,11 @@ py -3.14 -m venv .venv
 Python ที่ freeze ไว้คือ **3.14.8** ใช้ `.\.venv\Scripts\python.exe` เสมอ อย่าเรียก `python` ลอย ๆ
 
 **ครั้งแรกหลัง clone** ต้องสร้าง Phase 1 reproduction ด้วย ไม่งั้น Phase 2 test จะ fail:
+
 ```bat
 .\.venv\Scripts\python.exe -m src.run_data_pipeline --output-root "tmp/phase1-reproduction" --overwrite-generated
 ```
+
 ห้ามเปลี่ยนชื่อโฟลเดอร์นี้และห้ามลบทิ้ง — `outputs/reports/spike_input_contract.json` เก็บ path นี้ไว้เป็น provenance
 
 ---
@@ -123,7 +137,7 @@ class BaseModel:
 
 ## 6. Strict parity — นิยามที่ตกลงกันแล้ว
 
-**ทุกโมเดลใช้เกณฑ์เดียวกัน ไม่มีการผ่อนปรนรายตัว**
+**ทุกโมเดลใช้เกณฑ์เดียวกัน ยกเว้นกรณีเดียวที่ระบุไว้ท้ายหัวข้อนี้ ห้ามผ่อนปรนเพิ่มเอง**
 
 ```python
 # src/ml/core/compare.py
@@ -138,6 +152,20 @@ assert_parity(scratch, reference, X, y, task=...)
 
 ทดสอบบน **synthetic data ที่ควบคุมได้** เป็นด่านแรก แล้วตามด้วย **train set จริง**
 
+**ข้อยกเว้นเดียว: objective ที่ไม่เรียบ (non-smooth)**
+
+ถ้า objective ไม่ differentiable ทุกจุด (hinge ของ `svm`) solver สองตัวจะหยุดคนละจุดใกล้ optimum ได้
+โดยไม่มีใครผิด — วัดจริงแล้วพบว่า scratch ของเราได้ objective **ต่ำกว่า** sklearn ที่ C=1.0
+(34.8258 < 34.9859) เกณฑ์ของกรณีนี้จึงเป็น
+
+```text
+rel_gap = |J_scratch - J_ref| / J_ref < 1e-3   และ   J_scratch <= J_ref·(1+1e-3)   และ   label agreement >= 0.99
+```
+
+**นี่ไม่ใช่การลดมาตรฐาน แต่เป็นการวัดปริมาณที่ถูกต้อง** — การบังคับให้น้ำหนักเท่ากันบนปัญหาที่ไม่เรียบ
+คือการไล่แก้สิ่งที่ไม่ได้พัง ใช้ข้อยกเว้นนี้ได้กับ `svm` เท่านั้น โมเดลอื่นใช้เกณฑ์ในตารางข้างบน
+ถ้าคิดว่าโมเดลของตัวเองควรเข้าข้อยกเว้นนี้ด้วย **ต้องถามเจ้าของโปรเจกต์ก่อน** ห้ามตัดสินเอง
+
 **ถ้า parity ไม่ผ่าน:** ห้ามลดเกณฑ์เงียบ ๆ และห้ามเอาผลของ reference มาสวมแทน scratch
 ให้หยุด บันทึกสาเหตุที่วิเคราะห์ได้ลง model card แล้วแจ้งเจ้าของโปรเจกต์
 (ความต่างที่พบบ่อยและต้องจัดการให้ตรง ไม่ใช่ปล่อยผ่าน: tie-breaking ตอนเลือก split,
@@ -147,7 +175,7 @@ assert_parity(scratch, reference, X, y, task=...)
 
 ## 7. Artifact layout
 
-```
+```text
 outputs/modeling/<variant>/<task>/<model>/
     config.json                 hyperparameter ที่ใช้ + seed + variant
     model.npz (+ .json)         พารามิเตอร์ที่เรียนรู้ (save_npz)
@@ -158,13 +186,14 @@ outputs/modeling/<variant>/<task>/<model>/
     load_verification.json      ผลพิสูจน์ว่า save→load แล้ว predict เท่าเดิม
     history.json                loss ต่อ iteration (เฉพาะโมเดลที่เทรนวนรอบ)
 ```
+
 ตอน finalize จึงเพิ่ม `test_metrics.json`, `test_predictions.csv`
 
 ---
 
 ## 8. Git workflow
 
-```
+```text
 main
  ├── feat/ml-core                   ← framework กลาง (ต้อง merge ก่อนใครเริ่มเขียนโมเดล)
  ├── feat/models-linear-family      ← Claude Code

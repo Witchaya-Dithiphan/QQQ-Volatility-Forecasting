@@ -6,11 +6,11 @@
 >
 > | เรื่อง | ใช้ฉบับนี้ |
 > | --- | --- |
-> | กฎการเขียนโค้ด / interface / การแบ่งงาน | [AGENTS.md](AGENTS.md) |
-> | สถาปัตยกรรมและเหตุผล (ADR) | [ARCHITECTURE.md](ARCHITECTURE.md) |
-> | สเปก 19 โมเดล | [MODEL_CARDS.md](MODEL_CARDS.md) |
-> | แผนรายวัน / สิ่งที่ตัดได้ | [ROADMAP.md](ROADMAP.md) |
-> | สถานะจริง | [docs/audit/REALITY_AUDIT.md](docs/audit/REALITY_AUDIT.md) |
+> | กฎการเขียนโค้ด / interface / การแบ่งงาน | [AGENTS.md](../../AGENTS.md) |
+> | สถาปัตยกรรมและเหตุผล (ADR) | [ARCHITECTURE.md](../plan/ARCHITECTURE.md) |
+> | สเปก 19 โมเดล | [MODEL_CARDS.md](../plan/MODEL_CARDS.md) |
+> | แผนรายวัน / สิ่งที่ตัดได้ | [ROADMAP.md](../plan/ROADMAP.md) |
+> | สถานะจริง | [docs/audit/REALITY_AUDIT.md](../audit/REALITY_AUDIT.md) |
 >
 > **ส่วนที่ยังใช้ได้จากเอกสารนี้:** model inventory 19 รายการ, hyperparameter grid ใน section 14
 > (generated block), นิยาม target/feature และบทวิเคราะห์ requirement จาก PDF

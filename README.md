@@ -1,12 +1,12 @@
 # QQQ Volatility Forecasting
 
-> **วิธีติดตั้งและรันล่าสุด:** ดู [RUNBOOK.md](RUNBOOK.md) สำหรับ Python 3.14.8,
+> **วิธีติดตั้งและรันล่าสุด:** ดู [RUNBOOK.md](docs/guides/RUNBOOK.md) สำหรับ Python 3.14.8,
 > การสร้าง `.venv`, การติดตั้ง dependencies, การรัน Phase 1/Phase 2 และ tests บน Windows
 >
 > **Modeling scope ล่าสุด (2026-10-10):** ดู [AGENTS.md](AGENTS.md) (contract),
-> [ARCHITECTURE.md](ARCHITECTURE.md) (ดีไซน์ + ADR), [MODEL_CARDS.md](MODEL_CARDS.md)
-> (สเปก 19 โมเดล) และ [ROADMAP.md](ROADMAP.md) (แผนถึง 18 ต.ค.)
-> — [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) ถูกแทนที่บางส่วนแล้ว
+> [ARCHITECTURE.md](docs/plan/ARCHITECTURE.md) (ดีไซน์ + ADR), [MODEL_CARDS.md](docs/plan/MODEL_CARDS.md)
+> (สเปก 19 โมเดล) และ [ROADMAP.md](docs/plan/ROADMAP.md) (แผนถึง 18 ต.ค.)
+> — [MODEL_TRAINING_PLAN.md](docs/archive/MODEL_TRAINING_PLAN.md) ถูกแทนที่บางส่วนแล้ว
 >
 > **สถานะจริง:** data pipeline เสร็จ ✅ · test suite **459 passed, 3 skipped** ·
 > **โมเดล 0/19 ยังไม่เริ่ม** · รายละเอียด: [docs/audit/REALITY_AUDIT.md](docs/audit/REALITY_AUDIT.md)
@@ -20,7 +20,7 @@
 ```
 
 ผู้ที่ clone ใหม่ต้องรับ `data/raw/qqq_daily.csv` แยกต่างหากและทำขั้นตอน first-time
-setup ใน [RUNBOOK.md](RUNBOOK.md) ก่อนรันคำสั่งแบบย่อ
+setup ใน [RUNBOOK.md](docs/guides/RUNBOOK.md) ก่อนรันคำสั่งแบบย่อ
 
 โปรเจกต์นี้ใช้ข้อมูล QQQ รายวันเพื่อสร้าง features และพยากรณ์ realized volatility ล่วงหน้า 5 trading days ข้อมูลแบ่งเป็นสอง workflow ที่มีวัตถุประสงค์ต่างกันอย่างชัดเจน
 
@@ -217,7 +217,7 @@ interpretation ที่ผู้ใช้ยืนยันเมื่อ 2026
 และไม่รวม dataset variants, reference implementations,
 preprocessing configurations หรือ hyperparameter trials เป็นโมเดลใหม่
 
-รายละเอียด authoritative อยู่ใน [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md)
+รายละเอียด authoritative อยู่ใน [MODEL_TRAINING_PLAN.md](docs/archive/MODEL_TRAINING_PLAN.md)
 ซึ่งกำหนด With-Spike-first, Non-Spike fresh reruns, scratch/reference contract,
 leakage-safe protocol, artifacts, milestones และข้อกำกวมที่ต้องยืนยัน
 
