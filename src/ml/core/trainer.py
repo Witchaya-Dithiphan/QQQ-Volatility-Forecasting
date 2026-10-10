@@ -79,8 +79,11 @@ def evaluate(model, X, y_regression, y_classification, task: str):
         if scores.ndim == 2 and scores.shape[1] == 2:
             scores = scores[:, 1]
         threshold = 0.5 if kind == "probability" else 0.0
-        metrics = metrics_module.classification_metrics(y_classification, scores, threshold=threshold)
-        return {**metrics, "score_kind": kind}, np.asarray(model.predict(X)), scores
+        prediction = np.asarray(model.predict(X))
+        metrics = metrics_module.classification_metrics(
+            y_classification, scores, threshold=threshold, predicted_labels=prediction
+        )
+        return {**metrics, "score_kind": kind}, prediction, scores
 
     labels = np.asarray(model.predict(X))
     return metrics_module.clustering_metrics(X, labels), labels, labels

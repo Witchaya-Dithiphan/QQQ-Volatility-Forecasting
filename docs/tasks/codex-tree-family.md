@@ -74,7 +74,7 @@ rem ->      multiple_linear | with_spike | candidates= 1 | selected=multiple_lin
 `multiple_linear` เป็น pilot ที่รันครบลูปแล้ว **ใช้ `src/ml/regression/multiple_linear.py`
 เป็นตัวอย่างอ้างอิง** ว่าโมเดลที่ถูกต้องหน้าตาเป็นอย่างไร — สั้นและครบทุก method
 
-เริ่ม T1 ได้ทันที `decision_tree` เป็นฐานของอีก 4 โมเดล ยิ่งเสร็จเร็วยิ่งดีกับทั้งสาย
+T1 `decision_tree` ลงมือแล้วและผ่านเกณฑ์ด้านโมเดล; ผลอยู่ในหัวข้อ T1 ด้านล่าง
 
 ---
 
@@ -208,6 +208,17 @@ def test_state_round_trip(data):
 
 ## 5. เมื่อ parity ไม่ผ่าน — ทำตามลำดับนี้
 
+**บทเรียน T1 ที่ใช้ต่อกับ T2/T3:** sklearn สลับลำดับ feature แบบ seeded ที่ทุก node
+แม้ `splitter="best"` และ `max_features=None` ถ้า gain เสมอกัน จะเลือกตัวที่เจอก่อนในลำดับนั้น
+ไม่ใช่ feature index ต่ำสุด การใช้ `_best_split()` ตาม index ตรง ๆ ทำให้ Decision Tree depth 5
+ต่างที่บาง node ของ Train จริงและ probability ต่างสูงสุด 0.2879; `fit()` จึงจำลองลำดับของ sklearn
+ก่อนเรียก `_best_split()` และผ่าน strict parity ครบ 12 runs ของ grid จริงแล้ว
+
+**บทเรียน metric จาก T1:** `non_spike` มี probability = 0.5 จำนวน 3 แถว; sklearn/Decision Tree
+ให้ label 0 แต่ trainer เดิมนับ `score >= 0.5` เป็น label 1 ตอนคำนวณ accuracy/F1
+แก้ให้ confusion metric ใช้ `model.predict()` ที่บันทึกลง prediction CSV ส่วน AUC/AP ใช้ score ตามเดิม
+ผลที่ถูกหลังรันใหม่คือ accuracy 0.884097 และ F1 0.188679 (`non_spike`)
+
 1. อ่านหัวข้อ **"จุดที่ parity พลาด"** ของ card นั้นอีกรอบ — 90% ของปัญหาถูกบันทึกไว้แล้ว
 2. ตรวจว่าปิด randomness ของ reference ครบหรือยัง (`random_state=42`, `subsample=1`,
    `max_features=None`, `shuffle=False`)
@@ -237,11 +248,28 @@ def _best_split(X, y, sample_weight, min_samples_leaf):
     """
 ```
 
-- [ ] unit test: 4 ตัวอย่างที่คำนวณ Gini มือได้ → `_best_split` คืนค่าที่ถูก
-- [ ] unit test: ข้อมูลบริสุทธิ์ → ต้นไม้มีแค่ root
-- [ ] unit test: `sample_weight` ไม่เท่ากัน → split เปลี่ยนไปตามน้ำหนักจริง
-- [ ] parity: เทียบ `tree_.feature` และ `tree_.threshold` กับ sklearn **ทีละ node** ไม่ใช่เทียบแค่ predict
-- [ ] **เกณฑ์ผ่าน T1:** structure ของต้นไม้ตรง sklearn 100% บน 3 ชุดข้อมูลสังเคราะห์
+- [x] unit test: 4 ตัวอย่างที่คำนวณ Gini มือได้ → `_best_split` คืนค่าที่ถูก
+- [x] unit test: ข้อมูลบริสุทธิ์ → ต้นไม้มีแค่ root
+- [x] unit test: `sample_weight` ไม่เท่ากัน → split เปลี่ยนไปตามน้ำหนักจริง
+- [x] parity: เทียบ `tree_.feature` และ `tree_.threshold` กับ sklearn **ทีละ node** ไม่ใช่เทียบแค่ predict
+- [x] **เกณฑ์ผ่าน T1:** structure ของต้นไม้ตรง sklearn 100% บน 3 ชุดข้อมูลสังเคราะห์
+
+**ผลรัน T1 (2026-10-11):** `tests/ml/classification/test_decision_tree.py` ผ่าน 21/21;
+`pytest -q` ผ่าน 679/679. Strict parity ผ่านทั้ง 6 candidates × 2 variants บน Train/Validation:
+label, probability, feature และ threshold ตรง reference ทุกค่าที่ตรวจ; save→load ผ่านทั้งคู่
+(`load_verification.json` มี `"passed": true`).
+
+| variant | candidate ที่เลือกบน Validation | AUC | F1 |
+| --- | --- | ---: | ---: |
+| `with_spike` | depth 2, min leaf 5 | 0.641779 | 0.309859 |
+| `non_spike` | depth 5, min leaf 5 | 0.692355 | 0.188679 |
+
+ผลเต็มอยู่ใน [`MODEL_PROGRESS.md`](../models/decision_tree/MODEL_PROGRESS.md) และ
+`outputs/modeling/<variant>/classification/decision_tree/`. **สถานะ DoD: ค้างข้อ 5 เท่านั้น** —
+leaderboard คือตารางเปรียบเทียบ metric ของทุกโมเดลจาก `validation_metrics.json`;
+`src.ml.run report` ยังไม่ implement (Phase C1 ของอีกฝั่ง) จึงยังไม่มีแถว `decision_tree`
+ใน `leaderboard.csv` ของทั้งสอง variant. เมื่อตัว report พร้อม ให้รันทั้งสอง variant
+และตรวจแถวนี้ก่อนเปลี่ยนสถานะเป็น ✅; ไม่ต้องแตะ Test set ในขั้นนี้
 
 > ให้เวลากับ T1 มากกว่าที่ประมาณไว้ — อีก 4 โมเดลพึ่งโค้ดนี้ ถ้า T1 ผิด จะไปโผล่เป็นบั๊กลึก ๆ ใน T2–T5
 

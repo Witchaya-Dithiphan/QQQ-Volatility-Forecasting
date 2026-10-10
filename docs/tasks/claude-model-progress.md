@@ -22,12 +22,14 @@
 | 10 | `kmeans` | clustering | ✅ | partition ตรง 5/5 · inertia ≤ sklearn | k=2 · silhouette **0.3666** | [↗](../models/kmeans/MODEL_PROGRESS.md) |
 | 11 | `agglomerative` | clustering | ✅ | partition ตรง 10/10 | k=2 ward · silhouette 0.3602 | [↗](../models/agglomerative/MODEL_PROGRESS.md) |
 
-## ฝั่ง Codex (8 ตัว — ห้ามแตะ)
+## ฝั่ง Codex (8 ตัว — เจ้าของดูแลเอง)
 
-`decision_tree` → `random_forest` · `adaboost` ★ · `gradient_boosting` → `xgboost` ·
-`stacking` · `svm` · `mlp`
+| โมเดล | สถานะ | ผลหลัก (validation) | บันทึก |
+| --- | --- | --- | --- |
+| `decision_tree` | 🟡 parity/training/reload ผ่าน; รอ leaderboard | AUC 0.6418 (`with_spike`) · 0.6924 (`non_spike`) | [↗](../models/decision_tree/MODEL_PROGRESS.md) |
+| `random_forest`, `adaboost` ★, `gradient_boosting`, `xgboost`, `stacking`, `svm`, `mlp` | ⬜ ยังไม่เริ่ม | — | |
 
-เจ้าของดูแล progress เอง บน branch `feat/models-tree-family`
+เจ้าของดูแล progress เอง บน branch `feat/models-tree-family`; T1 ยังไม่ครบ DoD ข้อ leaderboard
 
 ## Dependency
 

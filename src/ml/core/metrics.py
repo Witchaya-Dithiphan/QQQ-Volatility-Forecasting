@@ -40,10 +40,16 @@ def regression_outputs(y, raw_prediction, *, clip_min: float = 0.0) -> dict:
             "clipping_indicator": raw < clip_min, "raw_metrics": regression_metrics(y, raw), "clipped_metrics": regression_metrics(y, final)}
 
 
-def classification_metrics(y, scores, *, threshold: float = 0.5) -> dict:
+def classification_metrics(y, scores, *, threshold: float = 0.5, predicted_labels=None) -> dict:
+    """Use final model labels for confusion metrics when supplied; rank by scores."""
     y, scores = _paired(y, scores, binary=True)
     if not np.isfinite(threshold): raise ValueError("Nonfinite threshold")
-    predicted = scores >= threshold
+    if predicted_labels is None:
+        predicted = scores >= threshold
+    else:
+        _, predicted = _paired(y, predicted_labels)
+        if not np.isin(predicted, [0, 1]).all(): raise ValueError("Expected binary 0/1 predictions")
+        predicted = predicted == 1
     positive = y == 1
     tp, fp = int((predicted & positive).sum()), int((predicted & ~positive).sum())
     fn, tn = int((~predicted & positive).sum()), int((~predicted & ~positive).sum())

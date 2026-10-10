@@ -537,6 +537,17 @@ random_state=42, max_features=None, splitter="best")`
 **Unit test** 4 ตัวอย่างที่คำนวณ Gini มือได้ → ตรวจ `_best_split` คืน (feature, threshold) ที่ถูก ·
 ข้อมูลบริสุทธิ์ → ต้นไม้มีแค่ root · เทียบ `tree_.feature` และ `tree_.threshold` กับ sklearn ทีละ node
 
+**ผลรันจริง 2026-10-11:** ทั้ง 6 candidates × 2 variants ผ่าน strict parity บน Train/Validation;
+เทียบโครงสร้าง 142 nodes (`with_spike`) และ 138 nodes (`non_spike`) ได้ feature/threshold ตรงทุก node,
+max abs diff ของ validation probability = **0** ทั้งสอง variant · save/load ผ่านทั้งคู่ ·
+Validation AUC = **0.641779** (`with_spike`, depth 2, leaf 5) และ **0.692355**
+(`non_spike`, depth 5, leaf 5) · ผลละเอียดอยู่ใน
+[`MODEL_PROGRESS.md`](../models/decision_tree/MODEL_PROGRESS.md)
+
+**Pitfall ที่พิสูจน์แล้ว:** sklearn สลับลำดับ feature แบบ seeded ที่ทุก node แม้ `splitter="best"`;
+เมื่อ gain เท่ากัน การเลือก feature index ต่ำสุดตาม config ทำให้ depth 5 ต่างที่บาง node
+จึงคง `_best_split` ที่ tie ตาม index แล้วสลับลำดับ feature ที่ส่งเข้าให้ตรง sklearn ใน `fit()`
+
 **ความเสี่ยง** กลาง แต่ **ผลกระทบสูง** เพราะอีก 4 โมเดลพึ่งโค้ดนี้ — ให้เวลากับมันมากกว่าที่ประมาณไว้
 
 ---
