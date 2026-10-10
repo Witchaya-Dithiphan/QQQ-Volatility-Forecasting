@@ -4,7 +4,7 @@
 > วิธีทำงาน: invoke skill `qqq-model` (กลั่นจาก `AGENTS.md` + `MODEL_CARDS.md` แล้ว ไม่ต้องอ่านต้นฉบับซ้ำ)
 > อัปเดตตารางนี้ + ไฟล์ของโมเดลนั้น หลังจบทุกตัว · **ห้ามลบผลเก่า**
 
-**สถานะรวม:** 4/11 ของฝั่ง Claude · test suite `513 passed, 0 failed`
+**สถานะรวม:** 5/11 ของฝั่ง Claude · test suite `526 passed, 0 failed`
 
 ## ฝั่ง Claude (11 ตัว — ของเรา)
 
@@ -14,7 +14,7 @@
 | 2 | `simple_linear` | reg | ✅ | exact (8/8 ฟีเจอร์) | RMSE 0.069038 · R² **−0.0498** | [↗](../models/simple_linear/MODEL_PROGRESS.md) |
 | 3 | `knn` | cls | ✅ | exact (8/8, held-out) | AUC **0.6987** · F1 0.2000 · Acc 0.8922 | [↗](../models/knn/MODEL_PROGRESS.md) · ปลดล็อก `stacking` แล้ว |
 | 4 | `logistic` | cls | ✅ | exact (6/6) Δcoef 2.9e-08 | AUC 0.6732 · F1 0.2609 · Acc 0.9084 | [↗](../models/logistic/MODEL_PROGRESS.md) · **ปลดล็อก `stacking` ครบแล้ว** |
-| 5 | `gaussian_nb` | cls | ⬜ | | | |
+| 5 | `gaussian_nb` | cls | ✅ | exact 1e-12 | **F1 0.2812** (ดีสุด) · AUC 0.6665 | [↗](../models/gaussian_nb/MODEL_PROGRESS.md) |
 | 6 | `polynomial` | reg | ⬜ | | | |
 | 7 | `perceptron` | cls | ⬜ | | | |
 | 8 | `slp` | cls | ⬜ | | | |
@@ -48,8 +48,8 @@ paired comparison A↔B · notebooks 03/04/05
 
 ## ถัดไป
 
-`gaussian_nb` — var_smoothing ∈ {1e-9, 1e-8, 1e-7} · closed form ไม่มี RNG
-`var_smoothing` คูณกับ **variance สูงสุดของทั้งชุด** ไม่ใช่ของแต่ละคลาส · preprocess `none`
+`polynomial` — degree ∈ {2,3} × feature 8 ตัว = 16 candidates
+**standardize ก่อนยกกำลัง** · ปิด bias ของ `PolynomialFeatures`
 
 ## ข้อค้นพบสะสม (ใช้ในรายงาน §8.2)
 
@@ -69,6 +69,7 @@ paired comparison A↔B · notebooks 03/04/05
 | --- | --- | --- | --- |
 | `knn` | 0.6987 | 0.6455 | **−0.053** |
 | `logistic` | 0.6732 | 0.6824 | **+0.009** |
+| `gaussian_nb` | 0.6665 | 0.6789 | **+0.012** |
 
 **ยังสรุปทิศทางของ classification ไม่ได้** — knn ชอบ `with_spike` ชัดเจน แต่ logistic
 กลับชอบ `non_spike` เล็กน้อย ต่างจากฝั่ง regression ที่สอดคล้องกันทั้งสองตัว

@@ -1,0 +1,6 @@
+{
+  "params": {
+    "var_smoothing": 1e-08
+  },
+  "seed": 42
+}
