@@ -89,6 +89,9 @@ class BaseModel:
 
 - โมเดลที่เทรนแบบวนรอบ (SLP, MLP, Perceptron, GB, XGBoost, AdaBoost, Elastic Net) ต้องเก็บ
   `self.history_ = {"iteration": [...], "loss": [...]}` ระหว่าง fit — โจทย์บังคับให้มี **performance curve**
+- **hyperparameter ทุกตัวใน `__init__` ต้องมีค่า default** เพราะ trainer สร้างอินสแตนซ์เปล่า
+  ด้วย `model_class()` แล้วเรียก `load_state()` ตอนพิสูจน์ว่า save→load แล้วทำนายเท่าเดิม
+  ถ้า `__init__` บังคับให้ส่งอาร์กิวเมนต์ ขั้นตอนนั้นจะพัง
 - `X` ที่ได้จาก loader เป็น **read-only** (`setflags(write=False)`) ห้ามเขียนทับ ให้ `.copy()` ก่อนถ้าจำเป็น
 - ห้ามใช้ `np.random` แบบไม่ตั้ง seed — รับ `random_state` ผ่าน `__init__` และใช้ `np.random.default_rng(seed)`
 - preprocessing (standardize / PCA) **ไม่ใช่หน้าที่ของโมเดล** — trainer เป็นคนจัดการ fit บน train แล้ว transform ที่เหลือ
