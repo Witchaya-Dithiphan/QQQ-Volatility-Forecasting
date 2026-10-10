@@ -9,6 +9,7 @@ from .classification.gaussian_nb import GaussianNB
 from .classification.knn import KNN
 from .classification.logistic import Logistic
 from .classification.perceptron import Perceptron
+from .classification.slp import SLP
 from .core.base import BaseModel
 from .regression.multiple_linear import MultipleLinear
 from .regression.polynomial import Polynomial
@@ -19,6 +20,7 @@ MODELS: dict[str, type[BaseModel]] = {
     "knn": KNN,
     "logistic": Logistic,
     "perceptron": Perceptron,
+    "slp": SLP,
     "multiple_linear": MultipleLinear,
     "polynomial": Polynomial,
     "simple_linear": SimpleLinear,

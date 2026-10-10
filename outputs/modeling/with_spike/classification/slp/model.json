@@ -1,0 +1,12 @@
+{
+  "params": {
+    "batch": 32,
+    "l2": 0,
+    "learning_rate": 0.001,
+    "max_epochs": 1000,
+    "min_delta": 1e-06,
+    "patience": 50,
+    "random_state": 42
+  },
+  "seed": 42
+}
