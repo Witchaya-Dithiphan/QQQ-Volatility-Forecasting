@@ -214,6 +214,11 @@ def test_state_round_trip(data):
 ต่างที่บาง node ของ Train จริงและ probability ต่างสูงสุด 0.2879; `fit()` จึงจำลองลำดับของ sklearn
 ก่อนเรียก `_best_split()` และผ่าน strict parity ครบ 12 runs ของ grid จริงแล้ว
 
+**บทเรียน metric จาก T1:** `non_spike` มี probability = 0.5 จำนวน 3 แถว; sklearn/Decision Tree
+ให้ label 0 แต่ trainer เดิมนับ `score >= 0.5` เป็น label 1 ตอนคำนวณ accuracy/F1
+แก้ให้ confusion metric ใช้ `model.predict()` ที่บันทึกลง prediction CSV ส่วน AUC/AP ใช้ score ตามเดิม
+ผลที่ถูกหลังรันใหม่คือ accuracy 0.884097 และ F1 0.188679 (`non_spike`)
+
 1. อ่านหัวข้อ **"จุดที่ parity พลาด"** ของ card นั้นอีกรอบ — 90% ของปัญหาถูกบันทึกไว้แล้ว
 2. ตรวจว่าปิด randomness ของ reference ครบหรือยัง (`random_state=42`, `subsample=1`,
    `max_features=None`, `shuffle=False`)
@@ -250,14 +255,14 @@ def _best_split(X, y, sample_weight, min_samples_leaf):
 - [x] **เกณฑ์ผ่าน T1:** structure ของต้นไม้ตรง sklearn 100% บน 3 ชุดข้อมูลสังเคราะห์
 
 **ผลรัน T1 (2026-10-11):** `tests/ml/classification/test_decision_tree.py` ผ่าน 21/21;
-`pytest -q` ผ่าน 678/678. Strict parity ผ่านทั้ง 6 candidates × 2 variants บน Train/Validation:
+`pytest -q` ผ่าน 679/679. Strict parity ผ่านทั้ง 6 candidates × 2 variants บน Train/Validation:
 label, probability, feature และ threshold ตรง reference ทุกค่าที่ตรวจ; save→load ผ่านทั้งคู่
 (`load_verification.json` มี `"passed": true`).
 
 | variant | candidate ที่เลือกบน Validation | AUC | F1 |
 | --- | --- | ---: | ---: |
 | `with_spike` | depth 2, min leaf 5 | 0.641779 | 0.309859 |
-| `non_spike` | depth 5, min leaf 5 | 0.692355 | 0.178571 |
+| `non_spike` | depth 5, min leaf 5 | 0.692355 | 0.188679 |
 
 ผลเต็มอยู่ใน [`MODEL_PROGRESS.md`](../models/decision_tree/MODEL_PROGRESS.md) และ
 `outputs/modeling/<variant>/classification/decision_tree/`. **สถานะ DoD: ค้างข้อ 5 เท่านั้น** —

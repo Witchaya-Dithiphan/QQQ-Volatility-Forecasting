@@ -7,7 +7,7 @@
 | variant | depth | min leaf | AUC | AP | F1 | accuracy | sensitivity | specificity | confusion |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
 | `with_spike` | 2 | 5 | 0.641779 | 0.173177 | 0.309859 | 0.867925 | 0.323529 | 0.922849 | `[[311,26],[23,11]]` |
-| `non_spike` | 5 | 5 | 0.692355 | 0.188709 | 0.178571 | 0.876011 | 0.147059 | 0.949555 | `[[320,17],[29,5]]` |
+| `non_spike` | 5 | 5 | 0.692355 | 0.188709 | 0.188679 | 0.884097 | 0.147059 | 0.958457 | `[[323,14],[29,5]]` |
 
 ทั้งสอง variant เลือกจาก 6 candidates บน Validation, preprocess `none`, `reload=ok` และ `load_verification.json` มี `"passed": true` ผลเต็มอยู่ใน `outputs/modeling/<variant>/classification/decision_tree/`
 
@@ -33,6 +33,8 @@ Weighted stump ผ่าน parity กับ `DecisionTreeClassifier.fit(..., sa
 ## ปัญหาที่เจอและแก้แล้ว
 
 เมื่อขยาย parity ไปถึง depth 5, โครงสร้างเริ่มต่างที่ node 11/32 (`with_spike`) และ node 4/47 (`non_spike`) ทำให้ probability ต่างสูงสุด 0.2879 และบาง label ต่าง สาเหตุคือหลาย feature มี Gini gain **เท่ากันเป๊ะ** แต่ sklearn สลับลำดับ feature ด้วย RNG ภายในแม้ `splitter="best"`; การเลือก feature index ต่ำสุดจึงไม่ตรง reference วิธีแก้คือจำลองลำดับเลือก feature ของ sklearn ด้วย seed 42 แล้วใช้ `_best_split()` เดิมบนลำดับนั้น ผลหลังแก้ต่าง `0` ทุก candidate
+
+`non_spike` มี 3 แถวที่ probability เท่ากับ 0.5: `DecisionTree.predict()` ให้ label 0 ตาม sklearn แต่ trainer เดิมคำนวณ metric ด้วย `score >= 0.5` จึงเคยรายงาน accuracy 0.876011 ทั้งที่ `validation_predictions.csv` ถูกจริง 328/371 = 0.884097 แก้ core ให้ confusion metric ใช้ label จาก `model.predict()` ส่วน AUC/AP ยังคำนวณจาก score แล้วเทรนทั้งสอง variant ใหม่; ค่าในตารางนี้ตรงกับ prediction CSV แล้ว
 
 ## ค้างอยู่
 

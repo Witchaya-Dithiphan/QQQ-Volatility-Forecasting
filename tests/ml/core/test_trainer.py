@@ -3,7 +3,7 @@ import json
 
 import pytest
 
-from src.ml.core.trainer import expand_grid, train_model
+from src.ml.core.trainer import evaluate, expand_grid, train_model
 from src.ml.regression.multiple_linear import MultipleLinear
 
 REQUIRED_ARTIFACTS = (
@@ -15,6 +15,21 @@ REQUIRED_ARTIFACTS = (
     "validation_predictions.csv",
     "load_verification.json",
 )
+
+
+def test_classification_metrics_use_the_labels_written_to_predictions():
+    class TiedProbability:
+        def predict_proba(self, X):
+            return [0.5, 0.8]
+
+        def predict(self, X):
+            return [0, 1]
+
+    metrics, labels, scores = evaluate(TiedProbability(), [[0], [1]], [0, 0], [0, 1], "classification")
+    assert labels.tolist() == [0, 1]
+    assert scores.tolist() == [0.5, 0.8]
+    assert metrics["confusion_matrix"] == [[1, 0], [0, 1]]
+    assert metrics["accuracy"]["value"] == 1.0
 
 
 def test_expand_grid_produces_every_combination_in_a_stable_order():
