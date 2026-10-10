@@ -1,0 +1,66 @@
+{
+  "quantile": 0.75,
+  "quantile_method": "linear",
+  "threshold_source": "train_only",
+  "regression_target": "target_volatility_5d",
+  "classification_target": "target_high_volatility",
+  "threshold_decimal": 0.2530580184684854,
+  "threshold_percent": 25.305801846848542,
+  "comparison_rule": "target_volatility_5d > threshold",
+  "train": {
+    "rows": 1733,
+    "normal_count": 1300,
+    "high_count": 433,
+    "normal_ratio": 0.7501442585112522,
+    "high_ratio": 0.24985574148874784,
+    "start_date": "2016-09-29",
+    "end_date": "2023-08-18"
+  },
+  "validation": {
+    "rows": 371,
+    "normal_count": 337,
+    "high_count": 34,
+    "normal_ratio": 0.9083557951482479,
+    "high_ratio": 0.09164420485175202,
+    "start_date": "2023-08-28",
+    "end_date": "2025-02-19"
+  },
+  "test": {
+    "rows": 373,
+    "normal_count": 300,
+    "high_count": 73,
+    "normal_ratio": 0.8042895442359249,
+    "high_ratio": 0.19571045576407506,
+    "start_date": "2025-02-27",
+    "end_date": "2026-08-21"
+  },
+  "input_paths": {
+    "train": "../../data/processed/train.csv",
+    "validation": "../../data/processed/validation.csv",
+    "test": "../../data/processed/test.csv"
+  },
+  "output_paths": {
+    "train": "../../data/processed/train_labeled.csv",
+    "validation": "../../data/processed/validation_labeled.csv",
+    "test": "../../data/processed/test_labeled.csv",
+    "report": "classification_threshold.json"
+  },
+  "paths_relative_to": "report_directory",
+  "source_checksums": {
+    "train": {
+      "before": "E00CC9E500C463A46BBA3A986602B99D13B569237FB895EFEF8DD8FD8DAD493D",
+      "after": "E00CC9E500C463A46BBA3A986602B99D13B569237FB895EFEF8DD8FD8DAD493D",
+      "unchanged": true
+    },
+    "validation": {
+      "before": "6B7E92C6A0C1FA3D150573C53B4D6DDE1FD7506C04F3631799EDBFA883D9C1E1",
+      "after": "6B7E92C6A0C1FA3D150573C53B4D6DDE1FD7506C04F3631799EDBFA883D9C1E1",
+      "unchanged": true
+    },
+    "test": {
+      "before": "51E4719DEDF627129557147F67C9385C2B750AC409D91996B3231C2596B554A8",
+      "after": "51E4719DEDF627129557147F67C9385C2B750AC409D91996B3231C2596B554A8",
+      "unchanged": true
+    }
+  }
+}

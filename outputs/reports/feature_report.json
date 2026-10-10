@@ -1,0 +1,67 @@
+{
+  "rows": 2512,
+  "date_min": "2016-08-31",
+  "date_max": "2026-08-28",
+  "price_column": "Close",
+  "annualization_factor": 252,
+  "feature_columns": [
+    "return_1d",
+    "return_5d",
+    "historical_volatility_5d",
+    "historical_volatility_20d",
+    "intraday_range",
+    "sma_ratio_5_20",
+    "rsi_14",
+    "volume_zscore_20"
+  ],
+  "nan_counts": {
+    "return_1d": 1,
+    "return_5d": 5,
+    "historical_volatility_5d": 5,
+    "historical_volatility_20d": 20,
+    "intraday_range": 0,
+    "sma_ratio_5_20": 19,
+    "rsi_14": 14,
+    "volume_zscore_20": 19
+  },
+  "infinite_values_replaced": {
+    "return_1d": 0,
+    "return_5d": 0,
+    "historical_volatility_5d": 0,
+    "historical_volatility_20d": 0,
+    "intraday_range": 0,
+    "sma_ratio_5_20": 0,
+    "rsi_14": 0,
+    "volume_zscore_20": 0
+  },
+  "first_valid_date": {
+    "return_1d": "2016-09-01",
+    "return_5d": "2016-09-08",
+    "historical_volatility_5d": "2016-09-08",
+    "historical_volatility_20d": "2016-09-29",
+    "intraday_range": "2016-08-31",
+    "sma_ratio_5_20": "2016-09-28",
+    "rsi_14": "2016-09-21",
+    "volume_zscore_20": "2016-09-28"
+  },
+  "min_values": {
+    "return_1d": -0.11978787563689297,
+    "return_5d": -0.1619641760007562,
+    "historical_volatility_5d": 0.012841924279963172,
+    "historical_volatility_20d": 0.04731891290888991,
+    "intraday_range": 0.0024550304518200757,
+    "sma_ratio_5_20": 0.8792231260069636,
+    "rsi_14": 21.969258478190085,
+    "volume_zscore_20": -2.888667825954934
+  },
+  "max_values": {
+    "return_1d": 0.12003076479353947,
+    "return_5d": 0.12659861551097018,
+    "historical_volatility_5d": 1.5016926827118375,
+    "historical_volatility_20d": 0.9231607767303105,
+    "intraday_range": 0.11244635193133043,
+    "sma_ratio_5_20": 1.0894604229075804,
+    "rsi_14": 85.38764733215012,
+    "volume_zscore_20": 3.8813195374885927
+  }
+}

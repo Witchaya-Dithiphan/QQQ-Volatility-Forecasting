@@ -1,0 +1,45 @@
+[
+  {
+    "id": "multiple_linear-00",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05418623740217494
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004742278007262969
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04455419956339912
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06886419975039984
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05418623740217494
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004742278007262969
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04455419956339912
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06886419975039984
+        }
+      }
+    },
+    "params": {}
+  }
+]

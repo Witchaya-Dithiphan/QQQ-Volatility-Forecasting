@@ -1,0 +1,177 @@
+{
+  "report_version": 1,
+  "paths_relative_to": "report_directory",
+  "dataset_definition": "operationally non-spike-affected",
+  "classification_contract": {
+    "source": "Original Train",
+    "quantile": 0.75,
+    "quantile_method": "linear",
+    "threshold": 0.2530580184684854,
+    "comparison_rule": "target_volatility_5d > threshold",
+    "labels_consistent": true
+  },
+  "datasets": {
+    "original_train": {
+      "rows": 1733,
+      "date_range": {
+        "start": "2016-09-29",
+        "end": "2023-08-18"
+      },
+      "class_counts": {
+        "0": 1300,
+        "1": 433
+      },
+      "class_ratios": {
+        "0": 0.7501442585112522,
+        "1": 0.24985574148874784
+      }
+    },
+    "with_spikes_train": {
+      "rows": 1733,
+      "date_range": {
+        "start": "2016-09-29",
+        "end": "2023-08-18"
+      },
+      "class_counts": {
+        "0": 1300,
+        "1": 433
+      },
+      "class_ratios": {
+        "0": 0.7501442585112522,
+        "1": 0.24985574148874784
+      }
+    },
+    "non_spike_train": {
+      "rows": 1520,
+      "date_range": {
+        "start": "2016-09-29",
+        "end": "2023-08-18"
+      },
+      "class_counts": {
+        "0": 1240,
+        "1": 280
+      },
+      "class_ratios": {
+        "0": 0.8157894736842105,
+        "1": 0.18421052631578946
+      }
+    }
+  },
+  "diagnostic_segments": {
+    "validation": {
+      "full": 371,
+      "non_spike": 371,
+      "spike_affected": 0
+    },
+    "test": {
+      "full": 373,
+      "non_spike": 319,
+      "spike_affected": 54
+    }
+  },
+  "evaluation_contract": {
+    "primary_validation": "full Original Validation",
+    "primary_test": "full Original Test",
+    "flagged_copies_role": "diagnostic_only"
+  },
+  "spike_counts": {
+    "train": {
+      "direct": 19,
+      "affected": 213
+    },
+    "validation": {
+      "direct": 0,
+      "affected": 0
+    },
+    "test": {
+      "direct": 4,
+      "affected": 54
+    }
+  },
+  "train_filtering": {
+    "before": 1733,
+    "removed": 213,
+    "retained": 1520,
+    "identity_valid": true
+  },
+  "artifacts": {
+    "train_labeled": {
+      "path": "../../data/processed/train_labeled.csv",
+      "sha256": "424F1BDA5C4211AC58546DA992408D373D874A0F65A509965B06D8224194E64C"
+    },
+    "validation_labeled": {
+      "path": "../../data/processed/validation_labeled.csv",
+      "sha256": "B84A5FA31FE1AFC6841528F8E5F0C8532B07E2BDA8B80BD2CA1DE664CF42F6EC"
+    },
+    "test_labeled": {
+      "path": "../../data/processed/test_labeled.csv",
+      "sha256": "5E8AC488CB895A8899ABD9B3AE9193B4DC6EBDA2E77B79982CEF4F5EA9BF7295"
+    },
+    "spike_input_contract": {
+      "path": "spike_input_contract.json",
+      "sha256": "551056AC0EC3DC55D32B98D39544488B20AB5507BD9E02818FAAC42D74F67229"
+    },
+    "spike_analysis": {
+      "path": "spike_analysis.json",
+      "sha256": "E7531330DE563EB7E70691A29C97F4F1A72867776E2273ADAE075E3A9EB74D6C"
+    },
+    "daily_return_figure": {
+      "path": "../figures/spike_analysis/daily_return_spikes.png",
+      "sha256": "EF62C1179CB6C82CE4C8EDD5927967CDF7DF929D9F5353E99731B930CBC4C5DC"
+    },
+    "with_spikes_train": {
+      "path": "../../data/processed/experiments/with_spikes/train.csv",
+      "sha256": "424F1BDA5C4211AC58546DA992408D373D874A0F65A509965B06D8224194E64C"
+    },
+    "non_spike_train": {
+      "path": "../../data/processed/experiments/non_spike/train.csv",
+      "sha256": "34FC39D92EEEC76B1671741FAFBE66E448767536BF80DFAD1FA5CB39E0CE34F2"
+    },
+    "validation_flagged": {
+      "path": "../../data/processed/experiments/diagnostics/validation_flagged.csv",
+      "sha256": "F6F520B4A3D6C943BE62626ABD7855E3DF5CC957CAEF9D54A3618945904CF583"
+    },
+    "test_flagged": {
+      "path": "../../data/processed/experiments/diagnostics/test_flagged.csv",
+      "sha256": "51FCBE40ABB3CFE4C73DD80EE51A5ED5CB4BF2BC8441489B78703B55C236C006"
+    },
+    "volatility_spike_effect_figure": {
+      "path": "../figures/spike_analysis/volatility_spike_effect.png",
+      "sha256": "3C3F914F11AEC299213FC028BB55533FEA03BB2ABCF9FE5776C78A3BDBD6531E"
+    },
+    "dataset_comparison_figure": {
+      "path": "../figures/spike_analysis/dataset_comparison.png",
+      "sha256": "B359882E4DC7B9F2C2E4985E66A5685D175A4FA84AD109D4B06058540169C720"
+    }
+  },
+  "limitations": {
+    "boundary": "Features and targets were computed before splitting, so rows at a split boundary may still reference pre-split timeline data; within-split clipping is an operational experiment policy, not proof of zero cross-boundary influence.",
+    "rsi": "Wilder RSI is recursive, so spike influence may persist after s+19; the inclusive [s-5, s+19] window is the frozen operational definition.",
+    "interpretation": "Non-Spike Train is operationally non-spike-affected under [s-5, s+19], not proven free of spike influence in every feature."
+  },
+  "expected_audit_checks": {
+    "role": "regression_assertions_not_calculation_inputs",
+    "train_rows": {
+      "before": 1733,
+      "after": 1520
+    },
+    "direct_affected": {
+      "train": [
+        19,
+        213
+      ],
+      "validation": [
+        0,
+        0
+      ],
+      "test": [
+        4,
+        54
+      ]
+    },
+    "non_spike_class_counts": {
+      "0": 1240,
+      "1": 280
+    }
+  }
+}

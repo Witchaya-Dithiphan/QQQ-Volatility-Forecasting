@@ -1,0 +1,41 @@
+{
+  "rows_before": 2512,
+  "rows_after": 2512,
+  "rows_removed": 0,
+  "date_min_before": "2016-08-31",
+  "date_max_before": "2026-08-28",
+  "date_min_after": "2016-08-31",
+  "date_max_after": "2026-08-28",
+  "invalid_date_rows": 0,
+  "numeric_values_coerced": {
+    "Open": 0,
+    "High": 0,
+    "Low": 0,
+    "Close": 0,
+    "Volume": 0
+  },
+  "exact_duplicate_rows": 0,
+  "duplicate_date_rows": 0,
+  "missing_values_before": {
+    "Date": 0,
+    "Open": 0,
+    "High": 0,
+    "Low": 0,
+    "Close": 0,
+    "Volume": 0
+  },
+  "missing_values_after": {
+    "Date": 0,
+    "Open": 0,
+    "High": 0,
+    "Low": 0,
+    "Close": 0,
+    "Volume": 0
+  },
+  "rows_removed_for_missing_required_values": 0,
+  "nonpositive_price_rows": 0,
+  "high_below_low_rows": 0,
+  "open_outside_range_rows": 0,
+  "negative_volume_rows": 0,
+  "zero_volume_rows_preserved": 0
+}

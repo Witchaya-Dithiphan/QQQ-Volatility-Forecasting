@@ -1,0 +1,37 @@
+{
+  "target_column": "target_volatility_5d",
+  "horizon_trading_days": 5,
+  "annualization_factor": 252,
+  "formula": "sample_std(return_1d at t+1 through t+5, ddof=1) * sqrt(annualization_factor)",
+  "future_returns_description": "The target at trading row t uses return_1d from t+1 through t+5.",
+  "unit": "annualized decimal volatility (0.20 = 20%)",
+  "input_rows": 2512,
+  "output_rows": 2512,
+  "valid_target_count": 2507,
+  "target_nan_count": 5,
+  "boundary_nan_count": 5,
+  "other_nan_count": 0,
+  "nan_reason": "The final five trading rows lack a complete t+1 through t+5 return window.",
+  "statistics": {
+    "min": 0.0128419242799437,
+    "max": 1.5016926827118369,
+    "mean": 0.18815029373334344,
+    "median": 0.1604849761368235,
+    "std": 0.13389437713230934,
+    "quantiles": {
+      "p05": 0.052264917580338306,
+      "p25": 0.1008942826766558,
+      "p50": 0.1604849761368235,
+      "p75": 0.2381594096810556,
+      "p95": 0.41365639336477644
+    }
+  },
+  "paths_relative_to": "report_directory",
+  "input_path": "../../data/interim/qqq_features.csv",
+  "output_path": "../../data/interim/qqq_regression_target.csv",
+  "report_path": "regression_target_report.json",
+  "input_checksum_before": "5020287D8A5D5963F9E0A894D5581D2174B513A1C0B493B158FF29128C8FAE94",
+  "input_checksum_after": "5020287D8A5D5963F9E0A894D5581D2174B513A1C0B493B158FF29128C8FAE94",
+  "source_input_unchanged": true,
+  "output_checksum": "557B6B2F6EDB560A9CF5F9A10208351C2C11BFAA00C49EAE86AC31BC2823A9B8"
+}

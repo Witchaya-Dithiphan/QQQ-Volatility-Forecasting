@@ -1,0 +1,132 @@
+{
+  "paths_relative_to": "report_directory",
+  "input_path": "../../data/interim/qqq_regression_target.csv",
+  "output_paths": {
+    "train": "../../data/processed/train.csv",
+    "validation": "../../data/processed/validation.csv",
+    "test": "../../data/processed/test.csv",
+    "report": "data_split_report.json"
+  },
+  "feature_columns": [
+    "return_1d",
+    "return_5d",
+    "historical_volatility_5d",
+    "historical_volatility_20d",
+    "intraday_range",
+    "sma_ratio_5_20",
+    "rsi_14",
+    "volume_zscore_20"
+  ],
+  "regression_target": "target_volatility_5d",
+  "rows_before_filtering": 2512,
+  "rows_after_filtering": 2487,
+  "rows_removed": 25,
+  "nan_counts_before_filtering": {
+    "return_1d": 1,
+    "return_5d": 5,
+    "historical_volatility_5d": 5,
+    "historical_volatility_20d": 20,
+    "intraday_range": 0,
+    "sma_ratio_5_20": 19,
+    "rsi_14": 14,
+    "volume_zscore_20": 19,
+    "target_volatility_5d": 5
+  },
+  "positive_infinity_counts_before_filtering": {
+    "return_1d": 0,
+    "return_5d": 0,
+    "historical_volatility_5d": 0,
+    "historical_volatility_20d": 0,
+    "intraday_range": 0,
+    "sma_ratio_5_20": 0,
+    "rsi_14": 0,
+    "volume_zscore_20": 0,
+    "target_volatility_5d": 0
+  },
+  "negative_infinity_counts_before_filtering": {
+    "return_1d": 0,
+    "return_5d": 0,
+    "historical_volatility_5d": 0,
+    "historical_volatility_20d": 0,
+    "intraday_range": 0,
+    "sma_ratio_5_20": 0,
+    "rsi_14": 0,
+    "volume_zscore_20": 0,
+    "target_volatility_5d": 0
+  },
+  "rows_with_nan": 25,
+  "rows_with_infinity": 0,
+  "rows_with_invalid_model_values": 25,
+  "date_min_before_filtering": "2016-08-31",
+  "date_max_before_filtering": "2026-08-28",
+  "date_min_after_filtering": "2016-09-29",
+  "date_max_after_filtering": "2026-08-21",
+  "split_ratios": {
+    "train": 0.7,
+    "validation": 0.15,
+    "test": 0.15
+  },
+  "gap_size": 5,
+  "total_gap_rows": 10,
+  "usable_rows": 2477,
+  "split_rows": {
+    "train": 1733,
+    "validation": 371,
+    "test": 373
+  },
+  "positions": {
+    "train": {
+      "start": 0,
+      "end": 1732
+    },
+    "gap1": {
+      "start": 1733,
+      "end": 1737
+    },
+    "validation": {
+      "start": 1738,
+      "end": 2108
+    },
+    "gap2": {
+      "start": 2109,
+      "end": 2113
+    },
+    "test": {
+      "start": 2114,
+      "end": 2486
+    }
+  },
+  "date_ranges": {
+    "train": {
+      "start": "2016-09-29",
+      "end": "2023-08-18"
+    },
+    "validation": {
+      "start": "2023-08-28",
+      "end": "2025-02-19"
+    },
+    "test": {
+      "start": "2025-02-27",
+      "end": "2026-08-21"
+    }
+  },
+  "gap_dates": {
+    "gap1": [
+      "2023-08-21",
+      "2023-08-22",
+      "2023-08-23",
+      "2023-08-24",
+      "2023-08-25"
+    ],
+    "gap2": [
+      "2025-02-20",
+      "2025-02-21",
+      "2025-02-24",
+      "2025-02-25",
+      "2025-02-26"
+    ]
+  },
+  "source_checksum_before": "557B6B2F6EDB560A9CF5F9A10208351C2C11BFAA00C49EAE86AC31BC2823A9B8",
+  "source_checksum_after": "557B6B2F6EDB560A9CF5F9A10208351C2C11BFAA00C49EAE86AC31BC2823A9B8",
+  "source_input_unchanged": true
+}

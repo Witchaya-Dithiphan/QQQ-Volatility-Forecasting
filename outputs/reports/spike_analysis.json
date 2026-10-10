@@ -1,0 +1,525 @@
+{
+  "report_version": 1,
+  "paths_relative_to": "report_directory",
+  "primary_detector": {
+    "q1": 0.0029797377830751,
+    "q3": 0.013870714472651,
+    "iqr": 0.0108909766895759,
+    "multiplier": 3.0,
+    "threshold": 0.0465436445413787,
+    "quantile_method": "linear",
+    "comparison_rule": "abs(return_1d) > threshold",
+    "source_split": "original_train",
+    "return_column": "return_1d"
+  },
+  "comparison_rule_identifier": "strict_greater_than",
+  "numeric_comparison": {
+    "exact_fields": [
+      "Date",
+      "split",
+      "original_position"
+    ],
+    "float_fields": [
+      "Open",
+      "High",
+      "Low",
+      "Close",
+      "Volume",
+      "return_1d",
+      "return_5d",
+      "historical_volatility_5d",
+      "historical_volatility_20d",
+      "intraday_range",
+      "sma_ratio_5_20",
+      "rsi_14",
+      "volume_zscore_20",
+      "target_volatility_5d"
+    ],
+    "rtol": 0.0,
+    "atol": 1e-12,
+    "reason": "CSV float serialization may differ at sub-decimal machine precision."
+  },
+  "inputs": {
+    "raw_snapshot": {
+      "path": "../../data/raw/qqq_daily.csv",
+      "sha256": "649E1DB1B79C0990EA947A4EA162D6836B9BBDDA2AF24BC5AB6AE66CB83B6B13"
+    },
+    "manifest": {
+      "path": "../../data/manifests/qqq_daily_snapshot.json",
+      "sha256": "5D6A4F0316F20FAB675EFED6009A49DFA5670B72781247984CF9E6FAD583F8A7"
+    },
+    "clean_data": {
+      "path": "../../data/interim/qqq_clean.csv",
+      "sha256": "062A7A57A55F0336F257B0CAE3425CB67E0DA0C30C41858E4F01D00E39251541"
+    },
+    "feature_data": {
+      "path": "../../data/interim/qqq_features.csv",
+      "sha256": "5020287D8A5D5963F9E0A894D5581D2174B513A1C0B493B158FF29128C8FAE94"
+    },
+    "target_data": {
+      "path": "../../data/interim/qqq_regression_target.csv",
+      "sha256": "557B6B2F6EDB560A9CF5F9A10208351C2C11BFAA00C49EAE86AC31BC2823A9B8"
+    },
+    "train_labeled": {
+      "path": "../../data/processed/train_labeled.csv",
+      "sha256": "424F1BDA5C4211AC58546DA992408D373D874A0F65A509965B06D8224194E64C"
+    },
+    "validation_labeled": {
+      "path": "../../data/processed/validation_labeled.csv",
+      "sha256": "B84A5FA31FE1AFC6841528F8E5F0C8532B07E2BDA8B80BD2CA1DE664CF42F6EC"
+    },
+    "test_labeled": {
+      "path": "../../data/processed/test_labeled.csv",
+      "sha256": "5E8AC488CB895A8899ABD9B3AE9193B4DC6EBDA2E77B79982CEF4F5EA9BF7295"
+    },
+    "spike_input_contract": {
+      "path": "spike_input_contract.json",
+      "sha256": "551056AC0EC3DC55D32B98D39544488B20AB5507BD9E02818FAAC42D74F67229"
+    }
+  },
+  "source_checksum_guard": {
+    "before_writing_outputs": {
+      "clean_data": "062A7A57A55F0336F257B0CAE3425CB67E0DA0C30C41858E4F01D00E39251541",
+      "feature_data": "5020287D8A5D5963F9E0A894D5581D2174B513A1C0B493B158FF29128C8FAE94",
+      "manifest": "5D6A4F0316F20FAB675EFED6009A49DFA5670B72781247984CF9E6FAD583F8A7",
+      "raw_snapshot": "649E1DB1B79C0990EA947A4EA162D6836B9BBDDA2AF24BC5AB6AE66CB83B6B13",
+      "spike_input_contract": "551056AC0EC3DC55D32B98D39544488B20AB5507BD9E02818FAAC42D74F67229",
+      "target_data": "557B6B2F6EDB560A9CF5F9A10208351C2C11BFAA00C49EAE86AC31BC2823A9B8",
+      "test_labeled": "5E8AC488CB895A8899ABD9B3AE9193B4DC6EBDA2E77B79982CEF4F5EA9BF7295",
+      "train_labeled": "424F1BDA5C4211AC58546DA992408D373D874A0F65A509965B06D8224194E64C",
+      "validation_labeled": "B84A5FA31FE1AFC6841528F8E5F0C8532B07E2BDA8B80BD2CA1DE664CF42F6EC"
+    },
+    "after_writing_csv_and_figure": {
+      "clean_data": "062A7A57A55F0336F257B0CAE3425CB67E0DA0C30C41858E4F01D00E39251541",
+      "feature_data": "5020287D8A5D5963F9E0A894D5581D2174B513A1C0B493B158FF29128C8FAE94",
+      "manifest": "5D6A4F0316F20FAB675EFED6009A49DFA5670B72781247984CF9E6FAD583F8A7",
+      "raw_snapshot": "649E1DB1B79C0990EA947A4EA162D6836B9BBDDA2AF24BC5AB6AE66CB83B6B13",
+      "spike_input_contract": "551056AC0EC3DC55D32B98D39544488B20AB5507BD9E02818FAAC42D74F67229",
+      "target_data": "557B6B2F6EDB560A9CF5F9A10208351C2C11BFAA00C49EAE86AC31BC2823A9B8",
+      "test_labeled": "5E8AC488CB895A8899ABD9B3AE9193B4DC6EBDA2E77B79982CEF4F5EA9BF7295",
+      "train_labeled": "424F1BDA5C4211AC58546DA992408D373D874A0F65A509965B06D8224194E64C",
+      "validation_labeled": "B84A5FA31FE1AFC6841528F8E5F0C8532B07E2BDA8B80BD2CA1DE664CF42F6EC"
+    },
+    "unchanged": true,
+    "post_report_runtime_check": "The runner re-hashes every protected input after writing this report and fails if any checksum changed."
+  },
+  "splits": {
+    "train": {
+      "row_count": 1733,
+      "split_name": "train",
+      "direct_count": 19,
+      "affected_union_count": 213,
+      "left_clipped_window_count": 0,
+      "right_clipped_window_count": 0,
+      "overlap_position_count": 82,
+      "mask_scope": "within_split",
+      "cross_split_propagation": false,
+      "boundary_limitation": "Features and targets were computed before splitting, so rows at a split boundary may still reference pre-split timeline data; within-split clipping is an operational experiment policy, not proof of zero cross-boundary influence.",
+      "rsi_limitation": "Wilder RSI is recursive, so spike influence may persist after s+19; the inclusive [s-5, s+19] window is the frozen operational definition."
+    },
+    "validation": {
+      "row_count": 371,
+      "split_name": "validation",
+      "direct_count": 0,
+      "affected_union_count": 0,
+      "left_clipped_window_count": 0,
+      "right_clipped_window_count": 0,
+      "overlap_position_count": 0,
+      "mask_scope": "within_split",
+      "cross_split_propagation": false,
+      "boundary_limitation": "Features and targets were computed before splitting, so rows at a split boundary may still reference pre-split timeline data; within-split clipping is an operational experiment policy, not proof of zero cross-boundary influence.",
+      "rsi_limitation": "Wilder RSI is recursive, so spike influence may persist after s+19; the inclusive [s-5, s+19] window is the frozen operational definition."
+    },
+    "test": {
+      "row_count": 373,
+      "split_name": "test",
+      "direct_count": 4,
+      "affected_union_count": 54,
+      "left_clipped_window_count": 0,
+      "right_clipped_window_count": 0,
+      "overlap_position_count": 25,
+      "mask_scope": "within_split",
+      "cross_split_propagation": false,
+      "boundary_limitation": "Features and targets were computed before splitting, so rows at a split boundary may still reference pre-split timeline data; within-split clipping is an operational experiment policy, not proof of zero cross-boundary influence.",
+      "rsi_limitation": "Wilder RSI is recursive, so spike influence may persist after s+19; the inclusive [s-5, s+19] window is the frozen operational definition."
+    }
+  },
+  "events": [
+    {
+      "event_key": "train:563:2018-12-26",
+      "split": "train",
+      "original_position": 563,
+      "event_date": "2018-12-26",
+      "requested_start": 558,
+      "requested_end": 582,
+      "clipped_start": 558,
+      "clipped_end": 582,
+      "clipped_start_date": "2018-12-18",
+      "clipped_end_date": "2019-01-24",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:857:2020-02-27",
+      "split": "train",
+      "original_position": 857,
+      "event_date": "2020-02-27",
+      "requested_start": 852,
+      "requested_end": 876,
+      "clipped_start": 852,
+      "clipped_end": 876,
+      "clipped_start_date": "2020-02-20",
+      "clipped_end_date": "2020-03-25",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:859:2020-03-02",
+      "split": "train",
+      "original_position": 859,
+      "event_date": "2020-03-02",
+      "requested_start": 854,
+      "requested_end": 878,
+      "clipped_start": 854,
+      "clipped_end": 878,
+      "clipped_start_date": "2020-02-24",
+      "clipped_end_date": "2020-03-27",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:864:2020-03-09",
+      "split": "train",
+      "original_position": 864,
+      "event_date": "2020-03-09",
+      "requested_start": 859,
+      "requested_end": 883,
+      "clipped_start": 859,
+      "clipped_end": 883,
+      "clipped_start_date": "2020-03-02",
+      "clipped_end_date": "2020-04-03",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:865:2020-03-10",
+      "split": "train",
+      "original_position": 865,
+      "event_date": "2020-03-10",
+      "requested_start": 860,
+      "requested_end": 884,
+      "clipped_start": 860,
+      "clipped_end": 884,
+      "clipped_start_date": "2020-03-03",
+      "clipped_end_date": "2020-04-06",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:867:2020-03-12",
+      "split": "train",
+      "original_position": 867,
+      "event_date": "2020-03-12",
+      "requested_start": 862,
+      "requested_end": 886,
+      "clipped_start": 862,
+      "clipped_end": 886,
+      "clipped_start_date": "2020-03-05",
+      "clipped_end_date": "2020-04-08",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:868:2020-03-13",
+      "split": "train",
+      "original_position": 868,
+      "event_date": "2020-03-13",
+      "requested_start": 863,
+      "requested_end": 887,
+      "clipped_start": 863,
+      "clipped_end": 887,
+      "clipped_start_date": "2020-03-06",
+      "clipped_end_date": "2020-04-09",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:869:2020-03-16",
+      "split": "train",
+      "original_position": 869,
+      "event_date": "2020-03-16",
+      "requested_start": 864,
+      "requested_end": 888,
+      "clipped_start": 864,
+      "clipped_end": 888,
+      "clipped_start_date": "2020-03-09",
+      "clipped_end_date": "2020-04-13",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:870:2020-03-17",
+      "split": "train",
+      "original_position": 870,
+      "event_date": "2020-03-17",
+      "requested_start": 865,
+      "requested_end": 889,
+      "clipped_start": 865,
+      "clipped_end": 889,
+      "clipped_start_date": "2020-03-10",
+      "clipped_end_date": "2020-04-14",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:875:2020-03-24",
+      "split": "train",
+      "original_position": 875,
+      "event_date": "2020-03-24",
+      "requested_start": 870,
+      "requested_end": 894,
+      "clipped_start": 870,
+      "clipped_end": 894,
+      "clipped_start_date": "2020-03-17",
+      "clipped_end_date": "2020-04-21",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:877:2020-03-26",
+      "split": "train",
+      "original_position": 877,
+      "event_date": "2020-03-26",
+      "requested_start": 872,
+      "requested_end": 896,
+      "clipped_start": 872,
+      "clipped_end": 896,
+      "clipped_start_date": "2020-03-19",
+      "clipped_end_date": "2020-04-23",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:884:2020-04-06",
+      "split": "train",
+      "original_position": 884,
+      "event_date": "2020-04-06",
+      "requested_start": 879,
+      "requested_end": 903,
+      "clipped_start": 879,
+      "clipped_end": 903,
+      "clipped_start_date": "2020-03-30",
+      "clipped_end_date": "2020-05-04",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:930:2020-06-11",
+      "split": "train",
+      "original_position": 930,
+      "event_date": "2020-06-11",
+      "requested_start": 925,
+      "requested_end": 949,
+      "clipped_start": 925,
+      "clipped_end": 949,
+      "clipped_start_date": "2020-06-04",
+      "clipped_end_date": "2020-07-09",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:989:2020-09-03",
+      "split": "train",
+      "original_position": 989,
+      "event_date": "2020-09-03",
+      "requested_start": 984,
+      "requested_end": 1008,
+      "clipped_start": 984,
+      "clipped_end": 1008,
+      "clipped_start_date": "2020-08-27",
+      "clipped_end_date": "2020-10-01",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:991:2020-09-08",
+      "split": "train",
+      "original_position": 991,
+      "event_date": "2020-09-08",
+      "requested_start": 986,
+      "requested_end": 1010,
+      "clipped_start": 986,
+      "clipped_end": 1010,
+      "clipped_start_date": "2020-08-31",
+      "clipped_end_date": "2020-10-05",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:1409:2022-05-05",
+      "split": "train",
+      "original_position": 1409,
+      "event_date": "2022-05-05",
+      "requested_start": 1404,
+      "requested_end": 1428,
+      "clipped_start": 1404,
+      "clipped_end": 1428,
+      "clipped_start_date": "2022-04-28",
+      "clipped_end_date": "2022-06-02",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:1418:2022-05-18",
+      "split": "train",
+      "original_position": 1418,
+      "event_date": "2022-05-18",
+      "requested_start": 1413,
+      "requested_end": 1437,
+      "clipped_start": 1413,
+      "clipped_end": 1437,
+      "clipped_start_date": "2022-05-11",
+      "clipped_end_date": "2022-06-15",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:1498:2022-09-13",
+      "split": "train",
+      "original_position": 1498,
+      "event_date": "2022-09-13",
+      "requested_start": 1493,
+      "requested_end": 1517,
+      "clipped_start": 1493,
+      "clipped_end": 1517,
+      "clipped_start_date": "2022-09-06",
+      "clipped_end_date": "2022-10-10",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "train:1540:2022-11-10",
+      "split": "train",
+      "original_position": 1540,
+      "event_date": "2022-11-10",
+      "requested_start": 1535,
+      "requested_end": 1559,
+      "clipped_start": 1535,
+      "clipped_end": 1559,
+      "clipped_start_date": "2022-11-03",
+      "clipped_end_date": "2022-12-08",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "test:25:2025-04-03",
+      "split": "test",
+      "original_position": 25,
+      "event_date": "2025-04-03",
+      "requested_start": 20,
+      "requested_end": 44,
+      "clipped_start": 20,
+      "clipped_end": 44,
+      "clipped_start_date": "2025-03-27",
+      "clipped_end_date": "2025-05-01",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "test:26:2025-04-04",
+      "split": "test",
+      "original_position": 26,
+      "event_date": "2025-04-04",
+      "requested_start": 21,
+      "requested_end": 45,
+      "clipped_start": 21,
+      "clipped_end": 45,
+      "clipped_start_date": "2025-03-28",
+      "clipped_end_date": "2025-05-02",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "test:29:2025-04-09",
+      "split": "test",
+      "original_position": 29,
+      "event_date": "2025-04-09",
+      "requested_start": 24,
+      "requested_end": 48,
+      "clipped_start": 24,
+      "clipped_end": 48,
+      "clipped_start_date": "2025-04-02",
+      "clipped_end_date": "2025-05-07",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    },
+    {
+      "event_key": "test:319:2026-06-05",
+      "split": "test",
+      "original_position": 319,
+      "event_date": "2026-06-05",
+      "requested_start": 314,
+      "requested_end": 338,
+      "clipped_start": 314,
+      "clipped_end": 338,
+      "clipped_start_date": "2026-05-29",
+      "clipped_end_date": "2026-07-06",
+      "left_clipped": false,
+      "right_clipped": false,
+      "data_quality_status": "market_movement"
+    }
+  ],
+  "event_count": 23,
+  "status_counts": {
+    "market_movement": 23
+  },
+  "audit_findings": [],
+  "review_items": [],
+  "overall_data_quality_status": "internally_consistent",
+  "limitations": {
+    "market_evidence": "No external market-event sources were consulted.",
+    "boundary": "Features and targets were computed before splitting, so rows at a split boundary may still reference pre-split timeline data; within-split clipping is an operational experiment policy, not proof of zero cross-boundary influence.",
+    "rsi": "Wilder RSI is recursive, so spike influence may persist after s+19; the inclusive [s-5, s+19] window is the frozen operational definition."
+  },
+  "generated_artifacts": {
+    "event_audit": {
+      "path": "spike_event_audit.csv",
+      "sha256": "851E3AFA2DCA0A6270A3461B3B8CC86934BEE34D0EA9C9256498A7D18CBC90B3"
+    },
+    "daily_return_figure": {
+      "path": "../figures/spike_analysis/daily_return_spikes.png",
+      "sha256": "EF62C1179CB6C82CE4C8EDD5927967CDF7DF929D9F5353E99731B930CBC4C5DC"
+    }
+  },
+  "expected_audit_checks": {
+    "role": "regression_assertions_not_calculation_inputs",
+    "train_direct": 19,
+    "train_affected": 213,
+    "validation_direct": 0,
+    "validation_affected": 0,
+    "test_direct": 4,
+    "test_affected": 54
+  }
+}

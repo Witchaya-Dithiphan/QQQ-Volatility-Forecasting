@@ -1,0 +1,6 @@
+{
+  "params": {
+    "fit_intercept": true
+  },
+  "seed": 42
+}

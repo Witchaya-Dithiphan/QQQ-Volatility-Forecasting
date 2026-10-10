@@ -1,0 +1,14 @@
+{
+  "model": "multiple_linear",
+  "params": {
+    "fit_intercept": true
+  },
+  "pca_components": null,
+  "seed": 42,
+  "selected_candidate": "multiple_linear-00",
+  "task": "regression",
+  "train_rows": 1520,
+  "train_sha256": "34fc39d92eeec76b1671741fafbe66e448767536bf80dfad1fa5cb39e0ce34f2",
+  "validation_sha256": "b84a5fa31fe1afc6841528f8e5f0c8532b07e2bda8b80bd2ca1de664cf42f6ec",
+  "variant": "non_spike"
+}

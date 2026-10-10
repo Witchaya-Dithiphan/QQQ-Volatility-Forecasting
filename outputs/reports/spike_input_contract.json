@@ -1,0 +1,265 @@
+{
+  "contract_version": 1,
+  "paths_relative_to": "report_directory",
+  "experiment_root": "../../data/processed/experiments",
+  "frozen_rules": {
+    "detection_variable": "abs(return_1d)",
+    "primary_iqr_multiplier": 3.0,
+    "comparison_rule_identifier": "strict_greater_than",
+    "comparison_formula": "abs(return_1d) > Q3 + 3 * IQR",
+    "target_backward_reach": 5,
+    "feature_forward_reach": 19,
+    "affected_window": "inclusive [s-5, s+19]",
+    "rsi_policy": "operational_window_s_minus_5_to_s_plus_19",
+    "threshold_source": "original_train_only"
+  },
+  "required_columns": [
+    "Date",
+    "Close",
+    "Volume",
+    "Open",
+    "High",
+    "Low",
+    "return_1d",
+    "return_5d",
+    "historical_volatility_5d",
+    "historical_volatility_20d",
+    "intraday_range",
+    "sma_ratio_5_20",
+    "rsi_14",
+    "volume_zscore_20",
+    "target_volatility_5d",
+    "target_high_volatility"
+  ],
+  "model_columns": [
+    "return_1d",
+    "return_5d",
+    "historical_volatility_5d",
+    "historical_volatility_20d",
+    "intraday_range",
+    "sma_ratio_5_20",
+    "rsi_14",
+    "volume_zscore_20",
+    "target_volatility_5d"
+  ],
+  "inputs": {
+    "train": {
+      "path": "../../data/processed/train_labeled.csv",
+      "sha256": "424F1BDA5C4211AC58546DA992408D373D874A0F65A509965B06D8224194E64C",
+      "rows": 1733,
+      "date_range": {
+        "start": "2016-09-29",
+        "end": "2023-08-18"
+      },
+      "schema_valid": true,
+      "numeric_dtypes_valid": true,
+      "finite_numeric_values": true,
+      "date_unique": true,
+      "date_sorted": true,
+      "labels_binary": true
+    },
+    "validation": {
+      "path": "../../data/processed/validation_labeled.csv",
+      "sha256": "B84A5FA31FE1AFC6841528F8E5F0C8532B07E2BDA8B80BD2CA1DE664CF42F6EC",
+      "rows": 371,
+      "date_range": {
+        "start": "2023-08-28",
+        "end": "2025-02-19"
+      },
+      "schema_valid": true,
+      "numeric_dtypes_valid": true,
+      "finite_numeric_values": true,
+      "date_unique": true,
+      "date_sorted": true,
+      "labels_binary": true
+    },
+    "test": {
+      "path": "../../data/processed/test_labeled.csv",
+      "sha256": "5E8AC488CB895A8899ABD9B3AE9193B4DC6EBDA2E77B79982CEF4F5EA9BF7295",
+      "rows": 373,
+      "date_range": {
+        "start": "2025-02-27",
+        "end": "2026-08-21"
+      },
+      "schema_valid": true,
+      "numeric_dtypes_valid": true,
+      "finite_numeric_values": true,
+      "date_unique": true,
+      "date_sorted": true,
+      "labels_binary": true
+    }
+  },
+  "split_contract": {
+    "ordering_valid": true,
+    "non_overlapping": true,
+    "gap_size": 5,
+    "total_gap_rows": 10,
+    "gap_dates": {
+      "gap1": [
+        "2023-08-21",
+        "2023-08-22",
+        "2023-08-23",
+        "2023-08-24",
+        "2023-08-25"
+      ],
+      "gap2": [
+        "2025-02-20",
+        "2025-02-21",
+        "2025-02-24",
+        "2025-02-25",
+        "2025-02-26"
+      ]
+    },
+    "positions_valid": true
+  },
+  "classification_contract": {
+    "threshold_source": "original_train_only",
+    "quantile": 0.75,
+    "quantile_method": "linear",
+    "threshold": 0.2530580184684854,
+    "comparison_rule": "target_volatility_5d > threshold",
+    "comparison_operator": ">",
+    "label_mismatch_counts": {
+      "train": 0,
+      "validation": 0,
+      "test": 0
+    },
+    "equality_boundary_counts": {
+      "train": 1,
+      "validation": 0,
+      "test": 0
+    },
+    "equality_boundary_positive_counts": {
+      "train": 0,
+      "validation": 0,
+      "test": 0
+    },
+    "labels_valid": true
+  },
+  "saved_report_provenance": {
+    "reports": {
+      "data_split_report": {
+        "path": "data_split_report.json",
+        "portable": true,
+        "paths_relative_to": "report_directory",
+        "absolute_path_fields": [],
+        "discrepancy_type": null,
+        "calculation_bug_inferred": false,
+        "semantic_fields_verified": [
+          "split_rows",
+          "date_ranges",
+          "positions",
+          "gap_size",
+          "gap_dates",
+          "source_input_unchanged"
+        ]
+      },
+      "classification_threshold_report": {
+        "path": "classification_threshold.json",
+        "portable": true,
+        "paths_relative_to": "report_directory",
+        "absolute_path_fields": [],
+        "discrepancy_type": null,
+        "calculation_bug_inferred": false,
+        "semantic_fields_verified": [
+          "quantile",
+          "quantile_method",
+          "threshold_source",
+          "threshold_decimal",
+          "comparison_rule",
+          "split class counts",
+          "split date ranges"
+        ]
+      }
+    },
+    "interpretation": "Non-portable saved paths are an artifact provenance discrepancy; they do not by themselves establish a calculation-code defect.",
+    "isolated_phase1_reproduction": {
+      "output_root": "../../tmp/phase1-reproduction",
+      "reports": {
+        "data_split_report": {
+          "paths_relative_to": "report_directory",
+          "portable_links_resolve": true
+        },
+        "classification_threshold_report": {
+          "paths_relative_to": "report_directory",
+          "portable_links_resolve": true
+        }
+      },
+      "reproduced_labeled_sha256": {
+        "train": "424F1BDA5C4211AC58546DA992408D373D874A0F65A509965B06D8224194E64C",
+        "validation": "B84A5FA31FE1AFC6841528F8E5F0C8532B07E2BDA8B80BD2CA1DE664CF42F6EC",
+        "test": "5E8AC488CB895A8899ABD9B3AE9193B4DC6EBDA2E77B79982CEF4F5EA9BF7295"
+      },
+      "labeled_hash_matches": {
+        "train": true,
+        "validation": true,
+        "test": true
+      },
+      "all_labeled_csvs_byte_identical": true
+    }
+  },
+  "source_checksums": {
+    "train": {
+      "before": "424F1BDA5C4211AC58546DA992408D373D874A0F65A509965B06D8224194E64C",
+      "after": "424F1BDA5C4211AC58546DA992408D373D874A0F65A509965B06D8224194E64C",
+      "unchanged": true
+    },
+    "validation": {
+      "before": "B84A5FA31FE1AFC6841528F8E5F0C8532B07E2BDA8B80BD2CA1DE664CF42F6EC",
+      "after": "B84A5FA31FE1AFC6841528F8E5F0C8532B07E2BDA8B80BD2CA1DE664CF42F6EC",
+      "unchanged": true
+    },
+    "test": {
+      "before": "5E8AC488CB895A8899ABD9B3AE9193B4DC6EBDA2E77B79982CEF4F5EA9BF7295",
+      "after": "5E8AC488CB895A8899ABD9B3AE9193B4DC6EBDA2E77B79982CEF4F5EA9BF7295",
+      "unchanged": true
+    },
+    "data_split_report": {
+      "before": "7E9B47C1DE7AA0D66BA6B4CEFEF02816DEFF31FC93AD247E1755DF5E9C7E440F",
+      "after": "7E9B47C1DE7AA0D66BA6B4CEFEF02816DEFF31FC93AD247E1755DF5E9C7E440F",
+      "unchanged": true
+    },
+    "classification_threshold_report": {
+      "before": "FEB1C9A0C01448A2485B5A20837DFFC572F49450619F26AB818E0B93ED22AC53",
+      "after": "FEB1C9A0C01448A2485B5A20837DFFC572F49450619F26AB818E0B93ED22AC53",
+      "unchanged": true
+    }
+  },
+  "expected_audit_checks": {
+    "role": "regression_assertions_not_calculation_inputs",
+    "splits": {
+      "train": {
+        "rows": 1733,
+        "start_date": "2016-09-29",
+        "end_date": "2023-08-18"
+      },
+      "validation": {
+        "rows": 371,
+        "start_date": "2023-08-28",
+        "end_date": "2025-02-19"
+      },
+      "test": {
+        "rows": 373,
+        "start_date": "2025-02-27",
+        "end_date": "2026-08-21"
+      }
+    },
+    "gap_dates": {
+      "gap1": [
+        "2023-08-21",
+        "2023-08-22",
+        "2023-08-23",
+        "2023-08-24",
+        "2023-08-25"
+      ],
+      "gap2": [
+        "2025-02-20",
+        "2025-02-21",
+        "2025-02-24",
+        "2025-02-25",
+        "2025-02-26"
+      ]
+    },
+    "classification_q75": 0.2530580184684854
+  }
+}
