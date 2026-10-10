@@ -70,7 +70,7 @@ def test_exact_sync_and_outside_preservation(tmp_path):
 
 
 def test_repo_sync():
-    synchronize(PROJECT_ROOT / "configs/modeling.json", PROJECT_ROOT / "MODEL_TRAINING_PLAN.md", write=False)
+    synchronize(PROJECT_ROOT / "configs/modeling.json", PROJECT_ROOT / "docs/archive/MODEL_TRAINING_PLAN.md", write=False)
 
 
 def test_generated_section_anchors_and_unsupported_modes():
@@ -113,6 +113,6 @@ def test_crlf_plan_check_and_canonical_write_are_stable(tmp_path):
 
 def test_protocol_text_git_attributes_enforce_lf():
     import subprocess
-    names = ["src/modeling/preprocessing.py", "configs/modeling.json", "MODEL_TRAINING_PLAN.md", "requirements.txt", "requirements-lock.txt", "requirements.in"]
+    names = ["src/modeling/preprocessing.py", "configs/modeling.json", "docs/archive/MODEL_TRAINING_PLAN.md", "requirements.txt", "requirements-lock.txt", "requirements.in"]
     result = subprocess.run(["git", "check-attr", "eol", "--", *names], cwd=PROJECT_ROOT, capture_output=True, text=True, check=True)
     assert result.stdout.splitlines() == [name + ": eol: lf" for name in names]

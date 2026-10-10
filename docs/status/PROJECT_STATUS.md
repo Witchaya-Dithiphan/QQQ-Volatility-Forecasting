@@ -1,19 +1,31 @@
 # QQQ Volatility Forecasting — Project Status
 
-> **วิธีรันปัจจุบัน:** ดู [RUNBOOK.md](RUNBOOK.md) สำหรับการติดตั้ง environment และ
+> **วิธีรันปัจจุบัน:** ดู [RUNBOOK.md](../guides/RUNBOOK.md) สำหรับการติดตั้ง environment และ
 > การรัน Data/Spike pipelines เอกสารนี้ใช้สรุปสถานะ implementation
 
-> ตรวจเอกสาร/checkout ล่าสุด: 2026-10-08 บน `main` (`03dfada`)
+> ## ⚠️ สถานะปัจจุบัน — ตรวจด้วยการรันจริงเมื่อ 2026-10-10 บน `main` (`779c78d`)
 >
-> ขอบเขตล่าสุด: M1 freeze baseline inputs, M2 เป็น pure direct detector และ M3 เป็น pure affected-mask/boundary metadata API
+> | รายการ | ค่าจริง |
+> |---|---|
+> | Test suite | **459 passed, 3 skipped, 0 failed** |
+> | Environment | Python **3.14.8** · 69 locked distributions · `pip check` สะอาด |
+> | Data pipeline Phase 1 + 2 | ✅ เสร็จ SHA-256 ตรงทุกไฟล์ |
+> | **โมเดล** | ❌ **0/19** — `src/models/` มี 3 บรรทัด (docstring), `outputs/models/` ว่าง |
+> | Notebook 03/04 | ❌ 0 cells ทั้งคู่ |
+> | Deadline | **18 ต.ค. 2026** (เลื่อนจาก 12 ต.ค. ที่ระบุใน PDF) |
+>
+> รายละเอียดครบและรายการที่เอกสารเดิมขัดกับโค้ด: **[docs/audit/REALITY_AUDIT.md](../audit/REALITY_AUDIT.md)**
+> แผนงานชั้น modeling รอบใหม่: [ARCHITECTURE.md](../plan/ARCHITECTURE.md) · [ROADMAP.md](../plan/ROADMAP.md) · [AGENTS.md](../../AGENTS.md)
+
+### บันทึกประวัติก่อนหน้า (หลักฐาน ไม่ใช่สถานะปัจจุบัน)
+
+> ตรวจเอกสาร/checkout: 2026-10-08 บน `main` (`03dfada`)
+>
+> ขอบเขต: M1 freeze baseline inputs, M2 เป็น pure direct detector และ M3 เป็น pure affected-mask/boundary metadata API
 >
 > ฐานของการสำรวจเดิมก่อน Phase 1: branch `main`, commit `115a054`; tracked working tree สะอาด
 >
-> M8 verification gate: **OPEN สำหรับเริ่ม paired model training**; spike-specific `142 passed, 1 skipped`, full suite `334 passed, 2 skipped`, targeted Ruff/mypy ผ่าน, artifacts 11/11 และ protected checksum drift = 0
->
-> Model inventory และ implementation plan ล่าสุดอยู่ที่
-> [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md); ผลทดสอบ M8 ข้างต้นเป็นหลักฐานที่
-> บันทึกเมื่อ 2026-10-07 ไม่ใช่ผลที่รันใหม่ในการแก้เอกสารรอบนี้
+> M8 verification gate: **OPEN สำหรับเริ่ม paired model training**; spike-specific `142 passed, 1 skipped`, full suite `334 passed, 2 skipped` (ตัวเลขของ 2026-10-07 ก่อน commit M2 — ปัจจุบันคือ 459 passed), targeted Ruff/mypy ผ่าน, artifacts 11/11 และ protected checksum drift = 0
 
 ## 1. ภาพรวมโปรเจกต์
 
@@ -54,7 +66,7 @@ Historical snapshot สำหรับผลปัจจุบันคือ `d
 | Full/Non-Spike/Spike-Affected evaluation | 🟡 Diagnostic datasets พร้อม | `data/processed/experiments/diagnostics/` | Full Validation/Test ยังชี้ Original splits; metrics ยังไม่ทำ |
 | Paired model comparison | ⬜ ยังไม่ดำเนินการ | `src/models/*.py` ยังมีเพียง module docstring | ห้ามอ้างว่าเสร็จจน With-Spike/Non-Spike fit ใหม่ครบ |
 | Regression model training | ⬜ ยังไม่ดำเนินการ | 4-item inventory ใน `MODEL_TRAINING_PLAN.md`; Notebook 03 มี 0 cells | With-Spike-first |
-| Classification model training | ⬜ ยังไม่ดำเนินการ | 12-item inventory ใน `MODEL_TRAINING_PLAN.md`; Notebook 04 มี 0 cells | With-Spike-first |
+| Classification model training | ⬜ ยังไม่ดำเนินการ | 13-item inventory ใน `MODEL_CARDS.md`; Notebook 04 มี 0 cells | With-Spike-first |
 | Clustering | ⬜ ยังไม่ดำเนินการ | k-Means และ Agglomerative ตาม PDF/plan | แยก evaluation จาก supervised classification |
 | Automated tests | ✅ Baseline + contracts verified | `tests/`, `pytest.ini` | 334 tests ผ่าน, 2 symlink tests ข้ามบน Windows; M7 runner coverage 96% |
 | Project runbook/data provenance | ✅ Phase 2 runner verified | `README.md`, `PHASE2_SPIKE_READINESS.md`, Manifest และ runners | `--output-root` แยก generated outputs โดยไม่ remap accepted baseline inputs |
@@ -115,7 +127,7 @@ flowchart TD
 - Course PDF มีใน checkout แต่ยัง untracked; `.venv` ปัจจุบันเป็น Python 3.12.3
   ขณะที่หลักฐานตรวจรับเดิมใช้ Python 3.11.9 (ค่าของ audit รอบนี้ ณ เวลาที่บันทึก)
 - **อัปเดต 2026-10-10:** frozen environment re-frozen เป็น Python 3.14.8; ดู audit
-  trail ใน [RUNBOOK.md](RUNBOOK.md)
+  trail ใน [RUNBOOK.md](../guides/RUNBOOK.md)
 
 ## 5. Features, Targets และ Spike Design Decisions
 
@@ -335,9 +347,9 @@ Spike-specific test checklist สำหรับ Task 10:
 - [ ] ใช้ With-Spike-first; เลือกด้วย Validation และประเมิน Test หลัง freeze
 - [ ] เติม `notebooks/03_regression.ipynb` พร้อม Full/Non-Spike/Spike-Affected metrics
 
-### Phase 4 — Classification Models (12 รายการ) และ Clustering (2 รายการ)
+### Phase 4 — Classification Models (13 รายการ) และ Clustering (2 รายการ)
 
-- [ ] Implement 12 classifiers และ 2 clustering algorithms ตาม inventory/contract ในแผนหลัก
+- [ ] Implement 13 classifiers และ 2 clustering algorithms ตาม inventory/contract ในแผนหลัก
 - [ ] กำหนด majority baseline, imbalance policy, prediction-threshold policy และ clustering evaluation
 - [ ] ใช้ Original Train Q75 เดียวกันทั้ง variants และ fit preprocessing/model ใหม่ทุก variant
 - [ ] เติม notebook presentation โดยเรียก source APIs ไม่คัดลอก training logic
