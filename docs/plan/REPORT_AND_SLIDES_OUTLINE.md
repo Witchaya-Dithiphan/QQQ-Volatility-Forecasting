@@ -64,7 +64,7 @@
 - **§2.1 ฟีเจอร์ 8 ตัวและเหตุผลรายตัว** — ตาราง: ชื่อ · นิยาม · สมมติฐานทางการเงินที่อยู่เบื้องหลัง ·
   คาดว่าสัมพันธ์กับ target อย่างไร (ผ่านเงื่อนไข ≥ 5 features ของโจทย์)
 - **§2.2 Feature insight จากข้อมูลจริง** — correlation matrix, การกระจายตัว, ความสัมพันธ์กับ target
-  จาก notebook 02 · **ชี้ประเด็น multicollinearity ตรงนี้:** condition number = 35.6,
+  จาก notebook 02 · **ชี้ประเด็น multicollinearity ตรงนี้:** condition number ของ covariance matrix = 35.6 (cond(X) = 6.0),
   `historical_volatility_5d ~ 20d` |r| = 0.804 ซึ่งจะกลายเป็นเหตุผลของการเลือก Elastic Net ใน §6.1
 - **§2.3 ทำไมต้องใช้ ML/DL** — ตอบด้วยหลักฐาน ไม่ใช่ความเห็น:
   ความสัมพันธ์ไม่เชิงเส้นและมี regime change · target มี skew 2.80 / kurtosis 16.26 ซึ่งผิดจากสมมติฐาน
@@ -161,7 +161,7 @@
 | S2 | ปัญหา | พยากรณ์ volatility QQQ ล่วงหน้า 5 วัน 2 รูปแบบ | กราฟ volatility ตามเวลา | |
 | S3 | ทำไมสำคัญ | ใช้ตั้งราคา option / คุมความเสี่ยง | — | ✂3 |
 | S4 | ข้อมูลและฟีเจอร์ | 2,512 แถว 10 ปี · 8 features | ตารางฟีเจอร์ | |
-| S5 | Feature insight | multicollinearity ชัด cond = 35.6 | correlation heatmap | |
+| S5 | Feature insight | multicollinearity ชัด cond(X'X) = 35.6 | correlation heatmap | |
 | S6 | **ทำไมต้องใช้ ML** | ไม่เชิงเส้น + fat tail (kurtosis 16.26) | scatter + distribution | |
 | S7 | การเตรียมข้อมูล | chronological split ห้ามสุ่ม | ไทม์ไลน์ split | |
 | S8 | **Spike analysis** | จุดขาย — นิยาม spike และหน้าต่างผลกระทบ | `daily_return_spikes.png` | |

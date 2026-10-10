@@ -134,7 +134,7 @@ artifact 8–12 ไฟล์ + manifest 25 ฟิลด์ต่อ run × 38 ru
 - GARCH ตกไปเพราะไม่มีใน sklearn/PyTorch, ต้องลง `arch` เพิ่ม, และพยากรณ์จาก return series
   ไม่ใช่ 8 features ของเรา → benchmark เทียบโมเดลอื่นแบบ apple-to-apple ไม่ได้ และขัดข้อกำหนด
   "ใช้ feature ≥ 5" ของโจทย์
-- มีเหตุผลเชิงข้อมูลหนุน (วัดจาก train set จริง): condition number = **35.6**,
+- มีเหตุผลเชิงข้อมูลหนุน (วัดจาก train set จริง): condition number ของ covariance matrix = **35.6** (cond(X) = **6.0**),
   `historical_volatility_5d ~ 20d` |r| = **0.804** → Elastic Net แก้ multicollinearity ตรงจุด;
   target มี kurtosis = **16.26** → AdaBoost ที่ใช้ exponential loss เป็นโมเดลที่ทฤษฎีทำนายว่า
   จะเสียหายจาก spike มากที่สุด ทำให้มันเป็นตัวเอกของการเปรียบเทียบ A↔B โดยธรรมชาติ

@@ -39,7 +39,7 @@
 | With-spike train | byte-identical กับ Original Train (`424F1BDA…4E64C`) | เทียบ SHA-256 |
 | Config seal | `Modeling config and generated plan block match` | `config_sync --check` |
 | Dependency gate | ผ่าน รายงาน `"python": "3.14.8"`, 69 locked distributions | `dependency_smoke` |
-| Feature condition number | **35.6** (>30 = multicollinearity ชัด) | คำนวณจาก train set |
+| Condition number ของ covariance matrix | **35.6** (>30 = multicollinearity ชัด) · เทียบเท่า cond(X) = √35.6 ≈ **6.0** | คำนวณจาก train set |
 | `hist_vol_5d ~ hist_vol_20d` | \|r\| = **0.804** | คำนวณจาก train set |
 | Regression target | skew **2.80** · kurtosis **16.26** | คำนวณจาก train set |
 

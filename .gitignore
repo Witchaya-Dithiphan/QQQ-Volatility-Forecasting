@@ -91,3 +91,4 @@ Desktop.ini
 .cache/
 .python-version
 site/
+.pytest_tmp/

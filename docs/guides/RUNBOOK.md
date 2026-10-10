@@ -224,16 +224,37 @@ Runner ปฏิเสธการเขียนทับโดยค่าเ�
 
 ## 10. Modeling commands
 
-ยังไม่มี training/evaluation CLI ที่รันได้ใน repository `src/models/regression.py`
-และ `src/models/classification.py` ยังมีเพียง docstring และ Notebook 03/04 มี 0 cells
-ตัวอย่าง CLI ใน `MODEL_TRAINING_PLAN.md` เป็น proposed interface เท่านั้น จนกว่าจะมี
-implementation และ tests ห้ามคัดลอกตัวอย่างนั้นมาใช้เป็น runbook command
+ชั้น modeling อยู่ที่ `src/ml/` และ CLI ใช้งานได้แล้ว (ยืนยันด้วยการรันจริง 2026-10-10)
 
-แผนของชั้น modeling รอบใหม่ (เริ่ม 2026-10-10) อยู่ที่ [AGENTS.md](../../AGENTS.md),
-[ARCHITECTURE.md](../plan/ARCHITECTURE.md) และ [ROADMAP.md](../plan/ROADMAP.md) โดยจะสร้าง `src/ml/`
-ขึ้นใหม่และมี CLI คือ `python -m src.ml.run train|report|finalize`
-**คำสั่งเหล่านั้นจะใช้ได้ก็ต่อเมื่อ implement เสร็จแล้วเท่านั้น** หัวข้อนี้จะถูกอัปเดต
-พร้อมผลการรันจริงเมื่อถึงเวลานั้น
+```bat
+rem เทรนโมเดลเดียว
+.\.venv\Scripts\python.exe -m src.ml.run train --model multiple_linear --variant with_spike
+
+rem เทรนทุกโมเดลที่ลงทะเบียนไว้
+.\.venv\Scripts\python.exe -m src.ml.run train --all --variant with_spike
+
+rem ใช้ hyperparameter grid จากไฟล์ {model: grid}
+.\.venv\Scripts\python.exe -m src.ml.run train --model multiple_linear --variant non_spike --grid grids.json
+```
+
+ผลที่คาดหวัง — บรรทัดสรุปต่อโมเดล ต้องลงท้ายด้วย `reload=ok`:
+
+```text
+     multiple_linear | with_spike | candidates= 1 | selected=multiple_linear-00 | reload=ok
+```
+
+Artifact จะอยู่ที่ `outputs/modeling/<variant>/<task>/<model>/` ประกอบด้วย `config.json`,
+`model.npz`, `preprocessor.npz`, `search_results.json`, `validation_metrics.json`,
+`validation_predictions.csv`, `load_verification.json` และ `history.json`
+
+**`load_verification.json` ต้องมี `"passed": true`** — เป็นหลักฐานว่า save → load → ทำนายซ้ำ
+ได้ผลเท่าเดิม ซึ่งเป็นข้อบังคับของโจทย์
+
+คำสั่ง `report` และ `finalize` ยังไม่ implement (คืน exit 1 พร้อมบอกเหตุผล) เพราะต้องรอให้มี
+โมเดลครบก่อน ดู [`docs/tasks/claude-linear-family.md`](../tasks/claude-linear-family.md) Phase C
+
+> `finalize` เป็นจุดเดียวที่อ่าน Test set และต้องส่ง `--allow-test` อย่างชัดแจ้ง
+> ห้ามรันก่อนเลือก hyperparameter ของทุกโมเดลจาก Validation เสร็จ
 
 ## 11. ครั้งแรกหลัง clone — Phase 1 reproduction
 
