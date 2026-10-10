@@ -10,6 +10,7 @@ from .classification.knn import KNN
 from .classification.logistic import Logistic
 from .core.base import BaseModel
 from .regression.multiple_linear import MultipleLinear
+from .regression.polynomial import Polynomial
 from .regression.simple_linear import SimpleLinear
 
 MODELS: dict[str, type[BaseModel]] = {
@@ -17,6 +18,7 @@ MODELS: dict[str, type[BaseModel]] = {
     "knn": KNN,
     "logistic": Logistic,
     "multiple_linear": MultipleLinear,
+    "polynomial": Polynomial,
     "simple_linear": SimpleLinear,
 }
 

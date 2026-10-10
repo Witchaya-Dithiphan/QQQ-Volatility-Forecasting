@@ -1,0 +1,8 @@
+{
+  "params": {
+    "degree": 3,
+    "feature": "historical_volatility_20d",
+    "standardize_before_powers": true
+  },
+  "seed": 42
+}

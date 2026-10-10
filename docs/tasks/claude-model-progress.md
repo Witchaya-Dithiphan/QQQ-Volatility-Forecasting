@@ -4,7 +4,7 @@
 > วิธีทำงาน: invoke skill `qqq-model` (กลั่นจาก `AGENTS.md` + `MODEL_CARDS.md` แล้ว ไม่ต้องอ่านต้นฉบับซ้ำ)
 > อัปเดตตารางนี้ + ไฟล์ของโมเดลนั้น หลังจบทุกตัว · **ห้ามลบผลเก่า**
 
-**สถานะรวม:** 5/11 ของฝั่ง Claude · test suite `526 passed, 0 failed`
+**สถานะรวม:** 6/11 ของฝั่ง Claude · test suite `553 passed, 0 failed`
 
 ## ฝั่ง Claude (11 ตัว — ของเรา)
 
@@ -15,7 +15,7 @@
 | 3 | `knn` | cls | ✅ | exact (8/8, held-out) | AUC **0.6987** · F1 0.2000 · Acc 0.8922 | [↗](../models/knn/MODEL_PROGRESS.md) · ปลดล็อก `stacking` แล้ว |
 | 4 | `logistic` | cls | ✅ | exact (6/6) Δcoef 2.9e-08 | AUC 0.6732 · F1 0.2609 · Acc 0.9084 | [↗](../models/logistic/MODEL_PROGRESS.md) · **ปลดล็อก `stacking` ครบแล้ว** |
 | 5 | `gaussian_nb` | cls | ✅ | exact 1e-12 | **F1 0.2812** (ดีสุด) · AUC 0.6665 | [↗](../models/gaussian_nb/MODEL_PROGRESS.md) |
-| 6 | `polynomial` | reg | ⬜ | | | |
+| 6 | `polynomial` | reg | ✅ | exact (16/16) | RMSE 0.069065 · R² −0.0507 | [↗](../models/polynomial/MODEL_PROGRESS.md) |
 | 7 | `perceptron` | cls | ⬜ | | | |
 | 8 | `slp` | cls | ⬜ | | | |
 | 9 | `elastic_net` ★ | reg | ⬜ | | | extracurricular — card ต้องลึก |
@@ -48,8 +48,8 @@ paired comparison A↔B · notebooks 03/04/05
 
 ## ถัดไป
 
-`polynomial` — degree ∈ {2,3} × feature 8 ตัว = 16 candidates
-**standardize ก่อนยกกำลัง** · ปิด bias ของ `PolynomialFeatures`
+`perceptron` — learning_rate ∈ {0.001, 0.01, 0.1} · online mistake-driven update
+**`tol=None`** ใน reference ไม่งั้น sklearn early-stop คนละรอบ · `shuffle=False` ทั้งสองฝั่ง
 
 ## ข้อค้นพบสะสม (ใช้ในรายงาน §8.2)
 
@@ -62,6 +62,7 @@ paired comparison A↔B · notebooks 03/04/05
 | --- | --- | --- | --- |
 | `multiple_linear` | −0.044554 | +0.016536 | **+0.061** |
 | `simple_linear` | −0.049847 | +0.026542 | **+0.076** |
+| `polynomial` | −0.050652 | +0.038890 | **+0.090** |
 
 **Classification — กลับทาง ตัด spike แล้วแย่ลง**
 
