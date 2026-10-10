@@ -11,11 +11,13 @@ from .classification.logistic import Logistic
 from .classification.perceptron import Perceptron
 from .classification.slp import SLP
 from .core.base import BaseModel
+from .regression.elastic_net import ElasticNet
 from .regression.multiple_linear import MultipleLinear
 from .regression.polynomial import Polynomial
 from .regression.simple_linear import SimpleLinear
 
 MODELS: dict[str, type[BaseModel]] = {
+    "elastic_net": ElasticNet,
     "gaussian_nb": GaussianNB,
     "knn": KNN,
     "logistic": Logistic,

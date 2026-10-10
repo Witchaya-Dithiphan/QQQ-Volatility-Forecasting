@@ -1,0 +1,39 @@
+{
+  "clipped_metrics": {
+    "mae": {
+      "reason": null,
+      "value": 0.053893081721117
+    },
+    "mse": {
+      "reason": null,
+      "value": 0.004463085249256776
+    },
+    "r2": {
+      "reason": null,
+      "value": 0.01694197746722026
+    },
+    "rmse": {
+      "reason": null,
+      "value": 0.0668063264164164
+    }
+  },
+  "negative_count": 0,
+  "raw_metrics": {
+    "mae": {
+      "reason": null,
+      "value": 0.053893081721117
+    },
+    "mse": {
+      "reason": null,
+      "value": 0.004463085249256776
+    },
+    "r2": {
+      "reason": null,
+      "value": 0.01694197746722026
+    },
+    "rmse": {
+      "reason": null,
+      "value": 0.0668063264164164
+    }
+  }
+}

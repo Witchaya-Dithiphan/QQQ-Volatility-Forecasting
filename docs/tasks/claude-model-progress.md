@@ -4,7 +4,7 @@
 > วิธีทำงาน: invoke skill `qqq-model` (กลั่นจาก `AGENTS.md` + `MODEL_CARDS.md` แล้ว ไม่ต้องอ่านต้นฉบับซ้ำ)
 > อัปเดตตารางนี้ + ไฟล์ของโมเดลนั้น หลังจบทุกตัว · **ห้ามลบผลเก่า**
 
-**สถานะรวม:** 8/11 ของฝั่ง Claude · test suite `582 passed, 0 failed`
+**สถานะรวม:** 9/11 ของฝั่ง Claude · test suite `610 passed, 0 failed`
 
 ## ฝั่ง Claude (11 ตัว — ของเรา)
 
@@ -18,7 +18,7 @@
 | 6 | `polynomial` | reg | ✅ | exact (16/16) | RMSE 0.069065 · R² −0.0507 | [↗](../models/polynomial/MODEL_PROGRESS.md) |
 | 7 | `perceptron` | cls | ✅ | exact 1e-10 | **AUC 0.2993** (< สุ่ม) · F1 0.0 | [↗](../models/perceptron/MODEL_PROGRESS.md) ตรวจแล้ว sklearn ได้เท่ากัน |
 | 8 | `slp` | cls | ✅ | converged 1.3e-08 vs LogReg | AUC **0.6803** (ดีสุดในกลุ่ม cls) · F1 0.2609 | [↗](../models/slp/MODEL_PROGRESS.md) |
-| 9 | `elastic_net` ★ | reg | ⬜ | | | extracurricular — card ต้องลึก |
+| 9 | `elastic_net` ★ | reg | ✅ | exact (12/12) 1e-6 | **RMSE 0.066806 · R² +0.0169** ชนะทุกตัว | [↗](../models/elastic_net/MODEL_PROGRESS.md) **หลักฐาน +5** |
 | 10 | `kmeans` | clustering | ⬜ | | | |
 | 11 | `agglomerative` | clustering | ⬜ | | | |
 
@@ -48,8 +48,8 @@ paired comparison A↔B · notebooks 03/04/05
 
 ## ถัดไป
 
-`elastic_net` ★ — alpha 4 × l1_ratio 3 = 12 candidates · **extracurricular ต้องเขียน card ลึก**
-soft-threshold · objective หาร `1/(2n)` · `selection="cyclic"` · ต้องมีทั้ง scratch และ ready-to-use
+`kmeans` — k ∈ {2,3,4,5,6} · k-means++ ของ sklearn สุ่ม `2+log(k)` candidate ต่อรอบ
+ใช้ **`RandomState`** · ระวังสูตรระยะทางของ sklearn (ดู pitfall ใน skill)
 
 ## ข้อค้นพบสะสม (ใช้ในรายงาน §8.2)
 
@@ -63,6 +63,11 @@ soft-threshold · objective หาร `1/(2n)` · `selection="cyclic"` · ต้
 | `multiple_linear` | −0.044554 | +0.016536 | **+0.061** |
 | `simple_linear` | −0.049847 | +0.026542 | **+0.076** |
 | `polynomial` | −0.050652 | +0.038890 | **+0.090** |
+| **`elastic_net` ★** | **+0.016942** | **+0.090577** | **+0.074** |
+
+**`elastic_net` เป็นโมเดล regression ตัวเดียวที่ R² บวกบน `with_spike`** และชนะทุกตัวทั้งสอง variant
+เทียบ `multiple_linear`: RMSE ลดลง 2.99% (A) / 3.84% (B) · R² −0.0446 → +0.0169 (A)
+→ **หลักฐานตรงสำหรับคะแนนพิเศษ +5 "much better than existing-taught models"**
 
 **Classification — กลับทาง ตัด spike แล้วแย่ลง**
 
