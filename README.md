@@ -1,6 +1,6 @@
 # QQQ Volatility Forecasting
 
-> **วิธีติดตั้งและรันล่าสุด:** ดู [RUNBOOK.md](RUNBOOK.md) สำหรับ Python 3.11.9,
+> **วิธีติดตั้งและรันล่าสุด:** ดู [RUNBOOK.md](RUNBOOK.md) สำหรับ Python 3.14.8,
 > การสร้าง `.venv`, การติดตั้ง dependencies, การรัน Phase 1/Phase 2 และ tests บน Windows
 >
 > **Modeling scope ล่าสุด:** ดู [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md)

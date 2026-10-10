@@ -22,9 +22,9 @@
 | Full Validation/Test | ตรวจไฟล์จริงใน audit นี้ | Original `validation_labeled.csv` 371 rows และ `test_labeled.csv` 373 rows |
 | Model source | Missing / Planned | `src/models/regression.py` และ `src/models/classification.py` มีเพียง module docstring |
 | Modeling notebooks | Missing / Planned | `notebooks/03_regression.ipynb` และ `04_classification.ipynb` มี 0 cells |
-| Model dependencies | Missing / M2 dependency gate | `requirements.txt` ยังไม่มี `scikit-learn` หรือ `xgboost`; policyเลือก Python 3.12.3แล้ว แต่ exact package versionsต้อง lockจาก environmentที่ทดสอบผ่านจริง |
+| Model dependencies | Missing / M2 dependency gate | `requirements.txt` ยังไม่มี `scikit-learn` หรือ `xgboost`; policyเลือก Python 3.14.8แล้ว (re-frozen 2026-10-10) แต่ exact package versionsต้อง lockจาก environmentที่ทดสอบผ่านจริง |
 | Models/metrics/predictions | Missing | ยังไม่มีหลักฐาน model artifacts หรือ quantitative model results |
-| Python environment | Frozen for modeling | ใช้ `.venv` Python 3.12.3; หลักฐานตรวจรับเดิม Python 3.11.9 เก็บเป็น historical evidenceและต้องไม่เขียนเหมือนเป็น modeling environmentปัจจุบัน |
+| Python environment | Frozen for modeling | ใช้ `.venv` Python 3.14.8 (re-frozen 2026-10-10 จาก 3.12.3); หลักฐานตรวจรับเดิม Python 3.11.9 เก็บเป็น historical evidenceและต้องไม่เขียนเหมือนเป็น modeling environmentปัจจุบัน |
 
 ### 1.2 การแบ่งสถานะหลักฐาน
 
@@ -466,7 +466,7 @@ Effort เป็นช่วง person-hoursโดยสมมติว่าม
 | --- | --- | --- | --- |
 | เวลาไม่พอสำหรับ 19 scratch modelsก่อน 2026-10-12 | ส่งไม่ครบหรือ verificationตื้น | ทำ critical path, จำกัด search budget, ลด optional workก่อน; รายงานสถานะจริง | ทีมโครงการ / ปิด scopeทันที |
 | XGBoost/SVM/MLP/Stacking fidelityไม่ตรงชื่อ | เสียคะแนน from-scratch/algorithm mechanism | freeze minimum faithful algorithm, synthetic testsและ reference comparisonก่อน full data | model implementer / ก่อนเริ่มแต่ละ model |
-| `.venv` 3.12.3 ต่างจาก recorded 3.11.9 และ `scikit-learn`/`xgboost` ยังไม่มี | reproduceไม่ได้หรือ library incompatibility | ใช้ Python 3.12.3; ติดตั้ง/ทดสอบ reference dependenciesใน M2 แล้วสร้าง exact lockจาก environmentที่ผ่าน tests | infrastructure owner / M2 gate |
+| `.venv` 3.14.8 ต่างจาก recorded 3.11.9 (ผ่าน 3.12.3 มาแล้ว) | reproduceไม่ได้หรือ library incompatibility | ใช้ Python 3.14.8; ยืนยันแล้วว่า reference dependencies (`scikit-learn`, `xgboost` รวมอยู่ใน `requirements-lock.txt`) ติดตั้ง/import สำเร็จและ pipeline/tests ให้ผลตรงเดิม | infrastructure owner / M2 gate |
 | Elastic Net/AdaBoostไม่ถูกยอมรับเป็น extracurricular | ไม่ผ่าน requirement new-model | ขอคำยืนยันอาจารย์; เตรียมเหตุผลและ candidateสำรองโดยไม่เปลี่ยน Test protocol | team lead / ก่อน final scope freeze |
 | Test feedbackจาก With-Spikeปนการออกแบบ Non-Spike | paired comparisonมี leakage/bias | freeze Non-Spike protocol/search spacesก่อนเปิด With-Spike Test; log test-access timestamp | experiment owner / ก่อน M8 Test |
 | Stacking purgeบน Non-Spikeใช้ row gapแทน original timeline | future leakage | foldด้วย original dates/positionsและ explicit purge tests | stacking owner / M6 |
@@ -476,6 +476,13 @@ Effort เป็นช่วง person-hoursโดยสมมติว่าม
 ## 14. Frozen Implementation Configuration
 
 ค่าต่อไปนี้เป็น implementation contract ที่ freeze เมื่อ **2026-10-08** ให้ Codex ใช้เป็นข้อกำหนด ไม่ใช่คำแนะนำแบบเลือกได้ การเปลี่ยนค่าหลังเริ่ม Test ต้องสร้าง protocol revision ใหม่และห้ามนำผลต่างมาเปรียบเทียบเหมือนเป็น protocol เดียวกัน
+
+> **อัปเดต 2026-10-10:** ยังไม่มี Test เริ่มและไม่มี model implementation ใด ๆ (ดูข้อ
+> 1.1) จึงแก้ `environment.python` จาก `3.12.3` เป็น `3.14.8` ได้โดยไม่ต้องเปิด
+> protocol revision ใหม่ ยืนยันแล้วว่า `requirements-lock.txt` ทั้งหมดติดตั้งและ
+> import สำเร็จบน Python 3.14.8, `pip check` ผ่าน และ Phase 1/Phase 2 pipeline ให้
+> ผลตรงกับหลักฐานเดิมทุกจุด ก่อน sync ไฟล์นี้และ `configs/modeling.json` ด้วย
+> `python -m src.modeling.config_sync --write-plan`
 
 ### 14.1 Configuration source และ schema
 
@@ -489,10 +496,9 @@ Effort เป็นช่วง person-hoursโดยสมมติว่าม
 
 ### 14.2 Environment และ dependency freeze
 
-- **Python:** `3.12.3`
-- Environment ที่ตรวจจริงก่อน implementation มี `numpy==2.5.3`, `pandas==3.0.6`, `pytest==9.1.1`, `matplotlib==3.11.2`, `seaborn==0.13.2`, `nbformat==5.11.1`, `nbconvert==7.17.1`, `ipykernel==7.4.0`
-- `scikit-learn` และ `xgboost` ยังไม่ติดตั้ง จึงห้ามแต่งเลข version ลงแผน
-- M2 dependency gate: ติดตั้ง versionsที่รองรับ Python 3.12.3, import smoke test, รัน existing testsและ pilot reference comparison จากนั้นสร้าง `requirements-lock.txt` จาก environmentที่ผ่านจริง
+- **Python:** `3.14.8` (re-frozen 2026-10-10; เดิม `3.12.3`)
+- Environment ที่ตรวจจริงก่อน implementation มี `numpy==2.5.3`, `pandas==3.0.6`, `pytest==9.1.1`, `matplotlib==3.11.2`, `seaborn==0.13.2`, `nbformat==5.11.1`, `nbconvert==7.17.1`, `ipykernel==7.4.0`, `scikit-learn==1.9.1`, `xgboost==3.4.1` ติดตั้งและตรวจผ่านบน Python 3.14.8 แล้ว
+- M2 dependency gate: ติดตั้ง versionsที่รองรับ Python 3.14.8, import smoke test, รัน existing testsและ pilot reference comparison จากนั้นสร้าง `requirements-lock.txt` จาก environmentที่ผ่านจริง
 - ใช้ `requirements.in` เก็บ direct dependenciesรวม `scikit-learn`, `xgboost` และ `joblib`; `requirements-lock.txt` เก็บ exact resolved versions; เปลี่ยน `requirements.txt` เป็น compatibility shimที่มี `-r requirements-lock.txt`; ถ้า dependency gateไม่ผ่านให้หยุดและบันทึก blocker ห้ามเปลี่ยน Python/packageแบบเงียบ ๆ
 - PyTorchไม่ใช่ dependencyบังคับ; SLP/MLP referenceใช้ Scikit-learn เพื่อลด installation scope
 
@@ -529,7 +535,7 @@ Source: configs/modeling.json (authoritative). Model entries are configuration, 
   },
   "environment": {
     "dependency_lock": "requirements-lock.txt",
-    "python": "3.12.3",
+    "python": "3.14.8",
     "reference_dependencies": [
       "scikit-learn",
       "xgboost",

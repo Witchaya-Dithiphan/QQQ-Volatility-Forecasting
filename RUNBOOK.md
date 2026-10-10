@@ -1,7 +1,8 @@
 # QQQ Volatility Forecasting - คู่มือการติดตั้งและรัน Pipeline
 
-เอกสารนี้เป็นวิธีรันหลักสำหรับ Windows Terminal จาก project root โดยตรวจรับกับ
-**Python 3.11.9** คำสั่งใช้ Python ใน `.venv` โดยตรง เพื่อลดความเสี่ยงจากการเรียก
+เอกสารนี้เป็นวิธีรันหลักสำหรับ Windows Terminal จาก project root โดย frozen
+submission environment ปัจจุบันคือ **Python 3.14.8** (ดู audit trail ด้านล่าง)
+คำสั่งใช้ Python ใน `.venv` โดยตรง เพื่อลดความเสี่ยงจากการเรียก
 Python หรือ packages คนละ environment
 
 เอกสารที่เกี่ยวข้อง:
@@ -13,14 +14,24 @@ Python หรือ packages คนละ environment
 - [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) — modeling requirements,
   inventory 19 รายการ และ implementation milestones; คำสั่ง modeling ในแผนยังไม่พร้อมใช้
 
-> หลักฐานตรวจรับเดิมใช้ Python 3.11.9 แต่ audit วันที่ 2026-10-08 พบว่า `.venv`
-> ปัจจุบันรายงาน Python 3.12.3 ต้อง freeze submission environment ก่อนเริ่ม modeling
-> และห้ามตีความว่าคำสั่ง train/evaluate มีอยู่แล้ว
+> หลักฐานตรวจรับเดิมใช้ Python 3.11.9 (recorded 2026-10-07); audit วันที่ 2026-10-08
+> พบว่า `.venv` รายงาน Python 3.12.3 แทน M2 จึง freeze submission/modeling environment
+> ไว้ที่ 3.12.3 ใน `configs/modeling.json` และ `src/modeling/config_schema.py`
+>
+> **อัปเดต 2026-10-10:** re-freeze เป็น **Python 3.14.8** (เวอร์ชันล่าสุดที่มีในเครื่อง
+> ขณะตรวจสอบ) หลังยืนยันว่าสร้าง `.venv` ใหม่, ติดตั้ง `requirements-lock.txt`,
+> `pip check`, `run_data_pipeline`, `run_spike_analysis` และ `pytest` ให้ผลตรงกับ
+> ค่าที่บันทึกไว้ในคู่มือนี้ทุกจุด (Rows: 2512, Train/Validation/Test: 1733/371/373,
+> Primary threshold: 0.0465436445413787) ก่อน commit การเปลี่ยนเวอร์ชันนี้ ได้ sync
+> `configs/modeling.json`, `src/modeling/config_schema.py` และ
+> `tests/modeling/test_dependencies.py` ให้ตรงกันแล้วด้วย
+> `python -m src.modeling.config_sync --write-plan` ห้ามตีความว่าคำสั่ง
+> train/evaluate มีอยู่แล้ว — ดูข้อ 10
 
 ## 1. สิ่งที่ต้องมี
 
 - Windows และ Command Prompt หรือ VS Code Terminal
-- Python 3.11.9
+- Python 3.14.8
 - Repository นี้
 - Raw Snapshot `data/raw/qqq_daily.csv` ที่ได้รับแยกจาก Git
 
@@ -32,10 +43,10 @@ Python หรือ packages คนละ environment
 รันจาก project root:
 
 ```bat
-py -3.11 -m venv .venv
+py -3.14 -m venv .venv
 ```
 
-ตรวจว่า environment ใช้ Python 3.11.9:
+ตรวจว่า environment ใช้ Python 3.14.8:
 
 ```bat
 .\.venv\Scripts\python.exe --version
@@ -44,7 +55,7 @@ py -3.11 -m venv .venv
 ผลที่คาดหวัง:
 
 ```text
-Python 3.11.9
+Python 3.14.8
 ```
 
 จะ activate environment ก่อนก็ได้:

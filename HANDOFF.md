@@ -1,8 +1,9 @@
 # QQQ Volatility Forecasting - เอกสารส่งต่องาน
 
-> **คู่มือการติดตั้งและรันหลัก:** [RUNBOOK.md](RUNBOOK.md) ใช้ Python 3.11.9 และแยก
-> ขั้นตอนสำหรับ clone ใหม่, การรันซ้ำที่ project root และ isolated verification
-> คำสั่งในส่วนหลักฐานด้านล่างเป็นบันทึกของรอบตรวจรับเดิม
+> **คู่มือการติดตั้งและรันหลัก:** [RUNBOOK.md](RUNBOOK.md) ใช้ Python 3.14.8
+> (re-frozen 2026-10-10; รอบตรวจรับเดิมใช้ 3.11.9 และผ่าน 3.12.3 มาแล้ว ดู audit
+> trail ใน RUNBOOK.md) และแยกขั้นตอนสำหรับ clone ใหม่, การรันซ้ำที่ project root
+> และ isolated verification คำสั่งในส่วนหลักฐานด้านล่างเป็นบันทึกของรอบตรวจรับเดิม
 >
 > **Modeling handoff ล่าสุด:** [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md)
 > เป็น source of truth สำหรับ inventory 19 รายการ, With-Spike-first, scratch/reference,
@@ -130,9 +131,13 @@ data, reports, figures, models หรือ metrics เพราะ `.gitignore`
 
 ### เวอร์ชันและ dependencies
 
-- Python **3.11.9** เป็นเวอร์ชันของหลักฐานตรวจรับเดิม แต่ `.venv` ใน checkout ที่
-  audit วันที่ 2026-10-08 รายงาน **Python 3.12.3**; ปัจจุบันยังไม่มี `.python-version`,
+- Python **3.11.9** เป็นเวอร์ชันของหลักฐานตรวจรับเดิม; `.venv` ใน checkout ที่
+  audit วันที่ 2026-10-08 รายงาน **Python 3.12.3** M2 freeze เดิมตาม
+  `configs/modeling.json`/`config_schema.py`; audit วันที่ 2026-10-10 re-freeze
+  เป็น **Python 3.14.8** หลังยืนยัน pipeline/tests ให้ผลตรงกับหลักฐานเดิม (ดู
+  audit trail ใน [RUNBOOK.md](RUNBOOK.md)) ปัจจุบันยังไม่มี `.python-version`,
   `pyproject.toml`, CI หรือ environment file บังคับเวอร์ชันเดียวแบบ machine-readable
+  นอกจาก modeling config gate
 - `requirements.txt` ระบุ `numpy`, `pandas`, `pytest`, `matplotlib`, `seaborn`,
   `nbformat`, `nbconvert`, `ipykernel` โดย **ไม่ pin versions**
 - ไม่มี lockfile (`poetry.lock`, `Pipfile.lock` หรือ equivalent)

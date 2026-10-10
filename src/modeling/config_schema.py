@@ -167,7 +167,7 @@ SCHEMA = {'properties': {'adaboost': {'properties': {'alpha_factor': {'type': 'n
                          'type': 'object'},
                 'environment': {'properties': {'dependency_lock': {'enum': ['requirements-lock.txt'],
                                                                    'type': 'string'},
-                                               'python': {'enum': ['3.12.3'], 'type': 'string'},
+                                               'python': {'enum': ['3.14.8'], 'type': 'string'},
                                                'reference_dependencies': {'items': {'anyOf': [{'enum': ['scikit-learn'],
                                                                                                'type': 'string'},
                                                                                               {'enum': ['xgboost'],

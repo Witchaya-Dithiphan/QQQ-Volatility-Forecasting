@@ -113,7 +113,9 @@ flowchart TD
 - Root `data_split_report.json` และ `classification_threshold.json` ที่ตรวจใน audit นี้
   ใช้ portable relative paths; เอกสารเดิมยังคงบันทึกประวัติ format เก่าที่เคยมี absolute paths
 - Course PDF มีใน checkout แต่ยัง untracked; `.venv` ปัจจุบันเป็น Python 3.12.3
-  ขณะที่หลักฐานตรวจรับเดิมใช้ Python 3.11.9
+  ขณะที่หลักฐานตรวจรับเดิมใช้ Python 3.11.9 (ค่าของ audit รอบนี้ ณ เวลาที่บันทึก)
+- **อัปเดต 2026-10-10:** frozen environment re-frozen เป็น Python 3.14.8; ดู audit
+  trail ใน [RUNBOOK.md](RUNBOOK.md)
 
 ## 5. Features, Targets และ Spike Design Decisions
 

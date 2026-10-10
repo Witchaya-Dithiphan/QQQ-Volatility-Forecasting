@@ -91,8 +91,8 @@
       "load_verification.json"
     ]
   },
-  "config_id": "cfg-f904b7f92596",
-  "config_sha256": "f904b7f925961bf8e5f8fb24f3905c70ef13b583e921787d62be8771b620a406",
+  "config_id": "cfg-e717d46e42f8",
+  "config_sha256": "e717d46e42f81abfae8cac7af888943cefb018d1d1c71590a28114b3308c3664",
   "data": {
     "classification_target": "target_high_volatility",
     "date_column": "Date",
@@ -119,7 +119,7 @@
   },
   "environment": {
     "dependency_lock": "requirements-lock.txt",
-    "python": "3.12.3",
+    "python": "3.14.8",
     "reference_dependencies": [
       "scikit-learn",
       "xgboost",
@@ -726,7 +726,7 @@
     "scratch": "npz_strict_json"
   },
   "plan_revision": "modeling-config-2026-10-08-v1",
-  "plan_section_sha256": "b1539343569a764ffbdccd9c950d49ab4f084f63e13e6de6b75d37dbbca32b91",
+  "plan_section_sha256": "15a2dd9d0c252119133701ed565bff2482577e51d950c2f962aa84d06dc7e8f4",
   "preprocessing": {
     "dtype": "float64",
     "fit_scope": "variant_train_only",
