@@ -1,11 +1,29 @@
 # QQQ 5-Day Annualized Volatility Forecasting — Model Training Plan
 
-> **สถานะ:** เอกสารแผนหลัก (single source of truth) สำหรับ Modeling Phase  
+> ## ⚠️ เอกสารนี้ถูกแทนที่บางส่วนแล้ว (2026-10-10)
+>
+> แผนรอบใหม่หลัง audit ใช้สถาปัตยกรรมคนละแบบ (`src/ml/` แทน `src/modeling/`) ให้ยึดเอกสารเหล่านี้แทน:
+>
+> | เรื่อง | ใช้ฉบับนี้ |
+> | --- | --- |
+> | กฎการเขียนโค้ด / interface / การแบ่งงาน | [AGENTS.md](AGENTS.md) |
+> | สถาปัตยกรรมและเหตุผล (ADR) | [ARCHITECTURE.md](ARCHITECTURE.md) |
+> | สเปก 19 โมเดล | [MODEL_CARDS.md](MODEL_CARDS.md) |
+> | แผนรายวัน / สิ่งที่ตัดได้ | [ROADMAP.md](ROADMAP.md) |
+> | สถานะจริง | [docs/audit/REALITY_AUDIT.md](docs/audit/REALITY_AUDIT.md) |
+>
+> **ส่วนที่ยังใช้ได้จากเอกสารนี้:** model inventory 19 รายการ, hyperparameter grid ใน section 14
+> (generated block), นิยาม target/feature และบทวิเคราะห์ requirement จาก PDF
+>
+> **ส่วนที่เลิกใช้:** milestone M2–M9, lifecycle/manifest/resume/finalize-gate contract,
+> `src/modeling/*` ทั้งหมด และ Deadline 12 ต.ค. (เลื่อนเป็น **18 ต.ค. 2026**)
+>
+> ---
+>
+> **สถานะเดิม:** เอกสารแผนหลักสำหรับ Modeling Phase  
 > **วันที่จัดทำ:** 2026-10-08  
-> **Deadline ตาม PDF:** 2026-10-12 — Final presentation และส่งเอกสารทั้งหมด  
-> **ขอบเขตรอบนี้:** ตรวจ requirement/repository และ freeze implementation configuration; ยังไม่มี model implementation, training หรือ performance result
-
-เอกสารนี้เป็นแหล่งอ้างอิงหลักสำหรับ model inventory, scratch/reference contract, training protocol, evaluation, artifacts และ milestones เอกสารอื่นควรสรุปสถานะและ link มาที่ไฟล์นี้แทนการคัดลอกรายละเอียดทั้งหมด
+> **Deadline ตาม PDF:** 2026-10-12 — ปัจจุบันเลื่อนเป็น **2026-10-18**  
+> **ขอบเขตรอบนั้น:** ตรวจ requirement/repository และ freeze implementation configuration; ยังไม่มี model implementation, training หรือ performance result
 
 ## 1. ข้อสรุปจาก Repository Audit
 
@@ -1497,7 +1515,7 @@ Source: configs/modeling.json (authoritative). Model entries are configuration, 
 
 เริ่ม **M2 + M3 pilot** โดยยังไม่กระจาย implement 19 models:
 
-1. ทำ Python 3.12.3 dependency gate, เพิ่ม `requirements.in`, `requirements-lock.txt`, compatibility `requirements.txt`, import smoke testและ existing targeted tests
+1. ทำ Python 3.14.8 dependency gate, เพิ่ม `requirements.in`, `requirements-lock.txt`, compatibility `requirements.txt`, import smoke testและ existing targeted tests
 2. สร้าง `configs/modeling.json`, schema validator และ `src/modeling/config_sync.py`; ตรวจ canonical hashesและ generated-plan blockด้วย `--check`
 3. เพิ่ม `src/modeling/contracts.py` และ `datasets.py` เพื่อโหลด/validateสอง variantsแบบ read-only, เลือก `FEATURE_COLUMNS` explicit และ enforce phase-specific Test gate
 4. เพิ่ม deterministic Standardizer/PCA primitives, metric/loss/threshold policies, lifecycle-aware artifact manifest, strict JSON, code/runtime fingerprints และ save/load compatibility check

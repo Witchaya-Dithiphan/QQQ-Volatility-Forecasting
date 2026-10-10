@@ -150,21 +150,24 @@ data, reports, figures, models หรือ metrics เพราะ `.gitignore`
 ### Windows PowerShell
 
 ```powershell
-py -3.11 -m venv .venv
+py -3.14 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
 .\.venv\Scripts\python.exe --version
 .\.venv\Scripts\python.exe -m pip check
 ```
 
+> ใช้ `py -3.11` ไม่ได้แล้ว — environment ถูก freeze ที่ Python **3.14.8** และมี gate ตรวจเวอร์ชัน
+> อยู่ใน test suite ถ้าสร้าง venv ด้วย 3.11 จะ fail ทันที (ดู [RUNBOOK.md](RUNBOOK.md))
+
 ### macOS/Linux
 
 ```bash
-python3.11 -m venv .venv
+python3.14 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-lock.txt
 python --version
 python -m pip check
 ```
@@ -289,7 +292,9 @@ modeling-ready 2,487 rows, gaps รวม 10 rows และ Train/Validation/Tes
 - Notebook 03 และ 04 มี 0 cells
 - ไม่พบ training/evaluation CLI หรือ scripts
 - ไม่พบ persisted model, prediction, metric หรือ exported figure
-- ไม่พบ scikit-learn dependency หรือ code เปรียบเทียบ from-scratch กับ scikit-learn
+- ~~ไม่พบ scikit-learn dependency~~ **ล้าสมัยแล้ว:** `requirements.in` มี `scikit-learn`,
+  `xgboost`, `joblib` และ `requirements-lock.txt` pin ครบ 69 distributions (ติดตั้งและตรวจผ่านแล้ว)
+  แต่ยังไม่มี code เปรียบเทียบ from-scratch กับ scikit-learn
 
 With-Spike/Non-Spike splits และ Phase 2 artifacts พร้อมเป็น inputs แต่ยังไม่ควรอ้าง
 ผลทดลอง ลำดับคือ With-Spike-first แล้ว fit ใหม่สำหรับ Non-Spike; paired conclusion

@@ -228,3 +228,22 @@ Runner ปฏิเสธการเขียนทับโดยค่าเ�
 และ `src/models/classification.py` ยังมีเพียง docstring และ Notebook 03/04 มี 0 cells
 ตัวอย่าง CLI ใน `MODEL_TRAINING_PLAN.md` เป็น proposed interface เท่านั้น จนกว่าจะมี
 implementation และ tests ห้ามคัดลอกตัวอย่างนั้นมาใช้เป็น runbook command
+
+แผนของชั้น modeling รอบใหม่ (เริ่ม 2026-10-10) อยู่ที่ [AGENTS.md](AGENTS.md),
+[ARCHITECTURE.md](ARCHITECTURE.md) และ [ROADMAP.md](ROADMAP.md) โดยจะสร้าง `src/ml/`
+ขึ้นใหม่และมี CLI คือ `python -m src.ml.run train|report|finalize`
+**คำสั่งเหล่านั้นจะใช้ได้ก็ต่อเมื่อ implement เสร็จแล้วเท่านั้น** หัวข้อนี้จะถูกอัปเดต
+พร้อมผลการรันจริงเมื่อถึงเวลานั้น
+
+## 11. ครั้งแรกหลัง clone — Phase 1 reproduction
+
+Phase 2 test ต้องการโฟลเดอร์ reproduction ที่ `outputs/reports/spike_input_contract.json`
+บันทึก provenance ไว้ ถ้าไม่มีจะ fail ด้วย `Missing Phase 1 reproduction root`
+
+```bat
+.\.venv\Scripts\python.exe -m src.run_data_pipeline --output-root "tmp/phase1-reproduction" --overwrite-generated
+```
+
+ใช้ชื่อ `tmp/phase1-reproduction` เท่านั้นและห้ามลบทิ้ง หากเคยรันด้วยชื่ออื่นแล้วลบโฟลเดอร์นั้นไป
+ให้รันคำสั่งข้างบนแล้วตามด้วย `run_spike_analysis --reproduced-root "tmp/phase1-reproduction" --overwrite-generated`
+เพื่อเขียน provenance ใหม่

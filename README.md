@@ -3,9 +3,13 @@
 > **วิธีติดตั้งและรันล่าสุด:** ดู [RUNBOOK.md](RUNBOOK.md) สำหรับ Python 3.14.8,
 > การสร้าง `.venv`, การติดตั้ง dependencies, การรัน Phase 1/Phase 2 และ tests บน Windows
 >
-> **Modeling scope ล่าสุด:** ดู [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md)
-> ซึ่งเป็น source of truth สำหรับ requirement matrix, inventory 19 รายการ,
-> scratch/reference contract, With-Spike-first milestones และ Non-Spike reruns
+> **Modeling scope ล่าสุด (2026-10-10):** ดู [AGENTS.md](AGENTS.md) (contract),
+> [ARCHITECTURE.md](ARCHITECTURE.md) (ดีไซน์ + ADR), [MODEL_CARDS.md](MODEL_CARDS.md)
+> (สเปก 19 โมเดล) และ [ROADMAP.md](ROADMAP.md) (แผนถึง 18 ต.ค.)
+> — [MODEL_TRAINING_PLAN.md](MODEL_TRAINING_PLAN.md) ถูกแทนที่บางส่วนแล้ว
+>
+> **สถานะจริง:** data pipeline เสร็จ ✅ · test suite **459 passed, 3 skipped** ·
+> **โมเดล 0/19 ยังไม่เริ่ม** · รายละเอียด: [docs/audit/REALITY_AUDIT.md](docs/audit/REALITY_AUDIT.md)
 
 สำหรับ workspace ที่ตั้งค่าครบแล้ว ใช้คำสั่งต่อไปนี้จาก project root:
 
@@ -254,8 +258,9 @@ regression algorithms และ contract ต่อโมเดลอยู่ใ
 
 ### Representative Classification Notes
 
-หัวข้อนี้เก็บรายละเอียด 2 ตัวอย่างจากแผนเดิม ไม่ใช่ inventory ทั้งหมด รายการครบ 12
-classifiers และ clustering 2 รายการอยู่ใน `MODEL_TRAINING_PLAN.md`
+หัวข้อนี้เก็บรายละเอียด 2 ตัวอย่างจากแผนเดิม ไม่ใช่ inventory ทั้งหมด รายการครบ 13
+classifiers และ clustering 2 รายการอยู่ใน `MODEL_CARDS.md` (inventory ที่ถูกต้องคือ
+19 = Regression 4 + Classification 13 + Clustering 2 ตาม `configs/modeling.json`)
 
 #### Logistic Regression - baseline
 
