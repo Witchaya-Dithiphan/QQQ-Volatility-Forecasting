@@ -142,7 +142,7 @@ b = pinv(X_design) @ y        โดย X_design = [1, X]
 **Reference** `LinearRegression(fit_intercept=True)`
 
 **จุดที่ parity พลาด** ใช้ normal equation `inv(XᵀX) @ Xᵀy` จะยกกำลังสองของ condition number
-(ชุดนี้ cond = 35.6 → 1267) ทำให้ต่างจาก sklearn ที่ระดับ 1e-6 แทนที่จะเป็น 1e-15 ·
+(cond(X) = 6.0 → cond(X'X) = 35.6) ทำให้เสียความแม่นยำโดยไม่จำเป็น · วัดจริงแล้ว lstsq ให้ max abs diff กับ sklearn ที่ **1.11e-15** บน train set เต็ม ·
 `np.linalg.lstsq` กับ `pinv` ให้ค่าเท่ากันทั้งคู่และตรงกับ sklearn ซึ่งใช้ `scipy.linalg.lstsq`
 
 **Unit test** ระบบที่มีคำตอบเดียว `X=[[1,0],[0,1],[1,1]], y=[2,3,5]`, `fit_intercept=False` → `coef=[2,3]`
@@ -186,7 +186,7 @@ degree 3 บนฟีเจอร์ที่มี outlier ทำให้ desi
 > โจทย์บังคับให้โมเดลนี้มี **ทั้ง scratch และ ready-to-use** และต้องอธิบายกลไกภายในอย่างละเอียดในรายงาน
 > card นี้จึงเขียนลึกกว่าตัวอื่น และเนื้อหาส่วน "กลไก" ให้ยกไปใช้ในรายงานได้โดยตรง
 
-**ทำไมโมเดลนี้เหมาะกับชุดข้อมูลนี้** วัดจาก train set จริง: condition number = **35.6**,
+**ทำไมโมเดลนี้เหมาะกับชุดข้อมูลนี้** วัดจาก train set จริง: condition number ของ covariance matrix = **35.6** (cond(X) = **6.0**),
 `historical_volatility_5d ~ historical_volatility_20d` ให้ |r| = **0.804** ซึ่งแปลว่า Multiple Regression
 จะได้สัมประสิทธิ์ที่ไม่เสถียร (สลับเครื่องหมาย/พองผิดปกติ) Elastic Net แก้ตรงจุดนี้ด้วยการรวม
 penalty สองแบบ: L1 ตัดฟีเจอร์ที่ซ้ำซ้อนทิ้ง ส่วน L2 กระจายน้ำหนักให้กลุ่มฟีเจอร์ที่สัมพันธ์กันสูง

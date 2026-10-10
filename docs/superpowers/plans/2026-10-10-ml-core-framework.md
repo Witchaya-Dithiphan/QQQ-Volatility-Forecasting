@@ -954,7 +954,7 @@ class MultipleRegression(BaseModel):
     """Minimises ||y - Xb||^2.
 
     Solved with lstsq rather than inverting X'X: the features are collinear
-    (condition number 35.6 on this train set) and the normal equations square
+    (cond(X) = 6.0, cond(X'X) = 35.6 on this train set) and the normal equations square
     that conditioning, while lstsq's SVD handles rank deficiency gracefully —
     which is also exactly what sklearn does, so parity comes for free.
     """

@@ -50,6 +50,34 @@ git checkout -b feat/models-tree-family
 
 ---
 
+## 1.5 ไม่ต้องรออะไรแล้ว — core เสร็จและ merge เข้า `main` ครบ
+
+ทุกอย่างที่คุณต้องใช้พร้อมใช้งานแล้ว ยืนยันด้วยการรันจริงเมื่อ 2026-10-10:
+
+| พร้อมใช้ | ใช้ทำอะไร |
+| --- | --- |
+| `core/base.py` | `BaseModel` ที่โมเดลคุณต้อง subclass |
+| `core/compare.py` | `assert_parity()` ด่านตรวจความถูกต้อง |
+| `core/data.py` | `load(variant)` — Train/Validation พร้อม Test แบบ default-deny |
+| `core/preprocess.py` | `Standardizer`, `PCA` (ใช้ผ่าน trainer ไม่ต้องเรียกเอง) |
+| `core/metrics.py` | confusion matrix · accuracy · precision · sensitivity · specificity · TNR · F1 · ROC+AUC · R² · losses |
+| `core/persist.py` | `save_npz` / `load_npz` / `verify_reload` |
+| `core/trainer.py` | grid search + ผลิต artifact ครบชุด |
+| `core/figures.py` | ROC · confusion · performance curve · leaderboard |
+| `registry.py` · `run.py` | ทะเบียนโมเดล + CLI `train` |
+
+```bat
+.\.venv\Scripts\python.exe -m src.ml.run train --model multiple_linear --variant with_spike
+rem ->      multiple_linear | with_spike | candidates= 1 | selected=multiple_linear-00 | reload=ok
+```
+
+`multiple_linear` เป็น pilot ที่รันครบลูปแล้ว **ใช้ `src/ml/regression/multiple_linear.py`
+เป็นตัวอย่างอ้างอิง** ว่าโมเดลที่ถูกต้องหน้าตาเป็นอย่างไร — สั้นและครบทุก method
+
+เริ่ม T1 ได้ทันที `decision_tree` เป็นฐานของอีก 4 โมเดล ยิ่งเสร็จเร็วยิ่งดีกับทั้งสาย
+
+---
+
 ## 2. ลำดับงาน — ทำตามลำดับนี้เท่านั้น
 
 ลำดับนี้ไม่ได้เรียงตามความยาก แต่เรียงตาม **การพึ่งพากัน** — `decision_tree` ถูก reuse โดยอีก 4 ตัว

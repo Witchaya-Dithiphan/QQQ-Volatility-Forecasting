@@ -3,16 +3,24 @@
 > **วิธีรันปัจจุบัน:** ดู [RUNBOOK.md](../guides/RUNBOOK.md) สำหรับการติดตั้ง environment และ
 > การรัน Data/Spike pipelines เอกสารนี้ใช้สรุปสถานะ implementation
 
-> ## ⚠️ สถานะปัจจุบัน — ตรวจด้วยการรันจริงเมื่อ 2026-10-10 บน `main` (`779c78d`)
+> ## สถานะปัจจุบัน — ตรวจด้วยการรันจริงเมื่อ 2026-10-10 (หลัง merge ML core)
 >
 > | รายการ | ค่าจริง |
-> |---|---|
-> | Test suite | **459 passed, 3 skipped, 0 failed** |
+> | --- | --- |
+> | Test suite | **456 passed, 0 failed, 0 skipped** (120 ตัวเป็นของ `src/ml/` ที่เพิ่งเขียน) |
 > | Environment | Python **3.14.8** · 69 locked distributions · `pip check` สะอาด |
 > | Data pipeline Phase 1 + 2 | ✅ เสร็จ SHA-256 ตรงทุกไฟล์ |
-> | **โมเดล** | ❌ **0/19** — `src/models/` มี 3 บรรทัด (docstring), `outputs/models/` ว่าง |
+> | **ML core framework** | ✅ **เสร็จ** — `src/ml/` 1,120 บรรทัด · CLI `src.ml.run train` ใช้งานได้จริง |
+> | **โมเดล** | **1/19** — `multiple_linear` (pilot) ผ่าน strict parity กับ sklearn และ save/load |
+> | `src/modeling/` (governance layer เดิม) | ลบแล้วตาม ADR-001 (−3,243 บรรทัด) |
 > | Notebook 03/04 | ❌ 0 cells ทั้งคู่ |
 > | Deadline | **18 ต.ค. 2026** (เลื่อนจาก 12 ต.ค. ที่ระบุใน PDF) |
+>
+> **ผลจริงตัวแรกของโปรเจกต์** — `multiple_linear` บน validation (`with_spike`):
+> RMSE 0.068864 · MAE 0.054186 · **R² = −0.0446**
+> R² ติดลบแปลว่า linear model ทำนายได้แย่กว่าการเดาค่าเฉลี่ย เป็นผลจริงไม่ใช่บั๊ก
+> และเป็นหลักฐานตรง ๆ ว่าทำไมปัญหานี้ต้องใช้โมเดลที่ซับซ้อนกว่า — ใช้ตอบคำถาม
+> *"why must use ML/DL?"* ที่โจทย์ให้คะแนนได้เลย
 >
 > รายละเอียดครบและรายการที่เอกสารเดิมขัดกับโค้ด: **[docs/audit/REALITY_AUDIT.md](../audit/REALITY_AUDIT.md)**
 > แผนงานชั้น modeling รอบใหม่: [ARCHITECTURE.md](../plan/ARCHITECTURE.md) · [ROADMAP.md](../plan/ROADMAP.md) · [AGENTS.md](../../AGENTS.md)

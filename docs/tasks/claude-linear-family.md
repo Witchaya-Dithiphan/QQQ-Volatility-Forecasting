@@ -2,8 +2,11 @@
 
 > **เอกสารนี้สำหรับผู้พัฒนาที่ใช้ Claude Code** · branch `feat/ml-core` → `feat/models-linear-family`
 >
-> ฝั่งนี้รับผิดชอบ **core framework ด้วย** ซึ่งเป็นคอขวดของทั้งทีม — เพื่อนร่วมทีมเริ่มงานจริง
-> ไม่ได้จนกว่า `src/ml/core/` จะ merge เข้า `main` ดังนั้น **Phase A สำคัญกว่าโมเดลตัวใดก็ตาม**
+> ฝั่งนี้รับผิดชอบ **core framework ด้วย** ซึ่งเป็นคอขวดของทั้งทีม **Phase A สำคัญกว่าโมเดลตัวใดก็ตาม**
+>
+> **A0 ถูกแยกออกมาทำก่อนเป็นอย่างแรกแล้ว** — ตรวจ dependency จริงแล้วพบว่าเพื่อนต้องการแค่
+> `core/base.py` + `core/compare.py` (~110 บรรทัด) ไม่ใช่ core ทั้งก้อน ส่ง 2 ไฟล์นี้ก่อน
+> ทำให้เขาเริ่ม T1 ได้ทันทีแทนที่จะรอถึงวันที่ 12 — ได้เวลาขนานเพิ่ม 2 วัน
 >
 > อ่านก่อน: [`AGENTS.md`](../../AGENTS.md) · [`docs/plan/MODEL_CARDS.md`](../plan/MODEL_CARDS.md) ·
 > แผนละเอียดพร้อมโค้ดจริง: [`docs/superpowers/plans/2026-10-10-ml-core-framework.md`](../superpowers/plans/2026-10-10-ml-core-framework.md)
@@ -32,6 +35,7 @@ git checkout -b feat/ml-core
 
 | # | Task | ไฟล์ | เกณฑ์ผ่าน |
 | --- | --- | --- | --- |
+| **A0** | **unblock set — ทำก่อนทุกอย่าง** | `core/base.py`, `core/compare.py`, `__init__.py` ของ package | 21 tests ผ่าน · merge + push + แจ้งเพื่อนทันที |
 | A1 | ย้ายโค้ดคณิตที่ test ผ่านแล้ว | `core/preprocess.py`, `core/metrics.py`, `core/contracts.py` | `pytest tests/ml/core` เขียว (20 tests ที่ย้ายมา) |
 | A2 | save / load / verify | `core/persist.py` | 5 tests ผ่าน · save ทับไฟล์เดิมได้ |
 | A3 | loader 2 variant + Test แบบ default-deny | `core/data.py` | 8 tests ผ่าน · `load_test()` raise `PermissionError` |
@@ -91,7 +95,7 @@ git checkout main && git pull && git checkout -b feat/models-linear-family
 
 **B7 `elastic_net` ★** เป็นโมเดล extracurricular ที่โจทย์บังคับให้ทำ **ทั้ง scratch และ ready-to-use**
 และอธิบายกลไกภายในอย่างละเอียดในรายงาน → ตอนเขียน card ให้เขียนลึกพอที่จะยกไปใส่รายงาน §6.1 ได้ตรง ๆ
-จุดขายคือ multicollinearity ที่วัดได้จริง (condition number 35.6, `hist_vol_5d ~ 20d` |r| = 0.804)
+จุดขายคือ multicollinearity ที่วัดได้จริง (condition number ของ covariance matrix 35.6, `hist_vol_5d ~ 20d` |r| = 0.804)
 
 **B8–B9 clustering** ใช้ `task = "clustering"` และ `fit(X, y=None)` · การประเมินใช้ silhouette เป็นหลัก ·
 `agglomerative` ไม่มี `predict` สำหรับข้อมูลใหม่โดยธรรมชาติ ให้ใช้ frozen nearest-centroid
