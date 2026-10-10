@@ -1,0 +1,7 @@
+{
+  "params": {
+    "k": 15,
+    "weights": "distance"
+  },
+  "seed": 42
+}

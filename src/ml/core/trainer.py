@@ -22,6 +22,19 @@ from .preprocess import PCA, Standardizer
 OUTPUT_ROOT = PROJECT_ROOT / "outputs" / "modeling"
 
 
+def config_preprocess(name: str) -> str:
+    """Which preprocessing configs/modeling.json specifies for this model.
+
+    Seven models declare "none" (trees, gaussian_nb, simple_linear). Standardizing
+    them anyway does not break parity — both sides see the same matrix — but it
+    makes the report describe preprocessing incorrectly, and it rescales
+    gaussian_nb's var_smoothing, which is defined relative to the largest feature
+    variance.
+    """
+    config = json.loads((PROJECT_ROOT / "configs" / "modeling.json").read_text(encoding="utf-8"))
+    return config.get("models", {}).get(name, {}).get("preprocess", "standardize")
+
+
 def expand_grid(grid: dict) -> list[dict]:
     """Cartesian product in sorted key order so candidate ids are reproducible."""
     if not grid:
@@ -80,6 +93,7 @@ def train_model(
     variant: str = "with_spike",
     output_root: Path | None = None,
     pca_components: int | None = None,
+    preprocess: str | None = None,
     seed: int = 42,
 ) -> dict:
     grid = grid or {}
@@ -88,10 +102,21 @@ def train_model(
     directory = Path(output_root or OUTPUT_ROOT) / variant / task / model_class.name
     directory.mkdir(parents=True, exist_ok=True)
 
-    standardizer = Standardizer().fit(data.train.X)
-    train_X = standardizer.transform(data.train.X)
-    validation_X = standardizer.transform(data.validation.X)
-    preprocessor_arrays = {"mean": standardizer.mean_, "scale": standardizer.scale_}
+    mode = preprocess or config_preprocess(model_class.name)
+    # PCA needs centered input, so it implies standardising whatever the model asked for.
+    scaled = mode != "none" or bool(pca_components)
+
+    if scaled:
+        standardizer = Standardizer().fit(data.train.X)
+        train_X = standardizer.transform(data.train.X)
+        validation_X = standardizer.transform(data.validation.X)
+        preprocessor_arrays = {"mean": standardizer.mean_, "scale": standardizer.scale_}
+    else:
+        train_X, validation_X = data.train.X, data.validation.X
+        n_features = data.train.X.shape[1]
+        # Identity transform, stored so every run has the same artifact shape.
+        preprocessor_arrays = {"mean": np.zeros(n_features), "scale": np.ones(n_features)}
+
     if pca_components:
         pca = PCA(pca_components).fit(train_X)
         train_X, validation_X = pca.transform(train_X), pca.transform(validation_X)
@@ -125,7 +150,8 @@ def train_model(
     save_npz(
         directory / "preprocessor.npz",
         preprocessor_arrays,
-        {"pca_components": pca_components, "feature_names": data.feature_names},
+        {"preprocess": mode, "standardized": scaled, "pca_components": pca_components,
+         "feature_names": data.feature_names},
     )
 
     arrays, metadata = load_npz(directory / "model.npz")
@@ -143,6 +169,7 @@ def train_model(
             "seed": seed,
             "params": model.get_params(),
             "pca_components": pca_components,
+            "preprocess": mode,
             "selected_candidate": winner["id"],
             "train_rows": int(len(data.train.X)),
             "train_sha256": data.train.sha256,

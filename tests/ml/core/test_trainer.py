@@ -79,6 +79,50 @@ def test_rerunning_the_same_model_overwrites_instead_of_crashing(tmp_path):
     train_model(MultipleLinear, variant="with_spike", output_root=tmp_path)
 
 
+def test_preprocess_mode_comes_from_the_accepted_config():
+    from src.ml.core.trainer import config_preprocess
+
+    assert config_preprocess("simple_linear") == "none"
+    assert config_preprocess("multiple_linear") == "standardize"
+    assert config_preprocess("decision_tree") == "none"
+    assert config_preprocess("not_a_model") == "standardize"
+
+
+def test_model_declaring_no_preprocessing_is_not_standardized(tmp_path):
+    """configs/modeling.json gives 7 models preprocess="none"; honour it."""
+    train_model(MultipleLinear, variant="with_spike", output_root=tmp_path, preprocess="none")
+    directory = tmp_path / "with_spike" / "regression" / "multiple_linear"
+    config = json.loads((directory / "config.json").read_text(encoding="utf-8"))
+    _, metadata = __import__("src.ml.core.persist", fromlist=["load_npz"]).load_npz(
+        directory / "preprocessor.npz"
+    )
+    assert config["preprocess"] == "none"
+    assert metadata["standardized"] is False
+
+
+def test_standardized_run_records_the_real_scaler(tmp_path):
+    from src.ml.core.persist import load_npz
+
+    train_model(MultipleLinear, variant="with_spike", output_root=tmp_path, preprocess="standardize")
+    directory = tmp_path / "with_spike" / "regression" / "multiple_linear"
+    arrays, metadata = load_npz(directory / "preprocessor.npz")
+    assert metadata["standardized"] is True
+    assert not (arrays["scale"] == 1.0).all()
+
+
+def test_pca_forces_standardization_even_when_model_says_none(tmp_path):
+    """PCA requires centered input, so it overrides preprocess="none"."""
+    from src.ml.core.persist import load_npz
+
+    train_model(
+        MultipleLinear, variant="with_spike", output_root=tmp_path, preprocess="none", pca_components=4
+    )
+    directory = tmp_path / "with_spike" / "regression" / "multiple_linear"
+    arrays, metadata = load_npz(directory / "preprocessor.npz")
+    assert metadata["standardized"] is True
+    assert arrays["components"].shape == (4, 8)
+
+
 def test_trainer_source_never_references_the_test_split():
     """A monkeypatch cannot catch `from .data import load_test`, so check the source."""
     import src.ml.core.trainer as trainer_module
