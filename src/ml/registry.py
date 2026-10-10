@@ -5,11 +5,13 @@ sorted by name. That keeps merge conflicts to a single obvious line.
 """
 from __future__ import annotations
 
+from .classification.knn import KNN
 from .core.base import BaseModel
 from .regression.multiple_linear import MultipleLinear
 from .regression.simple_linear import SimpleLinear
 
 MODELS: dict[str, type[BaseModel]] = {
+    "knn": KNN,
     "multiple_linear": MultipleLinear,
     "simple_linear": SimpleLinear,
 }

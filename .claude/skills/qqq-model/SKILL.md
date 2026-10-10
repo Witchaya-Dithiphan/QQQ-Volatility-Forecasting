@@ -97,6 +97,9 @@ sklearn สร้างบน **legacy MT19937** ใช้ `np.random.RandomStat
 | `KNeighborsClassifier` | `algorithm="brute"` + `argsort(kind="stable")` ให้ tie-break ตรง |
 | `ElasticNet` | objective หาร `1/(2n)` · `selection="cyclic"` |
 | ข้อมูล near-singular | อย่าเขียน test ที่ cond สูงเกินจริง — คำตอบ LS ไม่ unique แล้ว solver คนละตัวให้คนละคำตอบโดยไม่มีใครผิด (ข้อมูลจริง cond(X) = 6.0) |
+| **ระยะทางของ sklearn** | ใช้สูตรกระจาย `‖a‖²+‖b‖²−2a·b` → ระยะจากจุดถึง**ตัวเอง** ได้ `4.2e-08` ไม่ใช่ 0 (วัดแล้ว) ส่วน `norm(x−x)` ได้ 0 พอดี → **ทดสอบ parity บน held-out points เสมอ** ซึ่งเป็นสิ่งที่ trainer ทำจริง ไม่ใช่ predict ทับ train · กระทบ `knn` และ `kmeans` |
+| **tie ที่ proba = 0.5** | `predict` ต้องใช้ `> 0.5` ไม่ใช่ `>= 0.5` — sklearn ใช้ `argmax` ซึ่งเลือกคลาส index ต่ำกว่าเมื่อเสมอ |
+| **preprocess** | trainer อ่าน `preprocess` จาก config แล้ว (7 โมเดลเป็น `none`) ส่ง `preprocess=` override ได้ใน test · PCA บังคับ standardize เสมอเพราะต้องการ input ที่ centered |
 
 ## Grid
 
@@ -120,7 +123,15 @@ CLI อ่านให้อัตโนมัติ ไม่ต้องส่
 
 targets: `target_volatility_5d` (reg) · `target_high_volatility` (cls)
 variants: `with_spike` train 1,733 · `non_spike` train 1,520 · validation 371 · test 373 (เหมือนกันทั้งคู่)
-Q75 = `0.2530580184684854` · class balance 1300/433
+Q75 = `0.2530580184684854` · class balance train 1300/433
+
+### ⚠️ Accuracy หลอกตาในชุดนี้ — อย่ารายงานเป็นตัวหลัก
+
+validation มี **337 neg / 34 pos (positive 9.2%)** → ทายว่า negative ทุกแถวได้ accuracy
+**0.9084** ซึ่งสูงกว่าโมเดลจริงหลายตัว (kNN ได้ 0.8922)
+
+ใช้ **AUC กับ F1 เป็นตัวตัดสิน** (ตรงกับ `selection.classification` ใน config ที่ใช้
+average_precision → roc_auc) และรายงานต้องอธิบายประเด็นนี้ให้ชัด
 
 ## ห้ามแตะ
 
