@@ -4,7 +4,7 @@
 > วิธีทำงาน: invoke skill `qqq-model` (กลั่นจาก `AGENTS.md` + `MODEL_CARDS.md` แล้ว ไม่ต้องอ่านต้นฉบับซ้ำ)
 > อัปเดตตารางนี้ + ไฟล์ของโมเดลนั้น หลังจบทุกตัว · **ห้ามลบผลเก่า**
 
-**สถานะรวม:** 9/11 ของฝั่ง Claude · test suite `610 passed, 0 failed`
+**สถานะรวม:** 10/11 ของฝั่ง Claude · test suite `632 passed, 0 failed`
 
 ## ฝั่ง Claude (11 ตัว — ของเรา)
 
@@ -19,7 +19,7 @@
 | 7 | `perceptron` | cls | ✅ | exact 1e-10 | **AUC 0.2993** (< สุ่ม) · F1 0.0 | [↗](../models/perceptron/MODEL_PROGRESS.md) ตรวจแล้ว sklearn ได้เท่ากัน |
 | 8 | `slp` | cls | ✅ | converged 1.3e-08 vs LogReg | AUC **0.6803** (ดีสุดในกลุ่ม cls) · F1 0.2609 | [↗](../models/slp/MODEL_PROGRESS.md) |
 | 9 | `elastic_net` ★ | reg | ✅ | exact (12/12) 1e-6 | **RMSE 0.066806 · R² +0.0169** ชนะทุกตัว | [↗](../models/elastic_net/MODEL_PROGRESS.md) **หลักฐาน +5** |
-| 10 | `kmeans` | clustering | ⬜ | | | |
+| 10 | `kmeans` | clustering | ✅ | partition ตรง 5/5 · inertia ≤ sklearn | k=2 · silhouette **0.3666** | [↗](../models/kmeans/MODEL_PROGRESS.md) |
 | 11 | `agglomerative` | clustering | ⬜ | | | |
 
 ## ฝั่ง Codex (8 ตัว — ห้ามแตะ)
@@ -48,8 +48,8 @@ paired comparison A↔B · notebooks 03/04/05
 
 ## ถัดไป
 
-`kmeans` — k ∈ {2,3,4,5,6} · k-means++ ของ sklearn สุ่ม `2+log(k)` candidate ต่อรอบ
-ใช้ **`RandomState`** · ระวังสูตรระยะทางของ sklearn (ดู pitfall ใน skill)
+`agglomerative` — k ∈ {2..6} × linkage ∈ {ward, average} = 10 candidates · **ตัวสุดท้าย**
+Lance-Williams update · **ไม่มี predict สำหรับข้อมูลใหม่** ต้องใช้ frozen nearest-centroid
 
 ## ข้อค้นพบสะสม (ใช้ในรายงาน §8.2)
 

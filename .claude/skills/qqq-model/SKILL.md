@@ -98,6 +98,7 @@ sklearn สร้างบน **legacy MT19937** ใช้ `np.random.RandomStat
 | `ElasticNet` | objective หาร `1/(2n)` · `selection="cyclic"` |
 | ข้อมูล near-singular | อย่าเขียน test ที่ cond สูงเกินจริง — คำตอบ LS ไม่ unique แล้ว solver คนละตัวให้คนละคำตอบโดยไม่มีใครผิด (ข้อมูลจริง cond(X) = 6.0) |
 | **ระยะทางของ sklearn** | ใช้สูตรกระจาย `‖a‖²+‖b‖²−2a·b` → ระยะจากจุดถึง**ตัวเอง** ได้ `4.2e-08` ไม่ใช่ 0 (วัดแล้ว) ส่วน `norm(x−x)` ได้ 0 พอดี → **ทดสอบ parity บน held-out points เสมอ** ซึ่งเป็นสิ่งที่ trainer ทำจริง ไม่ใช่ predict ทับ train · กระทบ `knn` และ `kmeans` |
+| **RNG ไม่ตรง sklearn** | วินิจฉัยก่อนแก้: เพิ่ม `n_init`/budget แล้ว gap ปิดไหม — ถ้าปิด = อัลกอริทึมถูก ปัญหาอยู่ที่ init · k-means++ ของ sklearn ใช้ `rng.choice(n, p=w/w.sum())` สำหรับ center แรก (ไม่ใช่ `randint`), `rng.uniform(size=...)` แต่ละรอบ, และ **ลบ column mean ก่อน cluster** — ต่างข้อใดข้อหนึ่ง stream เพี้ยนตั้งแต่ center แรก |
 | **tie ที่ proba = 0.5** | `predict` ต้องใช้ `> 0.5` ไม่ใช่ `>= 0.5` — sklearn ใช้ `argmax` ซึ่งเลือกคลาส index ต่ำกว่าเมื่อเสมอ |
 | **preprocess** | trainer อ่าน `preprocess` จาก config แล้ว (7 โมเดลเป็น `none`) ส่ง `preprocess=` override ได้ใน test · PCA บังคับ standardize เสมอเพราะต้องการ input ที่ centered |
 

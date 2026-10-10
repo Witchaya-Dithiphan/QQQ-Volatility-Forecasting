@@ -10,6 +10,7 @@ from .classification.knn import KNN
 from .classification.logistic import Logistic
 from .classification.perceptron import Perceptron
 from .classification.slp import SLP
+from .clustering.kmeans import KMeans
 from .core.base import BaseModel
 from .regression.elastic_net import ElasticNet
 from .regression.multiple_linear import MultipleLinear
@@ -19,6 +20,7 @@ from .regression.simple_linear import SimpleLinear
 MODELS: dict[str, type[BaseModel]] = {
     "elastic_net": ElasticNet,
     "gaussian_nb": GaussianNB,
+    "kmeans": KMeans,
     "knn": KNN,
     "logistic": Logistic,
     "perceptron": Perceptron,

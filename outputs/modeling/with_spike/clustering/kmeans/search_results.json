@@ -1,0 +1,110 @@
+[
+  {
+    "id": "kmeans-00",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 73,
+        "1": 298
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1075.1372131644011
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.3665652250469715
+      }
+    },
+    "params": {
+      "k": 2
+    }
+  },
+  {
+    "id": "kmeans-01",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 279,
+        "1": 62,
+        "2": 30
+      },
+      "inertia": {
+        "reason": null,
+        "value": 968.7196060948611
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.2804566101369259
+      }
+    },
+    "params": {
+      "k": 3
+    }
+  },
+  {
+    "id": "kmeans-02",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 114,
+        "1": 221,
+        "2": 24,
+        "3": 12
+      },
+      "inertia": {
+        "reason": null,
+        "value": 858.9496644879372
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.26711395341790184
+      }
+    },
+    "params": {
+      "k": 4
+    }
+  },
+  {
+    "id": "kmeans-03",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 209,
+        "1": 43,
+        "3": 15,
+        "4": 104
+      },
+      "inertia": {
+        "reason": null,
+        "value": 851.7021848544373
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.24372829959199946
+      }
+    },
+    "params": {
+      "k": 5
+    }
+  },
+  {
+    "id": "kmeans-04",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 62,
+        "1": 206,
+        "2": 14,
+        "3": 21,
+        "4": 68
+      },
+      "inertia": {
+        "reason": null,
+        "value": 790.5547723473242
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.20078046414193998
+      }
+    },
+    "params": {
+      "k": 6
+    }
+  }
+]
