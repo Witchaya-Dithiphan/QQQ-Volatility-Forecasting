@@ -11,16 +11,24 @@ import json
 import sys
 from pathlib import Path
 
+from config import PROJECT_ROOT
+
 from .core.contracts import VARIANTS
 from .core.trainer import train_model
 from .registry import MODELS, model_names
 
 
 def _load_grid(path: str | None, name: str) -> dict:
-    if not path:
-        return {}
-    grids = json.loads(Path(path).read_text(encoding="utf-8"))
-    return grids.get(name, {})
+    """Grids come from configs/modeling.json unless an explicit file overrides it.
+
+    That config is the accepted inventory, so hyperparameter ranges stay in one place
+    rather than being retyped per model.
+    """
+    if path:
+        grids = json.loads(Path(path).read_text(encoding="utf-8"))
+        return grids.get(name, {})
+    config = json.loads((PROJECT_ROOT / "configs" / "modeling.json").read_text(encoding="utf-8"))
+    return config.get("models", {}).get(name, {}).get("grid", {})
 
 
 def _train(args) -> int:

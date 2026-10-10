@@ -1,0 +1,51 @@
+# MASTER PROGRESS INDEX — 19 โมเดล
+
+> **ดัชนีเท่านั้น** — รายละเอียดอยู่ใน `docs/models/<name>/MODEL_PROGRESS.md` ของแต่ละตัว
+> วิธีทำงาน: invoke skill `qqq-model` (กลั่นจาก `AGENTS.md` + `MODEL_CARDS.md` แล้ว ไม่ต้องอ่านต้นฉบับซ้ำ)
+> อัปเดตตารางนี้ + ไฟล์ของโมเดลนั้น หลังจบทุกตัว · **ห้ามลบผลเก่า**
+
+**สถานะรวม:** 1/11 ของฝั่ง Claude · test suite `456 passed, 0 failed`
+
+## ฝั่ง Claude (11 ตัว — ของเรา)
+
+| # | โมเดล | task | สถานะ | parity | ผลหลัก (validation, with_spike) | บันทึก |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | `multiple_linear` | reg | ✅ | exact 1.1e-15 | RMSE 0.068864 · R² **−0.0446** | [↗](../models/multiple_linear/MODEL_PROGRESS.md) |
+| 2 | `simple_linear` | reg | ⬜ | | | |
+| 3 | `knn` | cls | ⬜ | | | ⚠️ Codex `stacking` รออยู่ |
+| 4 | `logistic` | cls | ⬜ | | | ⚠️ Codex `stacking` รออยู่ |
+| 5 | `gaussian_nb` | cls | ⬜ | | | |
+| 6 | `polynomial` | reg | ⬜ | | | |
+| 7 | `perceptron` | cls | ⬜ | | | |
+| 8 | `slp` | cls | ⬜ | | | |
+| 9 | `elastic_net` ★ | reg | ⬜ | | | extracurricular — card ต้องลึก |
+| 10 | `kmeans` | clustering | ⬜ | | | |
+| 11 | `agglomerative` | clustering | ⬜ | | | |
+
+## ฝั่ง Codex (8 ตัว — ห้ามแตะ)
+
+`decision_tree` → `random_forest` · `adaboost` ★ · `gradient_boosting` → `xgboost` ·
+`stacking` · `svm` · `mlp`
+
+เจ้าของดูแล progress เอง บน branch `feat/models-tree-family`
+
+## Dependency
+
+```text
+ทุกตัว ──► src/ml/core/        เสร็จแล้ว ไม่บล็อกใคร
+Codex:  decision_tree ──► random_forest · adaboost · gradient_boosting ──► xgboost
+ข้ามฝั่ง: stacking (Codex) ต้องใช้ logistic + knn (เรา)   ← เหตุผลที่ดึง 2 ตัวนี้ขึ้นมาก่อน
+ฝั่งเรา: ไม่มี dependency ภายใน — ข้ามตัวที่ติดปัญหาไปทำตัวอื่นได้อิสระ
+```
+
+## สถานะ core framework
+
+merge เข้า `main` แล้ว (`385adfc`) — `base` · `compare` · `data` · `preprocess` · `metrics` ·
+`persist` · `trainer` · `figures` · `registry` · `run`
+
+**ยังไม่ทำ (Phase C, รอโมเดลครบทั้งสองฝั่ง):** `run.py report` · `run.py finalize` ·
+paired comparison A↔B · notebooks 03/04/05
+
+## ถัดไป
+
+`simple_linear` — univariate OLS, grid = feature 8 ตัว, parity exact กับ `LinearRegression`

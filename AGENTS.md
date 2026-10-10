@@ -131,7 +131,13 @@ class BaseModel:
 3. รันผ่าน trainer ได้ทั้ง 2 variant
 4. มี artifact ครบใน `outputs/modeling/<variant>/<task>/<name>/`
 5. ลงแถวใน leaderboard แล้ว
-6. มี model card ใน `MODEL_CARDS.md` ที่อัปเดตค่าจริงแล้ว (ไม่ใช่ค่าที่วางแผนไว้)
+6. อัปเดต **`docs/models/<name>/MODEL_PROGRESS.md`** ด้วยผลจริง (มี stub รออยู่แล้วทั้ง 19 ตัว)
+   และติ๊กสถานะในดัชนี — รูปแบบอยู่ใน [`docs/models/README.md`](docs/models/README.md)
+
+**ทำไมต้องมี progress ต่อโมเดล:** ทั้งสอง agent ทำงานคนละ session และ context หายเมื่อเริ่มรอบใหม่
+ไฟล์นี้คือสิ่งที่ทำให้หยิบงานต่อได้โดยไม่ต้องอ่านเอกสารทั้งโปรเจกต์ซ้ำ — ส่วนที่มีค่าที่สุดคือ
+**"ปัญหาที่เจอและแก้แล้ว"** ถ้า pitfall นั้นจะเกิดกับโมเดลอื่นด้วย ให้ยกขึ้นไปไว้ส่วนกลาง
+(Codex → `docs/tasks/codex-tree-family.md` §5) ไม่ใช่ปล่อยไว้ในไฟล์เดียว
 
 ---
 

@@ -11,7 +11,7 @@
 | ถ้าคุณคือ | อ่านตามลำดับนี้ |
 | --- | --- |
 | **ผู้พัฒนาที่เพิ่งเข้าโปรเจกต์** | [`AGENTS.md`](../AGENTS.md) → [`guides/RUNBOOK.md`](guides/RUNBOOK.md) → task ของตัวเองใน [`tasks/`](tasks/) |
-| **จะเขียนโมเดล** | [`plan/MODEL_CARDS.md`](plan/MODEL_CARDS.md) ของโมเดลนั้น + task document ของฝั่งตัวเอง |
+| **จะเขียนโมเดล** | [`tasks/claude-model-progress.md`](tasks/claude-model-progress.md) (ดัชนี) → [`models/<name>/MODEL_PROGRESS.md`](models/) → section ของโมเดลนั้นใน [`plan/MODEL_CARDS.md`](plan/MODEL_CARDS.md) |
 | **อยากรู้ว่าทำไมออกแบบแบบนี้** | [`plan/ARCHITECTURE.md`](plan/ARCHITECTURE.md) (ADR-001…006) |
 | **อยากรู้สถานะจริง** | [`audit/REALITY_AUDIT.md`](audit/REALITY_AUDIT.md) แล้วค่อย [`status/PROJECT_STATUS.md`](status/PROJECT_STATUS.md) |
 | **จะเขียนรายงาน/สไลด์** | [`plan/REPORT_AND_SLIDES_OUTLINE.md`](plan/REPORT_AND_SLIDES_OUTLINE.md) |
@@ -24,8 +24,15 @@
 
 | ไฟล์ | สำหรับ |
 | --- | --- |
+| [`claude-model-progress.md`](tasks/claude-model-progress.md) | **ดัชนีหลัก** — สถานะ 19 โมเดล + dependency + ลำดับถัดไป |
 | [`claude-linear-family.md`](tasks/claude-linear-family.md) | core framework + 11 โมเดล (linear / probabilistic / clustering) |
 | [`codex-tree-family.md`](tasks/codex-tree-family.md) | 8 โมเดล (tree / ensemble / margin) — เขียนให้ Codex CLI ใช้ได้ทันที |
+
+### `models/` — progress ต่อโมเดล (19 ไฟล์)
+
+`models/<name>/MODEL_PROGRESS.md` — สถานะ · ผลจริง · parity · **ปัญหาที่เจอและแก้แล้ว** · สิ่งที่ค้าง
+แยกไฟล์เพื่อให้หยิบงานต่อได้โดยไม่ต้องโหลดเอกสารทั้งโปรเจกต์ · กฎการเขียนอยู่ใน
+[`models/README.md`](models/README.md)
 
 ### `plan/` — แผนและสเปก
 

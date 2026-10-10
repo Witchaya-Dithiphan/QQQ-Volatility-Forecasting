@@ -83,10 +83,16 @@ git checkout main && git pull && git checkout -b feat/models-linear-family
 | B4 | `knn` | #7 | 1.5 | `argsort(kind="stable")` เพื่อ tie-break ให้ตรง · `algorithm="brute"` ใน reference |
 | B5 | `perceptron` | #8 | 1.5 | **`tol=None`** ใน reference ไม่งั้น sklearn early-stop คนละรอบ |
 | B6 | `logistic` | #5 | 2.5 | `C = 1/(λ·Σw)` · ใช้ `l1_ratio=0` ไม่ใช่ `penalty="l2"` (sklearn 1.9) |
-| B7 | `elastic_net` ★ | #4 | 3 | soft-threshold · หาร `1/(2n)` · `selection="cyclic"` |
-| B8 | `kmeans` | #18 | 2 | k-means++ ของ sklearn สุ่ม `2+log(k)` candidate ต่อรอบ ไม่ใช่ตัวเดียว |
-| B9 | `agglomerative` | #19 | 2.5 | Lance-Williams update · OOS ใช้ frozen nearest-centroid |
-| B10 | ทบทวน + เก็บตก | — | 1 | ตรวจ card ทุกใบว่าใส่ตัวเลขจริงครบ |
+| B7 | `slp` | #9 | 2.5 | weight init ด้วย `RandomState` · batch สุดท้ายที่ไม่เต็มต้องนับ · early stop บน tail 15% |
+| B8 | `elastic_net` ★ | #4 | 3 | soft-threshold · หาร `1/(2n)` · `selection="cyclic"` |
+| B9 | `kmeans` | #18 | 2 | k-means++ ของ sklearn สุ่ม `2+log(k)` candidate ต่อรอบ ไม่ใช่ตัวเดียว |
+| B10 | `agglomerative` | #19 | 2.5 | Lance-Williams update · OOS ใช้ frozen nearest-centroid |
+| B11 | ทบทวน + เก็บตก | — | 1 | ตรวจ card ทุกใบว่าใส่ตัวเลขจริงครบ |
+
+> **แก้เมื่อ 2026-10-11:** ตารางนี้เคยมีแค่ B1–B9 และ **ตก `slp` ไป** ทั้งที่ `AGENTS.md` §8
+> มอบหมาย 11 ตัวรวม `classification/slp.py` — ถ้าทำตามตารางเดิมจะส่งได้ 10/11
+> ลำดับจริงที่ใช้รันอยู่ใน [`claude-model-progress.md`](claude-model-progress.md) (ดึง `knn`
+> กับ `logistic` ขึ้นมาก่อนเพราะ `stacking` ของ Codex รออยู่)
 
 **วงจรของแต่ละตัว** ใช้เหมือนฝั่งเพื่อนทุกประการ — ดู
 [`docs/tasks/codex-tree-family.md`](codex-tree-family.md) §4 (TDD 7 ขั้น) และ §5 (เมื่อ parity ไม่ผ่าน)

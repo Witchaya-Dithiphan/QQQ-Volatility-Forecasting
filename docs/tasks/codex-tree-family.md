@@ -334,11 +334,21 @@ type outputs\modeling\with_spike\classification\<name>\load_verification.json
 
 **ต้องเห็น `"passed": true` ด้วยตาจริง ๆ ก่อนบอกว่าเสร็จ**
 
-จากนั้นกลับไปแก้ card ของโมเดลนั้นใน `docs/plan/MODEL_CARDS.md` ใส่**ตัวเลขจริง**
-(ผลต่างสูงสุดที่วัดได้, เวลาที่ใช้จริง, ความต่างจาก reference ถ้ามี) แล้ว commit
+จากนั้น **อัปเดตเอกสาร 2 ไฟล์** ก่อน commit
+
+1. **`docs/models/<name>/MODEL_PROGRESS.md`** — stub รออยู่แล้ว เขียนทับด้วยผลจริง:
+   metric ที่วัดได้ · เกณฑ์ parity ที่ใช้และค่าที่ได้ · การตัดสินใจที่ชั่งแล้ว ·
+   **"ปัญหาที่เจอและแก้แล้ว"** (ส่วนที่มีค่าที่สุด — อาการ → สาเหตุจริง → วิธีแก้) · สิ่งที่ค้าง
+   รูปแบบเต็มอยู่ใน [`docs/models/README.md`](../models/README.md)
+2. **card ของโมเดลนั้นใน `docs/plan/MODEL_CARDS.md`** — ใส่ตัวเลขจริง
+   (ผลต่างสูงสุดที่วัดได้, เวลาที่ใช้จริง, ความต่างจาก reference ถ้ามี)
+
+> ถ้า pitfall ที่เจอจะเกิดกับโมเดลตัวอื่นของคุณด้วย **ให้ยกขึ้นมาไว้ §5 ของไฟล์นี้**
+> ไม่ใช่ปล่อยไว้ในไฟล์ของโมเดลเดียว — T1 `decision_tree` เป็นฐานของอีก 4 ตัว
+> บทเรียนจากมันจึงมีค่ากับ T2–T5 ทั้งหมด
 
 ```bat
-git add src/ml/classification/<name>.py tests/ml/classification/test_<name>.py src/ml/registry.py docs/plan/MODEL_CARDS.md
+git add src/ml/classification/<name>.py tests/ml/classification/test_<name>.py src/ml/registry.py docs/models/<name>/MODEL_PROGRESS.md docs/plan/MODEL_CARDS.md
 git commit -m "feat: add <name> from scratch with strict parity against <reference>"
 ```
 
