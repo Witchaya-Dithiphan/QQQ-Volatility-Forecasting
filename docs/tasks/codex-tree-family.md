@@ -208,6 +208,12 @@ def test_state_round_trip(data):
 
 ## 5. เมื่อ parity ไม่ผ่าน — ทำตามลำดับนี้
 
+**บทเรียน T1 ที่ใช้ต่อกับ T2/T3:** sklearn สลับลำดับ feature แบบ seeded ที่ทุก node
+แม้ `splitter="best"` และ `max_features=None` ถ้า gain เสมอกัน จะเลือกตัวที่เจอก่อนในลำดับนั้น
+ไม่ใช่ feature index ต่ำสุด การใช้ `_best_split()` ตาม index ตรง ๆ ทำให้ Decision Tree depth 5
+ต่างที่บาง node ของ Train จริงและ probability ต่างสูงสุด 0.2879; `fit()` จึงจำลองลำดับของ sklearn
+ก่อนเรียก `_best_split()` และผ่าน strict parity ครบ 12 runs ของ grid จริงแล้ว
+
 1. อ่านหัวข้อ **"จุดที่ parity พลาด"** ของ card นั้นอีกรอบ — 90% ของปัญหาถูกบันทึกไว้แล้ว
 2. ตรวจว่าปิด randomness ของ reference ครบหรือยัง (`random_state=42`, `subsample=1`,
    `max_features=None`, `shuffle=False`)

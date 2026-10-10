@@ -1,31 +1,40 @@
-# decision_tree — classification · ⬜ ยังไม่เริ่ม
+# decision_tree — classification · 🟡 รอ leaderboard
 
-**เจ้าของ:** Codex · **สเปก:** [card #11](../../plan/MODEL_CARDS.md) · **จุดที่ต้องระวัง:** T1 — ฐานของอีก 4 ตัว ทำก่อน
-
-> ยังไม่เริ่ม — เขียนทับหัวข้อข้างล่างนี้เมื่อลงมือแล้ว
-> รูปแบบและกฎการเขียนอยู่ใน [`docs/models/README.md`](../README.md)
+**เจ้าของ:** Codex · **สเปก:** [card #11](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 
-ยังไม่มี
+| variant | depth | min leaf | AUC | AP | F1 | accuracy | sensitivity | specificity | confusion |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| `with_spike` | 2 | 5 | 0.641779 | 0.173177 | 0.309859 | 0.867925 | 0.323529 | 0.922849 | `[[311,26],[23,11]]` |
+| `non_spike` | 5 | 5 | 0.692355 | 0.188709 | 0.178571 | 0.876011 | 0.147059 | 0.949555 | `[[320,17],[29,5]]` |
+
+ทั้งสอง variant เลือกจาก 6 candidates บน Validation, preprocess `none`, `reload=ok` และ `load_verification.json` มี `"passed": true` ผลเต็มอยู่ใน `outputs/modeling/<variant>/classification/decision_tree/`
 
 ## Parity
 
-ยังไม่ได้ทดสอบ
+`assert_parity` ผ่านบน synthetic 3 ชุด และ Train/Validation จริงสำหรับ **ทุก 6 candidates × 2 variants**: label ตรง 100%, probability ตรงทุกค่าที่ตรวจ (`max abs diff = 0`) โครงสร้างตรง sklearn ทุก node รวม **142 nodes** (`with_spike`) และ **138 nodes** (`non_spike`); threshold ต่างสูงสุด `0`
+
+Weighted stump ผ่าน parity กับ `DecisionTreeClassifier.fit(..., sample_weight=...)` บนตัวอย่างควบคุมได้
 
 ## การตัดสินใจ
 
-—
+- `_best_split()` คำนวณ weighted Gini และเลือก feature index/threshold ต่ำสุดเมื่อ gain เสมอ ตาม task
+- `fit()` เรียง feature ที่ส่งให้ `_best_split()` ตามลำดับ seeded ของ sklearn เพื่อให้ต้นไม้ตรงเมื่อ gain เสมอ; ไม่มีการเรียก sklearn ในเส้นทาง scratch
+- แปลง X เป็น `float32` ก่อนหา midpoint เพราะ sklearn tree ทำเช่นเดียวกัน และเก็บ threshold ใน `float64`
+- เก็บ tree เป็น NumPy arrays และ verify save → load ทั้ง label และ probability
 
 ## ไฟล์
 
-- `src/ml/classification/decision_tree.py` — ยังไม่สร้าง
-- `tests/ml/classification/test_decision_tree.py` — ยังไม่สร้าง
+- `src/ml/classification/decision_tree.py`
+- `tests/ml/classification/test_decision_tree.py` (21 tests)
+- `src/ml/registry.py`
 
 ## ปัญหาที่เจอและแก้แล้ว
 
-—
+เมื่อขยาย parity ไปถึง depth 5, โครงสร้างเริ่มต่างที่ node 11/32 (`with_spike`) และ node 4/47 (`non_spike`) ทำให้ probability ต่างสูงสุด 0.2879 และบาง label ต่าง สาเหตุคือหลาย feature มี Gini gain **เท่ากันเป๊ะ** แต่ sklearn สลับลำดับ feature ด้วย RNG ภายในแม้ `splitter="best"`; การเลือก feature index ต่ำสุดจึงไม่ตรง reference วิธีแก้คือจำลองลำดับเลือก feature ของ sklearn ด้วย seed 42 แล้วใช้ `_best_split()` เดิมบนลำดับนั้น ผลหลังแก้ต่าง `0` ทุก candidate
 
 ## ค้างอยู่
 
-ทั้งหมด — เริ่มที่วงจร TDD 7 ขั้น
+- `run.py report` / leaderboard ยังไม่ implement ใน Phase C ของอีกฝั่ง จึงยังไม่ครบ DoD ข้อ 5
+- เมื่อตัว report พร้อม ให้ตรวจว่ามีแถว `decision_tree` ทั้งสอง variants และอัปเดตสถานะเป็น ✅
