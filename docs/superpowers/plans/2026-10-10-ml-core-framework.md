@@ -29,7 +29,7 @@
 | `src/ml/core/figures.py` | ROC / confusion / performance curve / leaderboard |
 | `src/ml/registry.py` | ชื่อโมเดล → คลาส |
 | `src/ml/run.py` | CLI `train` / `report` / `finalize` |
-| `src/ml/regression/multiple.py` | โมเดล pilot |
+| `src/ml/regression/multiple_linear.py` | โมเดล pilot |
 
 ---
 
@@ -144,7 +144,7 @@ from src.ml.core.persist import load_npz, save_npz, verify_reload
 
 def test_save_load_round_trip_preserves_arrays_and_metadata(tmp_path):
     arrays = {"weights": np.array([1.5, -2.25, 0.0]), "intercept": np.array([0.75])}
-    metadata = {"model": "multiple", "seed": 42}
+    metadata = {"model": "multiple_linear", "seed": 42}
     path = tmp_path / "model.npz"
 
     save_npz(path, arrays, metadata)
@@ -847,10 +847,10 @@ sorted by name. That keeps merge conflicts to a single obvious line.
 from __future__ import annotations
 
 from .core.base import BaseModel
-from .regression.multiple import MultipleRegression
+from .regression.multiple_linear import MultipleRegression
 
 MODELS: dict[str, type[BaseModel]] = {
-    "multiple": MultipleRegression,
+    "multiple_linear": MultipleRegression,
 }
 
 
@@ -871,7 +871,7 @@ def models_for_task(task: str) -> list[str]:
 - [ ] **Step 4: รัน test — จะยัง fail เพราะโมเดล pilot ยังไม่มี**
 
 Run: `.\.venv\Scripts\python.exe -m pytest tests/ml/test_registry.py -v`
-Expected: FAIL ด้วย `ModuleNotFoundError: No module named 'src.ml.regression.multiple'` — Task 7 จะทำให้ผ่าน
+Expected: FAIL ด้วย `ModuleNotFoundError: No module named 'src.ml.regression.multiple_linear'` — Task 7 จะทำให้ผ่าน
 
 ---
 
@@ -879,19 +879,19 @@ Expected: FAIL ด้วย `ModuleNotFoundError: No module named 'src.ml.regres
 
 **Files:**
 
-- Create: `src/ml/regression/multiple.py`
-- Create: `tests/ml/regression/test_multiple.py`
+- Create: `src/ml/regression/multiple_linear.py`
+- Create: `tests/ml/regression/test_multiple_linear.py`
 
 - [ ] **Step 1: เขียน test ที่ fail ก่อน**
 
 ```python
-# tests/ml/regression/test_multiple.py
+# tests/ml/regression/test_multiple_linear.py
 import numpy as np
 import pytest
 from sklearn.linear_model import LinearRegression
 
 from src.ml.core.compare import assert_parity
-from src.ml.regression.multiple import MultipleRegression
+from src.ml.regression.multiple_linear import MultipleRegression
 
 
 @pytest.fixture
@@ -936,10 +936,10 @@ def test_reference_is_sklearn_linear_regression():
 
 - [ ] **Step 2: รัน test ให้เห็นว่า fail**
 
-Run: `.\.venv\Scripts\python.exe -m pytest tests/ml/regression/test_multiple.py -v`
-Expected: FAIL ด้วย `ModuleNotFoundError: No module named 'src.ml.regression.multiple'`
+Run: `.\.venv\Scripts\python.exe -m pytest tests/ml/regression/test_multiple_linear.py -v`
+Expected: FAIL ด้วย `ModuleNotFoundError: No module named 'src.ml.regression.multiple_linear'`
 
-- [ ] **Step 3: เขียน `src/ml/regression/multiple.py`**
+- [ ] **Step 3: เขียน `src/ml/regression/multiple_linear.py`**
 
 ```python
 """Multiple linear regression by least squares."""
@@ -959,7 +959,7 @@ class MultipleRegression(BaseModel):
     which is also exactly what sklearn does, so parity comes for free.
     """
 
-    name = "multiple"
+    name = "multiple_linear"
     task = "regression"
 
     def __init__(self, fit_intercept: bool = True):
@@ -1004,13 +1004,13 @@ class MultipleRegression(BaseModel):
 
 - [ ] **Step 4: รัน test ของโมเดลและของ registry ให้ผ่าน**
 
-Run: `.\.venv\Scripts\python.exe -m pytest tests/ml/regression/test_multiple.py tests/ml/test_registry.py -v`
+Run: `.\.venv\Scripts\python.exe -m pytest tests/ml/regression/test_multiple_linear.py tests/ml/test_registry.py -v`
 Expected: PASS ทั้ง 10 tests
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/ml/registry.py src/ml/regression/multiple.py tests/ml/test_registry.py tests/ml/regression/test_multiple.py
+git add src/ml/registry.py src/ml/regression/multiple_linear.py tests/ml/test_registry.py tests/ml/regression/test_multiple_linear.py
 git commit -m "feat: add the pilot model and the registry both branches extend
 
 Multiple regression goes first because it is the simplest model that still
@@ -1037,7 +1037,7 @@ import numpy as np
 import pytest
 
 from src.ml.core.trainer import expand_grid, train_model
-from src.ml.regression.multiple import MultipleRegression
+from src.ml.regression.multiple_linear import MultipleRegression
 
 
 def test_expand_grid_produces_every_combination_in_a_stable_order():
@@ -1062,7 +1062,7 @@ def test_train_model_writes_every_required_artifact(tmp_path):
         output_root=tmp_path,
     )
 
-    directory = tmp_path / "with_spike" / "regression" / "multiple"
+    directory = tmp_path / "with_spike" / "regression" / "multiple_linear"
     for filename in (
         "config.json",
         "model.npz",
@@ -1435,9 +1435,9 @@ from src.ml.run import main
 
 
 def test_train_a_single_model_succeeds(tmp_path):
-    assert main(["train", "--model", "multiple", "--variant", "with_spike",
+    assert main(["train", "--model", "multiple_linear", "--variant", "with_spike",
                  "--output-root", str(tmp_path)]) == 0
-    assert (tmp_path / "with_spike" / "regression" / "multiple" / "model.npz").is_file()
+    assert (tmp_path / "with_spike" / "regression" / "multiple_linear" / "model.npz").is_file()
 
 
 def test_unknown_model_name_fails_without_traceback(tmp_path, capsys):
@@ -1448,7 +1448,7 @@ def test_unknown_model_name_fails_without_traceback(tmp_path, capsys):
 
 def test_unknown_variant_is_rejected_by_the_parser(tmp_path):
     with pytest.raises(SystemExit):
-        main(["train", "--model", "multiple", "--variant", "nope", "--output-root", str(tmp_path)])
+        main(["train", "--model", "multiple_linear", "--variant", "nope", "--output-root", str(tmp_path)])
 
 
 def test_finalize_requires_the_explicit_allow_test_flag(tmp_path, capsys):
@@ -1544,14 +1544,14 @@ Expected: PASS 4 tests
 
 - [ ] **Step 5: รัน CLI จริงเพื่อพิสูจน์ว่า pilot ครบลูป**
 
-Run: `.\.venv\Scripts\python.exe -m src.ml.run train --model multiple --variant with_spike`
-Expected: บรรทัดเดียวที่ลงท้ายด้วย `reload=ok` และมีไฟล์ครบ 7 ไฟล์ใน `outputs/modeling/with_spike/regression/multiple/`
+Run: `.\.venv\Scripts\python.exe -m src.ml.run train --model multiple_linear --variant with_spike`
+Expected: บรรทัดเดียวที่ลงท้ายด้วย `reload=ok` และมีไฟล์ครบ 7 ไฟล์ใน `outputs/modeling/with_spike/regression/multiple_linear/`
 
 ตรวจเพิ่ม:
 
 ```bash
-ls outputs/modeling/with_spike/regression/multiple/
-cat outputs/modeling/with_spike/regression/multiple/load_verification.json
+ls outputs/modeling/with_spike/regression/multiple_linear/
+cat outputs/modeling/with_spike/regression/multiple_linear/load_verification.json
 ```
 
 Expected: `"passed": true`
@@ -1642,14 +1642,14 @@ Run: `.\.venv\Scripts\python.exe -m pytest -q`
 
 - [ ] **Step 2: อัปเดตตารางสถานะใน `PROJECT_STATUS.md`**
 
-แก้แถว `Test suite` ให้เป็นตัวเลขจากขั้นที่ 1 และแก้แถว `โมเดล` เป็น `1/19 (pilot: multiple)`
+แก้แถว `Test suite` ให้เป็นตัวเลขจากขั้นที่ 1 และแก้แถว `โมเดล` เป็น `1/19 (pilot: multiple_linear)`
 
 - [ ] **Step 3: เพิ่มคำสั่ง modeling ที่ใช้ได้จริงลง `RUNBOOK.md` หัวข้อ 10**
 
 แทนที่ข้อความ "ยังไม่มี training/evaluation CLI ที่รันได้ใน repository" ด้วย:
 
 ```bat
-.\.venv\Scripts\python.exe -m src.ml.run train --model multiple --variant with_spike
+.\.venv\Scripts\python.exe -m src.ml.run train --model multiple_linear --variant with_spike
 ```
 
 พร้อมระบุว่า `report` และ `finalize` ยังไม่ implement
@@ -1668,7 +1668,7 @@ gh pr create --title "feat: ML core framework and pilot model" --body "$(cat <<'
 
 ## Test plan
 - [ ] `pytest -q` เขียวทั้งชุด
-- [ ] `python -m src.ml.run train --model multiple --variant with_spike` ได้ `reload=ok`
+- [ ] `python -m src.ml.run train --model multiple_linear --variant with_spike` ได้ `reload=ok`
 - [ ] artifact ครบ 7 ไฟล์ และ `load_verification.json` มี `"passed": true`
 - [ ] ไม่มี `src.modeling` หลงเหลือใน `src/` และ `tests/`
 BODY
@@ -1678,7 +1678,7 @@ BODY
 - [ ] **Step 5: หลัง merge — แจ้งทีม**
 
 บอกเพื่อนร่วมทีมให้ `git pull --rebase origin main` แล้วเริ่มเขียนโมเดลตาม `MODEL_CARDS.md`
-โดยยึด interface ใน `AGENTS.md` §4 และดู `src/ml/regression/multiple.py` เป็นตัวอย่างจริง
+โดยยึด interface ใน `AGENTS.md` §4 และดู `src/ml/regression/multiple_linear.py` เป็นตัวอย่างจริง
 
 ---
 
@@ -1695,7 +1695,7 @@ BODY
 6. รัน `src.ml.run train --model <name> --variant with_spike` แล้วตรวจ `reload=ok`
 7. commit
 
-`src/ml/regression/multiple.py` คือตัวอย่างอ้างอิงของ pattern นี้
+`src/ml/regression/multiple_linear.py` คือตัวอย่างอ้างอิงของ pattern นี้
 
 ### งานที่จงใจเลื่อนไปแผนถัดไป
 

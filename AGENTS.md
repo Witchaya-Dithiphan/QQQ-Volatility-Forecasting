@@ -93,7 +93,13 @@ class BaseModel:
   ด้วย `model_class()` แล้วเรียก `load_state()` ตอนพิสูจน์ว่า save→load แล้วทำนายเท่าเดิม
   ถ้า `__init__` บังคับให้ส่งอาร์กิวเมนต์ ขั้นตอนนั้นจะพัง
 - `X` ที่ได้จาก loader เป็น **read-only** (`setflags(write=False)`) ห้ามเขียนทับ ให้ `.copy()` ก่อนถ้าจำเป็น
-- ห้ามใช้ `np.random` แบบไม่ตั้ง seed — รับ `random_state` ผ่าน `__init__` และใช้ `np.random.default_rng(seed)`
+- ห้ามใช้ `np.random` แบบไม่ตั้ง seed — รับ `random_state` ผ่าน `__init__` (default `42`)
+- **ใช้ `np.random.RandomState(seed)` ไม่ใช่ `np.random.default_rng(seed)`** สำหรับโมเดลที่ต้องเทียบกับ
+  sklearn เพราะ sklearn ทั้งไลบรารีสร้างบน legacy MT19937 ซึ่งเป็นคนละ stream กับ PCG64 ของ `default_rng`
+  พิสูจน์แล้ว: `RandomState(42).randint(0, 200, 200)` ให้ `[102 179 92 14 ...]` ตรงกับ
+  `sklearn.ensemble._forest._generate_sample_indices(42, 200, 200, None)` เป๊ะ ขณะที่
+  `default_rng(42).integers(0, 200, 200)` ให้ `[17 154 130 87 ...]` — ถ้าใช้ตัวหลัง parity
+  ของ Random Forest, MLP, SLP และ k-Means จะไม่มีทางผ่านไม่ว่าอัลกอริทึมจะถูกแค่ไหน
 - preprocessing (standardize / PCA) **ไม่ใช่หน้าที่ของโมเดล** — trainer เป็นคนจัดการ fit บน train แล้ว transform ที่เหลือ
 
 ---
@@ -173,14 +179,16 @@ main
 
 **การแบ่งงาน** (ห้ามข้ามเขต)
 
+**ชื่อโมเดลต้องตรงกับ key ใน `configs/modeling.json` เป๊ะ** (ชื่อไฟล์ = ชื่อ key = `BaseModel.name`)
+
 | Claude Code — `feat/models-linear-family` | Codex CLI — `feat/models-tree-family` |
 | --- | --- |
-| `regression/linear.py` | `classification/decision_tree.py` |
-| `regression/multiple.py` | `classification/random_forest.py` |
+| `regression/simple_linear.py` | `classification/decision_tree.py` |
+| `regression/multiple_linear.py` | `classification/random_forest.py` (+ PCA) |
 | `regression/polynomial.py` | `classification/gradient_boosting.py` |
 | `regression/elastic_net.py` ★ | `classification/xgboost.py` |
 | `classification/logistic.py` | `classification/adaboost.py` ★ |
-| `classification/naive_bayes.py` | `classification/stacking.py` |
+| `classification/gaussian_nb.py` | `classification/stacking.py` |
 | `classification/knn.py` | `classification/svm.py` (+ PCA) |
 | `classification/perceptron.py` | `classification/mlp.py` |
 | `classification/slp.py` | |
