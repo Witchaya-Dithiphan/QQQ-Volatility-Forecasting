@@ -1,0 +1,7 @@
+{
+  "params": {
+    "k": 2,
+    "linkage": "average"
+  },
+  "seed": 42
+}

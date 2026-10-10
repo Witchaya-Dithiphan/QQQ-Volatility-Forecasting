@@ -1,0 +1,10 @@
+{
+  "params": {
+    "k": 2,
+    "max_iter": 300,
+    "n_init": 10,
+    "random_state": 42,
+    "tol": 1e-06
+  },
+  "seed": 42
+}

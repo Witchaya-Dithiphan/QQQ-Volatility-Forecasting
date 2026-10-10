@@ -1,0 +1,8 @@
+{
+  "params": {
+    "degree": 2,
+    "feature": "return_5d",
+    "standardize_before_powers": true
+  },
+  "seed": 42
+}

@@ -1,31 +1,59 @@
-# slp — classification · ⬜ ยังไม่เริ่ม
+# slp — classification · ✅ เสร็จ
 
-**เจ้าของ:** Claude · **สเปก:** [card #9](../../plan/MODEL_CARDS.md) · **จุดที่ต้องระวัง:** ใช้ RandomState · early stop บน tail 15%
-
-> ยังไม่เริ่ม — เขียนทับหัวข้อข้างล่างนี้เมื่อลงมือแล้ว
-> รูปแบบและกฎการเขียนอยู่ใน [`docs/models/README.md`](../README.md)
+**เจ้าของ:** Claude · **สเปก:** [card #9](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 
-ยังไม่มี
+| variant | batch | l2 | lr | Acc | Prec | Sens | Spec | F1 | **AUC** | confusion |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| `with_spike` | 32 | 0 | 0.001 | 0.9084 | 0.5000 | 0.1765 | 0.9822 | 0.2609 | **0.6803** | `[[331,6],[28,6]]` |
+| `non_spike` | full | 0 | 0.01 | 0.8706 | 0.2500 | 0.2059 | 0.9377 | 0.2258 | 0.6778 | `[[316,21],[27,7]]` |
+
+reload ✅ · preprocess `standardize`
+
+## ข้อสังเกต
+
+- **`with_spike` ให้ตัวเลขเหมือน `logistic` เป๊ะทุกช่อง** (Acc/Prec/Sens/Spec/F1 และ confusion
+  `[[331,6],[28,6]]` ตรงกัน) ต่างกันแค่ AUC (0.6803 vs 0.6732) ซึ่งสมเหตุสมผล —
+  **SLP ที่ไม่มีชั้นซ่อนคือ logistic regression ตัวเดียวกัน** ต่างแค่วิธี optimise
+  (mini-batch + early stopping vs LBFGS) เป็นจุดที่ควรชี้ในรายงานว่าสองโมเดลนี้
+  เป็นโมเดลเดียวกันในเชิงคณิตศาสตร์
+- AUC ดีกว่า logistic เล็กน้อย — early stopping ทำหน้าที่เป็น regularizer โดยหยุดก่อน overfit
+- `l2=0` ชนะทั้งสอง variant → early stopping คุม overfit ได้อยู่แล้ว ไม่ต้องพึ่ง L2 ซ้ำ
 
 ## Parity
 
-ยังไม่ได้ทดสอบ
+**ลู่เข้าจุดเดียวกับ `LogisticRegression` ที่ `max|Δcoef| = 1.3e-08`** (l2 = 0 และ 1e-4)
+เมื่อปิด early stopping และปล่อยให้รันจนลู่เข้า · label ตรงกัน 300/300
+
+**ทำไม reference ถึงเป็น logistic ไม่ใช่ MLPClassifier** — sklearn ไม่รับ
+`hidden_layer_sizes=()` และ `SGDClassifier` อัปเดตทีละตัวอย่าง (เดินคนละ path)
+สิ่งที่เทียบได้จริงคือ **objective เดียวกัน** ซึ่ง LBFGS แก้ได้แม่นที่สุด
+
+นอกจากนี้ `test_full_batch_matches_a_hand_rolled_gradient_descent` ยังพิสูจน์ training loop
+แบบ exact โดยไล่ gradient descent ด้วยมือทีละ epoch แล้วเทียบ weight ที่ 1e-10
 
 ## การตัดสินใจ
 
-—
+- **weight init ใช้ `np.random.RandomState`** (Glorot uniform, bound = √(6/(fan_in+1)))
+  ไม่ใช่ `default_rng` — มี test ยืนยันว่าสอง stream ให้คนละค่า
+- **batch สุดท้ายที่ไม่เต็มต้องนับ** ตาม `last_short_batch: true` — 100 แถว batch 32
+  ได้ `[32, 32, 32, 4]` มี test ล็อกไว้
+- batch เรียงตามเวลาแบบต่อเนื่อง ไม่สลับ (`contiguous_chronological`, `shuffle: false`)
+- **patience นับจาก epoch ที่ดีที่สุด** ไม่ใช่นับต่อเนื่องจาก epoch ล่าสุด · tie เลือก epoch แรก
+- early stopping ดูจาก **tail 15% ของ train** แล้ว **refit บน train เต็ม** ด้วยจำนวน epoch
+  ที่ดีที่สุด ตาม `refit_full_train: true` + `refit_epochs: selected_best_epoch`
 
 ## ไฟล์
 
-- `src/ml/classification/slp.py` — ยังไม่สร้าง
-- `tests/ml/classification/test_slp.py` — ยังไม่สร้าง
+- `src/ml/classification/slp.py`
+- `tests/ml/classification/test_slp.py` (16 tests)
 
-## ปัญหาที่เจอและแก้แล้ว
+## ปัญหาที่เจอ
 
-—
+ไม่มี parity failure — แต่ต้องคิดเรื่อง reference ก่อนว่าจะเทียบกับอะไร เพราะไม่มี
+sklearn estimator ที่ตรงรูปแบบนี้ สรุปว่าเทียบที่ objective ซึ่งเป็นคำถามที่ถูกต้อง
 
 ## ค้างอยู่
 
-ทั้งหมด — เริ่มที่วงจร TDD 7 ขั้น
+- card #9 ใน `MODEL_CARDS.md` ยังไม่ได้ใส่ผลจริง

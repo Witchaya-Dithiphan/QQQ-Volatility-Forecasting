@@ -1,0 +1,213 @@
+[
+  {
+    "id": "agglomerative-00",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 293,
+        "1": 78
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1070.4207493624967
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.360214869193509
+      }
+    },
+    "params": {
+      "k": 2,
+      "linkage": "ward"
+    }
+  },
+  {
+    "id": "agglomerative-01",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 371
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1555.817114744777
+      },
+      "silhouette": {
+        "reason": "requires between 2 and n-1 clusters",
+        "value": null
+      }
+    },
+    "params": {
+      "k": 2,
+      "linkage": "average"
+    }
+  },
+  {
+    "id": "agglomerative-02",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 288,
+        "1": 83
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1063.0349268304576
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.355852271253875
+      }
+    },
+    "params": {
+      "k": 3,
+      "linkage": "ward"
+    }
+  },
+  {
+    "id": "agglomerative-03",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 371
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1555.817114744777
+      },
+      "silhouette": {
+        "reason": "requires between 2 and n-1 clusters",
+        "value": null
+      }
+    },
+    "params": {
+      "k": 3,
+      "linkage": "average"
+    }
+  },
+  {
+    "id": "agglomerative-04",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 222,
+        "1": 83,
+        "2": 66
+      },
+      "inertia": {
+        "reason": null,
+        "value": 978.9575284019458
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.19355755848716022
+      }
+    },
+    "params": {
+      "k": 4,
+      "linkage": "ward"
+    }
+  },
+  {
+    "id": "agglomerative-05",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 371
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1555.817114744777
+      },
+      "silhouette": {
+        "reason": "requires between 2 and n-1 clusters",
+        "value": null
+      }
+    },
+    "params": {
+      "k": 4,
+      "linkage": "average"
+    }
+  },
+  {
+    "id": "agglomerative-06",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 216,
+        "1": 72,
+        "2": 50,
+        "3": 33
+      },
+      "inertia": {
+        "reason": null,
+        "value": 890.0514287145203
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.17923408860607792
+      }
+    },
+    "params": {
+      "k": 5,
+      "linkage": "ward"
+    }
+  },
+  {
+    "id": "agglomerative-07",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 371
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1555.817114744777
+      },
+      "silhouette": {
+        "reason": "requires between 2 and n-1 clusters",
+        "value": null
+      }
+    },
+    "params": {
+      "k": 5,
+      "linkage": "average"
+    }
+  },
+  {
+    "id": "agglomerative-08",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 209,
+        "1": 70,
+        "2": 50,
+        "3": 16,
+        "4": 26
+      },
+      "inertia": {
+        "reason": null,
+        "value": 801.8757593117574
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.18565345351675314
+      }
+    },
+    "params": {
+      "k": 6,
+      "linkage": "ward"
+    }
+  },
+  {
+    "id": "agglomerative-09",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 371
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1555.817114744777
+      },
+      "silhouette": {
+        "reason": "requires between 2 and n-1 clusters",
+        "value": null
+      }
+    },
+    "params": {
+      "k": 6,
+      "linkage": "average"
+    }
+  }
+]

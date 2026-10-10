@@ -1,0 +1,738 @@
+[
+  {
+    "id": "polynomial-00",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05421376875789611
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004771092335361944
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.05090096526909704
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06907309414932811
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05421376875789611
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004771092335361944
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.05090096526909704
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06907309414932811
+        }
+      }
+    },
+    "params": {
+      "degree": 2,
+      "feature": "return_1d"
+    }
+  },
+  {
+    "id": "polynomial-01",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05091230297862115
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004363440888740545
+        },
+        "r2": {
+          "reason": null,
+          "value": 0.03889006551280294
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06605634631691754
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05091230297862115
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004363440888740545
+        },
+        "r2": {
+          "reason": null,
+          "value": 0.03889006551280294
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06605634631691754
+        }
+      }
+    },
+    "params": {
+      "degree": 2,
+      "feature": "return_5d"
+    }
+  },
+  {
+    "id": "polynomial-02",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.056056808473149096
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004814463280895879
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.06045403306206998
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.0693863335311492
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.056056808473149096
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004814463280895879
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.06045403306206998
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.0693863335311492
+        }
+      }
+    },
+    "params": {
+      "degree": 2,
+      "feature": "historical_volatility_5d"
+    }
+  },
+  {
+    "id": "polynomial-03",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.054947304092770016
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004681915104815326
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.03125841151534425
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06842452122459701
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.054947304092770016
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004681915104815326
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.03125841151534425
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06842452122459701
+        }
+      }
+    },
+    "params": {
+      "degree": 2,
+      "feature": "historical_volatility_20d"
+    }
+  },
+  {
+    "id": "polynomial-04",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05640285042147534
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.00513092023142385
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.1301581786538637
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07163044207195604
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05640285042147534
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.00513092023142385
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.1301581786538637
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07163044207195604
+        }
+      }
+    },
+    "params": {
+      "degree": 2,
+      "feature": "intraday_range"
+    }
+  },
+  {
+    "id": "polynomial-05",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05387204517287184
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004621636014794286
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.017981084346649023
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06798261553363688
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05387204517287184
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004621636014794286
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.017981084346649023
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06798261553363688
+        }
+      }
+    },
+    "params": {
+      "degree": 2,
+      "feature": "sma_ratio_5_20"
+    }
+  },
+  {
+    "id": "polynomial-06",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05352999014910118
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.0047091810456039735
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.037264122887011863
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06862347299287594
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05352999014910118
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.0047091810456039735
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.037264122887011863
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06862347299287594
+        }
+      }
+    },
+    "params": {
+      "degree": 2,
+      "feature": "rsi_14"
+    }
+  },
+  {
+    "id": "polynomial-07",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05325268948473728
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004515896426552691
+        },
+        "r2": {
+          "reason": null,
+          "value": 0.00530956432234575
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.0672004198391103
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05325268948473728
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004515896426552691
+        },
+        "r2": {
+          "reason": null,
+          "value": 0.00530956432234575
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.0672004198391103
+        }
+      }
+    },
+    "params": {
+      "degree": 2,
+      "feature": "volume_zscore_20"
+    }
+  },
+  {
+    "id": "polynomial-08",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05434506217454409
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.00478636309074164
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.05426456639875199
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06918354638742973
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05434506217454409
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.00478636309074164
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.05426456639875199
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06918354638742973
+        }
+      }
+    },
+    "params": {
+      "degree": 3,
+      "feature": "return_1d"
+    }
+  },
+  {
+    "id": "polynomial-09",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05129347948491975
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004395419936675363
+        },
+        "r2": {
+          "reason": null,
+          "value": 0.0318462252387417
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06629796329206021
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05129347948491975
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004395419936675363
+        },
+        "r2": {
+          "reason": null,
+          "value": 0.0318462252387417
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06629796329206021
+        }
+      }
+    },
+    "params": {
+      "degree": 3,
+      "feature": "return_5d"
+    }
+  },
+  {
+    "id": "polynomial-10",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05624315663996859
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004909622293081718
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.08141415932476281
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.0700686969557856
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05624315663996859
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004909622293081718
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.08141415932476281
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.0700686969557856
+        }
+      }
+    },
+    "params": {
+      "degree": 3,
+      "feature": "historical_volatility_5d"
+    }
+  },
+  {
+    "id": "polynomial-11",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05507916579576782
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004755411610008651
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04744706242010843
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06895949253009807
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05507916579576782
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004755411610008651
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04744706242010843
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06895949253009807
+        }
+      }
+    },
+    "params": {
+      "degree": 3,
+      "feature": "historical_volatility_20d"
+    }
+  },
+  {
+    "id": "polynomial-12",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05645153475592436
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005133738704109367
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.1307789873613039
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07165011307813385
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05645153475592436
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005133738704109367
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.1307789873613039
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07165011307813385
+        }
+      }
+    },
+    "params": {
+      "degree": 3,
+      "feature": "intraday_range"
+    }
+  },
+  {
+    "id": "polynomial-13",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05622040989141896
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005131113626858543
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.13020077674979458
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07163179201205665
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05622040989141896
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005131113626858543
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.13020077674979458
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07163179201205665
+        }
+      }
+    },
+    "params": {
+      "degree": 3,
+      "feature": "sma_ratio_5_20"
+    }
+  },
+  {
+    "id": "polynomial-14",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05335900037729461
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004708142254539798
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.03703531437623053
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06861590380181404
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05335900037729461
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004708142254539798
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.03703531437623053
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06861590380181404
+        }
+      }
+    },
+    "params": {
+      "degree": 3,
+      "feature": "rsi_14"
+    }
+  },
+  {
+    "id": "polynomial-15",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.053704302345116015
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004611897772233211
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.015836097876442246
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06791095472921295
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.053704302345116015
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004611897772233211
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.015836097876442246
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06791095472921295
+        }
+      }
+    },
+    "params": {
+      "degree": 3,
+      "feature": "volume_zscore_20"
+    }
+  }
+]

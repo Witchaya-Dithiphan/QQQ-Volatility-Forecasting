@@ -1,0 +1,7 @@
+{
+  "params": {
+    "k": 2,
+    "linkage": "ward"
+  },
+  "seed": 42
+}

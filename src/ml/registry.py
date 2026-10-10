@@ -5,16 +5,30 @@ sorted by name. That keeps merge conflicts to a single obvious line.
 """
 from __future__ import annotations
 
+from .classification.gaussian_nb import GaussianNB
 from .classification.knn import KNN
 from .classification.logistic import Logistic
+from .classification.perceptron import Perceptron
+from .classification.slp import SLP
+from .clustering.agglomerative import Agglomerative
+from .clustering.kmeans import KMeans
 from .core.base import BaseModel
+from .regression.elastic_net import ElasticNet
 from .regression.multiple_linear import MultipleLinear
+from .regression.polynomial import Polynomial
 from .regression.simple_linear import SimpleLinear
 
 MODELS: dict[str, type[BaseModel]] = {
+    "agglomerative": Agglomerative,
+    "elastic_net": ElasticNet,
+    "gaussian_nb": GaussianNB,
+    "kmeans": KMeans,
     "knn": KNN,
     "logistic": Logistic,
+    "perceptron": Perceptron,
+    "slp": SLP,
     "multiple_linear": MultipleLinear,
+    "polynomial": Polynomial,
     "simple_linear": SimpleLinear,
 }
 

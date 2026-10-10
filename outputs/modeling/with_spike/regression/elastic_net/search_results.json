@@ -1,0 +1,554 @@
+[
+  {
+    "id": "elastic_net-00",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05419575261161302
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004743023639536526
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.044718435679772295
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06886961332501094
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05419575261161302
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004743023639536526
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.044718435679772295
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06886961332501094
+        }
+      }
+    },
+    "params": {
+      "alpha": 0.0001,
+      "l1_ratio": 0.25
+    }
+  },
+  {
+    "id": "elastic_net-01",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.054204612161857194
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.00474374180412345
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.044876621647381265
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.0688748270714595
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.054204612161857194
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.00474374180412345
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.044876621647381265
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.0688748270714595
+        }
+      }
+    },
+    "params": {
+      "alpha": 0.0001,
+      "l1_ratio": 0.5
+    }
+  },
+  {
+    "id": "elastic_net-02",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05421349624049783
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004744476092108594
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04503835902283582
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.0688801574628615
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05421349624049783
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004744476092108594
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04503835902283582
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.0688801574628615
+        }
+      }
+    },
+    "params": {
+      "alpha": 0.0001,
+      "l1_ratio": 0.75
+    }
+  },
+  {
+    "id": "elastic_net-03",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.054281704448313574
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.00475048980227878
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04636296424496833
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06892379706805755
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.054281704448313574
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.00475048980227878
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04636296424496833
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06892379706805755
+        }
+      }
+    },
+    "params": {
+      "alpha": 0.001,
+      "l1_ratio": 0.25
+    }
+  },
+  {
+    "id": "elastic_net-04",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05437602305149677
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004759737407879378
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04839988094433023
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06899085017507306
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05437602305149677
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004759737407879378
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04839988094433023
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06899085017507306
+        }
+      }
+    },
+    "params": {
+      "alpha": 0.001,
+      "l1_ratio": 0.5
+    }
+  },
+  {
+    "id": "elastic_net-05",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05448228340486965
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.0047704930061129155
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.05076895447533181
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06906875564329298
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05448228340486965
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.0047704930061129155
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.05076895447533181
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06906875564329298
+        }
+      }
+    },
+    "params": {
+      "alpha": 0.001,
+      "l1_ratio": 0.75
+    }
+  },
+  {
+    "id": "elastic_net-06",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.054514392050645656
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004739610026726363
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04396653889281077
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06884482570772013
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.054514392050645656
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004739610026726363
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04396653889281077
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06884482570772013
+        }
+      }
+    },
+    "params": {
+      "alpha": 0.01,
+      "l1_ratio": 0.25
+    }
+  },
+  {
+    "id": "elastic_net-07",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05432088691956685
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004663949578571125
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.027301248764234565
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06829311516229966
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05432088691956685
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004663949578571125
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.027301248764234565
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06829311516229966
+        }
+      }
+    },
+    "params": {
+      "alpha": 0.01,
+      "l1_ratio": 0.5
+    }
+  },
+  {
+    "id": "elastic_net-08",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05422195095447566
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004620658377553915
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.01776574583559709
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06797542480598348
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05422195095447566
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004620658377553915
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.01776574583559709
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06797542480598348
+        }
+      }
+    },
+    "params": {
+      "alpha": 0.01,
+      "l1_ratio": 0.75
+    }
+  },
+  {
+    "id": "elastic_net-09",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.053893081721117
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004463085249256776
+        },
+        "r2": {
+          "reason": null,
+          "value": 0.01694197746722026
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.0668063264164164
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.053893081721117
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004463085249256776
+        },
+        "r2": {
+          "reason": null,
+          "value": 0.01694197746722026
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.0668063264164164
+        }
+      }
+    },
+    "params": {
+      "alpha": 0.1,
+      "l1_ratio": 0.25
+    }
+  },
+  {
+    "id": "elastic_net-10",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.0553833289761582
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004640293674662596
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.022090699375464373
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06811970107584586
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.0553833289761582
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004640293674662596
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.022090699375464373
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06811970107584586
+        }
+      }
+    },
+    "params": {
+      "alpha": 0.1,
+      "l1_ratio": 0.5
+    }
+  },
+  {
+    "id": "elastic_net-11",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05915407477017175
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.0051486428359492666
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.13406183444035968
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07175404403898965
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05915407477017175
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.0051486428359492666
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.13406183444035968
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07175404403898965
+        }
+      }
+    },
+    "params": {
+      "alpha": 0.1,
+      "l1_ratio": 0.75
+    }
+  }
+]

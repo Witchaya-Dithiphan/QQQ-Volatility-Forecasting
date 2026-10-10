@@ -1,0 +1,9 @@
+{
+  "params": {
+    "alpha": 0.1,
+    "l1_ratio": 0.25,
+    "max_iter": 5000,
+    "tol": 1e-06
+  },
+  "seed": 42
+}
