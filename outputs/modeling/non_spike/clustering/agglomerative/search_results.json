@@ -1,0 +1,229 @@
+[
+  {
+    "id": "agglomerative-00",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 284,
+        "1": 87
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1475.1248254734642
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.3428399958621455
+      }
+    },
+    "params": {
+      "k": 2,
+      "linkage": "ward"
+    }
+  },
+  {
+    "id": "agglomerative-01",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 359,
+        "1": 12
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1844.8884228488487
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.46423609126651705
+      }
+    },
+    "params": {
+      "k": 2,
+      "linkage": "average"
+    }
+  },
+  {
+    "id": "agglomerative-02",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 211,
+        "1": 86,
+        "2": 74
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1367.6892774485534
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.15162007699329944
+      }
+    },
+    "params": {
+      "k": 3,
+      "linkage": "ward"
+    }
+  },
+  {
+    "id": "agglomerative-03",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 359,
+        "1": 7,
+        "2": 5
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1830.5880299669038
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.4334954501034984
+      }
+    },
+    "params": {
+      "k": 3,
+      "linkage": "average"
+    }
+  },
+  {
+    "id": "agglomerative-04",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 202,
+        "1": 44,
+        "2": 56,
+        "3": 69
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1183.456462883811
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.16148036934715332
+      }
+    },
+    "params": {
+      "k": 4,
+      "linkage": "ward"
+    }
+  },
+  {
+    "id": "agglomerative-05",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 346,
+        "1": 5,
+        "2": 15,
+        "3": 5
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1728.5418668408768
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.2799252198392028
+      }
+    },
+    "params": {
+      "k": 4,
+      "linkage": "average"
+    }
+  },
+  {
+    "id": "agglomerative-06",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 145,
+        "1": 91,
+        "2": 37,
+        "3": 36,
+        "4": 62
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1085.4398456032059
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.13958360049156376
+      }
+    },
+    "params": {
+      "k": 5,
+      "linkage": "ward"
+    }
+  },
+  {
+    "id": "agglomerative-07",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 300,
+        "1": 52,
+        "2": 1,
+        "3": 18
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1390.5252718599988
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.2987864532136117
+      }
+    },
+    "params": {
+      "k": 5,
+      "linkage": "average"
+    }
+  },
+  {
+    "id": "agglomerative-08",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 145,
+        "1": 85,
+        "2": 34,
+        "3": 35,
+        "4": 11,
+        "5": 61
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1029.4225214350095
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.13474069476834555
+      }
+    },
+    "params": {
+      "k": 6,
+      "linkage": "ward"
+    }
+  },
+  {
+    "id": "agglomerative-09",
+    "metrics": {
+      "cluster_sizes": {
+        "0": 300,
+        "1": 52,
+        "2": 1,
+        "3": 18
+      },
+      "inertia": {
+        "reason": null,
+        "value": 1390.5252718599988
+      },
+      "silhouette": {
+        "reason": null,
+        "value": 0.2987864532136117
+      }
+    },
+    "params": {
+      "k": 6,
+      "linkage": "average"
+    }
+  }
+]

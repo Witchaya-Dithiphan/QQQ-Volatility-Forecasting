@@ -4,7 +4,7 @@
 > วิธีทำงาน: invoke skill `qqq-model` (กลั่นจาก `AGENTS.md` + `MODEL_CARDS.md` แล้ว ไม่ต้องอ่านต้นฉบับซ้ำ)
 > อัปเดตตารางนี้ + ไฟล์ของโมเดลนั้น หลังจบทุกตัว · **ห้ามลบผลเก่า**
 
-**สถานะรวม:** 10/11 ของฝั่ง Claude · test suite `632 passed, 0 failed`
+**สถานะรวม:** ✅ **11/11 ของฝั่ง Claude ครบแล้ว** · test suite `657 passed, 0 failed`
 
 ## ฝั่ง Claude (11 ตัว — ของเรา)
 
@@ -20,7 +20,7 @@
 | 8 | `slp` | cls | ✅ | converged 1.3e-08 vs LogReg | AUC **0.6803** (ดีสุดในกลุ่ม cls) · F1 0.2609 | [↗](../models/slp/MODEL_PROGRESS.md) |
 | 9 | `elastic_net` ★ | reg | ✅ | exact (12/12) 1e-6 | **RMSE 0.066806 · R² +0.0169** ชนะทุกตัว | [↗](../models/elastic_net/MODEL_PROGRESS.md) **หลักฐาน +5** |
 | 10 | `kmeans` | clustering | ✅ | partition ตรง 5/5 · inertia ≤ sklearn | k=2 · silhouette **0.3666** | [↗](../models/kmeans/MODEL_PROGRESS.md) |
-| 11 | `agglomerative` | clustering | ⬜ | | | |
+| 11 | `agglomerative` | clustering | ✅ | partition ตรง 10/10 | k=2 ward · silhouette 0.3602 | [↗](../models/agglomerative/MODEL_PROGRESS.md) |
 
 ## ฝั่ง Codex (8 ตัว — ห้ามแตะ)
 
@@ -48,8 +48,16 @@ paired comparison A↔B · notebooks 03/04/05
 
 ## ถัดไป
 
-`agglomerative` — k ∈ {2..6} × linkage ∈ {ward, average} = 10 candidates · **ตัวสุดท้าย**
-Lance-Williams update · **ไม่มี predict สำหรับข้อมูลใหม่** ต้องใช้ frozen nearest-centroid
+**โมเดลฝั่งเราครบ 11/11 แล้ว** → เข้า Phase C ซึ่งต้องรอฝั่ง Codex ให้ครบ 8 ตัวก่อนบางส่วน
+
+| ลำดับ | งาน | รอฝั่งอื่นไหม |
+| --- | --- | --- |
+| C1 | `run.py report` — leaderboard + ROC ซ้อน + confusion + performance curve | รอ (ต้องมีครบ 19) |
+| C2 | paired comparison A↔B เต็มรูปแบบ | รอ |
+| C3 | `run.py finalize` — **แตะ Test ครั้งเดียว** | รอ |
+| C4 | notebooks 03 / 04 / 05 | เริ่มโครงได้เลย |
+| C5 | report + slides ตาม `REPORT_AND_SLIDES_OUTLINE.md` | **เริ่มได้เลย** — ข้อมูลฝั่งเราพอสำหรับ §2, §3, §6.1 |
+| C6 | ใส่ผลจริงลง `MODEL_CARDS.md` ทั้ง 11 ใบ | **เริ่มได้เลย** |
 
 ## ข้อค้นพบสะสม (ใช้ในรายงาน §8.2)
 
