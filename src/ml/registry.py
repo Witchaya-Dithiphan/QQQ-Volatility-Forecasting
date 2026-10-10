@@ -7,9 +7,11 @@ from __future__ import annotations
 
 from .core.base import BaseModel
 from .regression.multiple_linear import MultipleLinear
+from .regression.simple_linear import SimpleLinear
 
 MODELS: dict[str, type[BaseModel]] = {
     "multiple_linear": MultipleLinear,
+    "simple_linear": SimpleLinear,
 }
 
 

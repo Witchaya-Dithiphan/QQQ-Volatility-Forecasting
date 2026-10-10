@@ -1,0 +1,362 @@
+[
+  {
+    "id": "simple_linear-00",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.06112961394391527
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005462150307652666
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.20311631535875985
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07390636175359105
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.06112961394391527
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005462150307652666
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.20311631535875985
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07390636175359105
+        }
+      }
+    },
+    "params": {
+      "feature": "return_1d"
+    }
+  },
+  {
+    "id": "simple_linear-01",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.06297956426270696
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005710266369157765
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.2577674078563639
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07556630445613816
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.06297956426270696
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005710266369157765
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.2577674078563639
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07556630445613816
+        }
+      }
+    },
+    "params": {
+      "feature": "return_5d"
+    }
+  },
+  {
+    "id": "simple_linear-02",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05740270007018413
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005091111962267875
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.12138984101938943
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07135202843835538
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05740270007018413
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005091111962267875
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.12138984101938943
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07135202843835538
+        }
+      }
+    },
+    "params": {
+      "feature": "historical_volatility_5d"
+    }
+  },
+  {
+    "id": "simple_linear-03",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05568627610384421
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004766307065228815
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04984694144216206
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06903844628342107
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.05568627610384421
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.004766307065228815
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.04984694144216206
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.06903844628342107
+        }
+      }
+    },
+    "params": {
+      "feature": "historical_volatility_20d"
+    }
+  },
+  {
+    "id": "simple_linear-04",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.058552500865672215
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005762260811387696
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.26921992348325285
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07590955678560965
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.058552500865672215
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005762260811387696
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.26921992348325285
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07590955678560965
+        }
+      }
+    },
+    "params": {
+      "feature": "intraday_range"
+    }
+  },
+  {
+    "id": "simple_linear-05",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.06178312276761832
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005801463519422033
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.27785487766535866
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07616733892832303
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.06178312276761832
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005801463519422033
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.27785487766535866
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07616733892832303
+        }
+      }
+    },
+    "params": {
+      "feature": "sma_ratio_5_20"
+    }
+  },
+  {
+    "id": "simple_linear-06",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.06651249443405008
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.006712659858031585
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.47855883484874084
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.08193082361377545
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.06651249443405008
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.006712659858031585
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.47855883484874084
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.08193082361377545
+        }
+      }
+    },
+    "params": {
+      "feature": "rsi_14"
+    }
+  },
+  {
+    "id": "simple_linear-07",
+    "metrics": {
+      "clipped_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.06047163645516074
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005519654644586226
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.21578246368348153
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07429437828386631
+        }
+      },
+      "negative_count": 0,
+      "raw_metrics": {
+        "mae": {
+          "reason": null,
+          "value": 0.06047163645516074
+        },
+        "mse": {
+          "reason": null,
+          "value": 0.005519654644586226
+        },
+        "r2": {
+          "reason": null,
+          "value": -0.21578246368348153
+        },
+        "rmse": {
+          "reason": null,
+          "value": 0.07429437828386631
+        }
+      }
+    },
+    "params": {
+      "feature": "volume_zscore_20"
+    }
+  }
+]

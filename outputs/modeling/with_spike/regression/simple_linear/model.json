@@ -1,0 +1,6 @@
+{
+  "params": {
+    "feature": "historical_volatility_20d"
+  },
+  "seed": 42
+}
