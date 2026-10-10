@@ -4,7 +4,7 @@
 > วิธีทำงาน: invoke skill `qqq-model` (กลั่นจาก `AGENTS.md` + `MODEL_CARDS.md` แล้ว ไม่ต้องอ่านต้นฉบับซ้ำ)
 > อัปเดตตารางนี้ + ไฟล์ของโมเดลนั้น หลังจบทุกตัว · **ห้ามลบผลเก่า**
 
-**สถานะรวม:** 3/11 ของฝั่ง Claude · test suite `494 passed, 0 failed`
+**สถานะรวม:** 4/11 ของฝั่ง Claude · test suite `513 passed, 0 failed`
 
 ## ฝั่ง Claude (11 ตัว — ของเรา)
 
@@ -13,7 +13,7 @@
 | 1 | `multiple_linear` | reg | ✅ | exact 1.1e-15 | RMSE 0.068864 · R² **−0.0446** | [↗](../models/multiple_linear/MODEL_PROGRESS.md) |
 | 2 | `simple_linear` | reg | ✅ | exact (8/8 ฟีเจอร์) | RMSE 0.069038 · R² **−0.0498** | [↗](../models/simple_linear/MODEL_PROGRESS.md) |
 | 3 | `knn` | cls | ✅ | exact (8/8, held-out) | AUC **0.6987** · F1 0.2000 · Acc 0.8922 | [↗](../models/knn/MODEL_PROGRESS.md) · ปลดล็อก `stacking` แล้ว |
-| 4 | `logistic` | cls | ⬜ | | | ⚠️ Codex `stacking` รออยู่ |
+| 4 | `logistic` | cls | ✅ | exact (6/6) Δcoef 2.9e-08 | AUC 0.6732 · F1 0.2609 · Acc 0.9084 | [↗](../models/logistic/MODEL_PROGRESS.md) · **ปลดล็อก `stacking` ครบแล้ว** |
 | 5 | `gaussian_nb` | cls | ⬜ | | | |
 | 6 | `polynomial` | reg | ⬜ | | | |
 | 7 | `perceptron` | cls | ⬜ | | | |
@@ -48,8 +48,8 @@ paired comparison A↔B · notebooks 03/04/05
 
 ## ถัดไป
 
-`logistic` — class_weight ∈ {null, balanced} × l2 ∈ {0, 0.001, 0.01}
-`C = 1/(λ·Σw)` · `l1_ratio=0` ไม่ใช่ `penalty="l2"` · **ปลดล็อก `stacking` ของ Codex ตัวสุดท้าย**
+`gaussian_nb` — var_smoothing ∈ {1e-9, 1e-8, 1e-7} · closed form ไม่มี RNG
+`var_smoothing` คูณกับ **variance สูงสุดของทั้งชุด** ไม่ใช่ของแต่ละคลาส · preprocess `none`
 
 ## ข้อค้นพบสะสม (ใช้ในรายงาน §8.2)
 
@@ -68,11 +68,13 @@ paired comparison A↔B · notebooks 03/04/05
 | โมเดล | AUC with_spike | AUC non_spike | Δ |
 | --- | --- | --- | --- |
 | `knn` | 0.6987 | 0.6455 | **−0.053** |
+| `logistic` | 0.6732 | 0.6824 | **+0.009** |
 
-สมมติฐานที่ต้องรอโมเดลอื่นยืนยัน: spike **คือ** ตัวอย่างบวกของงาน classification
-(target = "ผันผวนสูงหรือไม่") ตัดออกจึงเหลือตัวอย่างบวกน้อยลงและโมเดลเรียนรู้ได้แย่ลง
-ขณะที่ฝั่ง regression spike เป็น outlier ที่ลากเส้นให้เพี้ยน ตัดออกแล้วดีขึ้น
-→ **เนื้อหา discussion ชั้นดีสำหรับรายงาน §8.2**
+**ยังสรุปทิศทางของ classification ไม่ได้** — knn ชอบ `with_spike` ชัดเจน แต่ logistic
+กลับชอบ `non_spike` เล็กน้อย ต่างจากฝั่ง regression ที่สอดคล้องกันทั้งสองตัว
+สมมติฐานที่ยังต้องทดสอบ: spike **คือ** ตัวอย่างบวกของงาน classification ตัดออกจึงเสียข้อมูล
+แต่ผลของมันอาจขึ้นกับว่าโมเดลเป็นแบบ local (knn) หรือ global (logistic)
+→ **ห้ามเขียนข้อสรุปลงรายงานจนกว่าจะครบอย่างน้อย 5-6 classifier**
 
 **Accuracy ใช้ไม่ได้กับชุดนี้** — validation 337 neg / 34 pos (9.2% positive)
 majority baseline = **0.9084** สูงกว่าโมเดลจริงหลายตัว ต้องรายงาน AUC/F1 เป็นหลัก
