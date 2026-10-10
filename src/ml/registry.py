@@ -8,6 +8,7 @@ from __future__ import annotations
 from .classification.gaussian_nb import GaussianNB
 from .classification.knn import KNN
 from .classification.logistic import Logistic
+from .classification.perceptron import Perceptron
 from .core.base import BaseModel
 from .regression.multiple_linear import MultipleLinear
 from .regression.polynomial import Polynomial
@@ -17,6 +18,7 @@ MODELS: dict[str, type[BaseModel]] = {
     "gaussian_nb": GaussianNB,
     "knn": KNN,
     "logistic": Logistic,
+    "perceptron": Perceptron,
     "multiple_linear": MultipleLinear,
     "polynomial": Polynomial,
     "simple_linear": SimpleLinear,

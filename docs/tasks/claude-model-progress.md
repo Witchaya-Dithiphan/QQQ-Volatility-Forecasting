@@ -4,7 +4,7 @@
 > วิธีทำงาน: invoke skill `qqq-model` (กลั่นจาก `AGENTS.md` + `MODEL_CARDS.md` แล้ว ไม่ต้องอ่านต้นฉบับซ้ำ)
 > อัปเดตตารางนี้ + ไฟล์ของโมเดลนั้น หลังจบทุกตัว · **ห้ามลบผลเก่า**
 
-**สถานะรวม:** 6/11 ของฝั่ง Claude · test suite `553 passed, 0 failed`
+**สถานะรวม:** 7/11 ของฝั่ง Claude · test suite `566 passed, 0 failed`
 
 ## ฝั่ง Claude (11 ตัว — ของเรา)
 
@@ -16,7 +16,7 @@
 | 4 | `logistic` | cls | ✅ | exact (6/6) Δcoef 2.9e-08 | AUC 0.6732 · F1 0.2609 · Acc 0.9084 | [↗](../models/logistic/MODEL_PROGRESS.md) · **ปลดล็อก `stacking` ครบแล้ว** |
 | 5 | `gaussian_nb` | cls | ✅ | exact 1e-12 | **F1 0.2812** (ดีสุด) · AUC 0.6665 | [↗](../models/gaussian_nb/MODEL_PROGRESS.md) |
 | 6 | `polynomial` | reg | ✅ | exact (16/16) | RMSE 0.069065 · R² −0.0507 | [↗](../models/polynomial/MODEL_PROGRESS.md) |
-| 7 | `perceptron` | cls | ⬜ | | | |
+| 7 | `perceptron` | cls | ✅ | exact 1e-10 | **AUC 0.2993** (< สุ่ม) · F1 0.0 | [↗](../models/perceptron/MODEL_PROGRESS.md) ตรวจแล้ว sklearn ได้เท่ากัน |
 | 8 | `slp` | cls | ⬜ | | | |
 | 9 | `elastic_net` ★ | reg | ⬜ | | | extracurricular — card ต้องลึก |
 | 10 | `kmeans` | clustering | ⬜ | | | |
@@ -48,8 +48,8 @@ paired comparison A↔B · notebooks 03/04/05
 
 ## ถัดไป
 
-`perceptron` — learning_rate ∈ {0.001, 0.01, 0.1} · online mistake-driven update
-**`tol=None`** ใน reference ไม่งั้น sklearn early-stop คนละรอบ · `shuffle=False` ทั้งสองฝั่ง
+`slp` — batch ∈ {32, full} × l2 ∈ {0, 1e-4} × lr ∈ {0.001, 0.01} = 8 candidates
+weight init ด้วย **`RandomState`** · batch สุดท้ายที่ไม่เต็มต้องนับ · early stop บน tail 15%
 
 ## ข้อค้นพบสะสม (ใช้ในรายงาน §8.2)
 
@@ -71,6 +71,7 @@ paired comparison A↔B · notebooks 03/04/05
 | `knn` | 0.6987 | 0.6455 | **−0.053** |
 | `logistic` | 0.6732 | 0.6824 | **+0.009** |
 | `gaussian_nb` | 0.6665 | 0.6789 | **+0.012** |
+| `perceptron` | 0.2993 | 0.3383 | **+0.039** |
 
 **ยังสรุปทิศทางของ classification ไม่ได้** — knn ชอบ `with_spike` ชัดเจน แต่ logistic
 กลับชอบ `non_spike` เล็กน้อย ต่างจากฝั่ง regression ที่สอดคล้องกันทั้งสองตัว
