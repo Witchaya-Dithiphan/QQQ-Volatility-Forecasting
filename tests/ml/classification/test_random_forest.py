@@ -9,6 +9,7 @@ from src.ml.classification.random_forest import RandomForest
 from src.ml.core.compare import assert_parity
 from src.ml.core.data import load
 from src.ml.core.persist import load_npz, save_npz
+from src.ml.core.preprocess import PCA, Standardizer
 from src.ml.registry import build, model_names
 
 
@@ -24,15 +25,26 @@ def test_single_unbootstrapped_tree_uses_derived_seed():
     assert np.array_equal(forest.predict_proba(X), tree.predict_proba(X))
 
 
-def test_bootstrap_counts_match_sklearn_and_ignore_omitted_rows():
+def test_bootstrap_counts_match_sklearn_and_ignore_omitted_rows(monkeypatch):
     X = np.arange(24.0).reshape(12, 2)
     y = np.array([0, 1] * 6)
+    fitted_weights = []
+    original_fit = DecisionTree.fit
+
+    def capture_fit(tree, X, y=None, sample_weight=None):
+        fitted_weights.append(sample_weight.copy())
+        return original_fit(tree, X, y, sample_weight=sample_weight)
+
+    monkeypatch.setattr(DecisionTree, "fit", capture_fit)
     forest = RandomForest(n_estimators=3, max_depth=3, min_samples_leaf=1,
                           random_state=9).fit(X, y)
+    monkeypatch.setattr(DecisionTree, "fit", original_fit)
     seeds = np.random.RandomState(9).randint(np.iinfo(np.int32).max, size=3)
-    for seed, tree in zip(seeds, forest.trees_):
+    assert len(fitted_weights) == len(seeds)
+    for seed, tree, actual_counts in zip(seeds, forest.trees_, fitted_weights):
         indices = _generate_sample_indices(int(seed), len(X), len(X), None)
         counts = np.bincount(indices, minlength=len(X))
+        assert np.array_equal(actual_counts, counts)
         expected = DecisionTree(max_depth=3, min_samples_leaf=1,
                                 max_features="sqrt", random_state=int(seed)).fit(
                                     X, y, sample_weight=counts)
@@ -97,6 +109,24 @@ def test_real_train_and_validation_parity(variant, n_estimators, max_depth):
         assert np.array_equal(mine.tree_.threshold, theirs.tree_.threshold)
     assert_parity(scratch, reference, data.train.X, data.train.y_classification, task="classification")
     assert_parity(scratch, reference, data.validation.X, data.validation.y_classification, task="classification")
+
+
+@pytest.mark.parametrize("variant,n_estimators,max_depth", [
+    ("with_spike", 100, 3), ("non_spike", 50, 5),
+])
+@pytest.mark.parametrize("components", [2, 4, 6])
+def test_pca_train_and_validation_parity(variant, n_estimators, max_depth, components):
+    data = load(variant)
+    standardizer = Standardizer().fit(data.train.X)
+    train_scaled = standardizer.transform(data.train.X)
+    pca = PCA(components).fit(train_scaled)
+    train_X = pca.transform(train_scaled)
+    validation_X = pca.transform(standardizer.transform(data.validation.X))
+    scratch = RandomForest(n_estimators=n_estimators, max_depth=max_depth).fit(
+        train_X, data.train.y_classification)
+    reference = scratch.reference().fit(train_X, data.train.y_classification)
+    assert_parity(scratch, reference, train_X, data.train.y_classification, task="classification")
+    assert_parity(scratch, reference, validation_X, data.validation.y_classification, task="classification")
 
 
 def test_save_load_preserves_probabilities(tmp_path):
