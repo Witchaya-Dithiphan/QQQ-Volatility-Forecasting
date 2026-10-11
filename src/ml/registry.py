@@ -14,6 +14,7 @@ from .classification.logistic import Logistic
 from .classification.perceptron import Perceptron
 from .classification.random_forest import RandomForest
 from .classification.slp import SLP
+from .classification.xgboost import XGBoost
 from .clustering.agglomerative import Agglomerative
 from .clustering.kmeans import KMeans
 from .core.base import BaseModel
@@ -38,6 +39,7 @@ MODELS: dict[str, type[BaseModel]] = {
     "multiple_linear": MultipleLinear,
     "polynomial": Polynomial,
     "simple_linear": SimpleLinear,
+    "xgboost": XGBoost,
 }
 
 

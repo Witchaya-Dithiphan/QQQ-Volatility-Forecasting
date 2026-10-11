@@ -346,13 +346,41 @@ leaderboard คือตารางเปรียบเทียบ metric ข
 
 ### T5 — `xgboost` (card #14) · ~4 ชม. · **เสี่ยงสุด เริ่มตอนเช้า**
 
-- [ ] `tree_method="exact"` และปิด subsample/colsample ทั้ง 4 ตัว
-- [ ] `base_score=0.5` → `F0 = 0` (**ต่างจาก GB อย่าก๊อปข้ามกัน**)
-- [ ] `min_child_weight=0`, `reg_alpha=0`
-- [ ] unit test: คำนวณ `w* = -G/(H+λ)` และ gain ของ split เดียวด้วยมือ
-- [ ] parity: เทียบ `predict(output_margin=True)` ทีละ iteration ด้วย `iteration_range`
-- [ ] **แผนสำรอง:** ถ้าเกินครึ่งวันแล้วยังต่าง > 1e-3 ให้ลดเหลือกลไกแกน
+- [x] `tree_method="exact"` และปิด subsample/colsample ทั้ง 4 ตัว
+- [x] `base_score=0.5` → `F0 = 0` (**ต่างจาก GB อย่าก๊อปข้ามกัน**)
+- [x] `min_child_weight=0`, `reg_alpha=0`
+- [x] unit test: คำนวณ `w* = -G/(H+λ)` และ gain ของ split เดียวด้วยมือ
+- [x] parity: เทียบ `predict(output_margin=True)` ทีละ iteration ด้วย `iteration_range`
+- [x] **แผนสำรอง:** ถ้าเกินครึ่งวันแล้วยังต่าง > 1e-3 ให้ลดเหลือกลไกแกน
       (exact greedy + gradient/hessian + leaf shrinkage) แล้วบันทึกขอบเขตลง card — ยังนับเป็น XGBoost from scratch
+
+**ผลรัน T5 (2026-10-11):** ไม่ต้องใช้แผนสำรอง. 8 candidates ต่อ variant, เลือกด้วย AP ก่อน AUC. เทียบ `xgboost` 3.4.1 ทีละต้นครบ 16 ชุดบน Train และ Validation (1,400 ต้น): โครงสร้างตรงทุกต้น, label ต่าง 0, margin ต่างสูงสุด 4.8e-7, probability ต่างสูงสุด 6.0e-8. 13 จาก 16 ชุดตรงระดับ bit; ที่เหลือค่าใบต่าง 1 ulp ของ float32 ซึ่งพิสูจน์แล้วว่ามาจาก `expf` ของ C runtime. `test_xgboost.py` 36 tests ผ่าน; ทั้งชุด 854 tests ผ่าน.
+
+| variant | candidate ที่เลือก | AP | AUC | F1 | reload |
+| --- | --- | ---: | ---: | ---: | --- |
+| `with_spike` | n 100, depth 1, lr 0.03, λ 1, γ 0 | 0.250802 | 0.669314 | 0.244898 | ผ่าน |
+| `non_spike` | n 100, depth 2, lr 0.03, λ 10, γ 0.1 | 0.265178 | 0.685285 | 0.280000 | ผ่าน |
+
+ผลเต็มอยู่ใน [`MODEL_PROGRESS.md`](../models/xgboost/MODEL_PROGRESS.md). **DoD ค้าง leaderboard** เช่นเดียวกับ T1–T4; ยังไม่แตะ Test set.
+
+**ความต่างจาก checklist ข้างบน:** unit test "gain ของ split เดียว" ใช้สูตรของ library คือ `score_L + score_R − score_parent` ไม่มีตัวคูณ 0.5 และ γ ถูกใช้ตอน prune หลังโตเสร็จ ไม่ใช่ตอนเลือก split. `reference()` เพิ่ม `n_jobs=1`.
+
+**บทเรียน T5:**
+
+- **อ่าน source ให้ตรง tag กับเวอร์ชันที่ติดตั้ง.** สูตร gain ของ 3.4.1 ต่างจาก v3.1.1 ในระดับการปัดเศษ และแค่นั้นก็พลิก split ได้.
+- **reference ที่เป็น float32 ต้องเลียน float32.** `np.exp` บน float32 ไม่เท่า `expf`; คำนวณใน float64 แล้วปัดจะใกล้กว่ามาก.
+- **เมื่อเหลือ ulp ที่อธิบายไม่ได้ ให้เทียบ root ของทุกต้นกับสูตรทางเลือกทีละสูตร** — root ไม่มีความกำกวมเรื่องแถว สูตรที่ถูกจะตรงเกือบ 100% ส่วนที่ผิดจะตกชัดเจน.
+- grid แบบ `tuples` รองรับที่ trainer แล้ว (ดูหมายเหตุ core ข้างล่าง) โมเดลไม่ต้องรับ `tuples` เอง.
+
+> **หมายเหตุ core (2026-10-11) — แจ้งทั้งสองฝั่ง:** `src/ml/core/trainer.py::expand_grid` และ
+> `src/ml/run.py::_load_grid` ถูกแก้ให้รองรับ grid แบบ `{tuples, tuple_fields}` ตามคำสั่งเจ้าของโปรเจกต์
+> เพราะ grid ของ `xgboost` ใน config เป็นรูปแบบนี้และของเดิมอ่านไม่ได้. grid แบบช่วงค่าเดินโค้ดเดิมทุกบรรทัด.
+> **หลักฐานว่าไม่กระทบโมเดลอื่น:** (1) ขยาย grid ของทั้ง 19 โมเดลใน config ก่อน/หลัง — 18 ตัวได้ candidate
+> เหมือนเดิมและลำดับเดิม ต่างเฉพาะ `xgboost` · (2) train โมเดลที่ลงทะเบียนทั้ง 16 ตัว × 2 variants ก่อนและหลัง
+> แล้ว diff 312 ไฟล์ — 310 ไฟล์เหมือนกันทุก byte ต่างเฉพาะ `search_results.json` ของ `xgboost` 2 ไฟล์
+> ซึ่งเปลี่ยนแค่ `params` จาก `{"tuples": [...]}` เป็น 5 field มีชื่อ ตัวเลข metric เท่าเดิม ·
+> (3) test ใหม่ `test_configured_grid_only_names_constructor_arguments` ตรวจทุกโมเดลที่ลงทะเบียนว่า
+> candidate จาก config สร้างโมเดลได้จริง — โมเดลใหม่ที่ grid ไม่ตรง constructor จะ fail ที่นี่ก่อนถึง trainer.
 
 ### T6 — `svm` (card #17) · ~3.5 ชม.
 

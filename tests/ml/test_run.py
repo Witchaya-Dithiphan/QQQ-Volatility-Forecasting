@@ -2,7 +2,9 @@ import json
 
 import pytest
 
-from src.ml.run import main
+from src.ml.core.trainer import expand_grid
+from src.ml.registry import MODELS
+from src.ml.run import _load_grid, main
 
 
 def test_train_a_single_model_succeeds(tmp_path):
@@ -33,6 +35,42 @@ def test_grid_file_is_applied(tmp_path):
         (tmp_path / "with_spike" / "regression" / "multiple_linear" / "search_results.json").read_text(encoding="utf-8")
     )
     assert len(results) == 2
+
+
+@pytest.mark.parametrize("name", sorted(MODELS))
+def test_configured_grid_only_names_constructor_arguments(name):
+    """Every candidate the config produces must be something the model can be built from."""
+    import inspect
+
+    accepted = set(inspect.signature(MODELS[name].__init__).parameters) - {"self"}
+    candidates = expand_grid(_load_grid(None, name))
+    assert candidates
+    for candidate in candidates:
+        assert set(candidate) <= accepted
+        MODELS[name](**candidate)
+
+
+def test_tuple_grid_from_config_becomes_named_candidates():
+    candidates = expand_grid(_load_grid(None, "xgboost"))
+    assert len(candidates) == 8
+    assert candidates[0] == {"n_estimators": 50, "max_depth": 1, "learning_rate": 0.1,
+                             "reg_lambda": 1, "gamma": 0}
+    assert candidates[7] == {"n_estimators": 100, "max_depth": 2, "learning_rate": 0.03,
+                             "reg_lambda": 10, "gamma": 0.1}
+
+
+def test_tuple_grid_file_is_applied(tmp_path):
+    grid = tmp_path / "grid.json"
+    grid.write_text(json.dumps({"xgboost": {
+        "tuples": [[2, 1, 0.1, 1, 0], [3, 2, 0.1, 10, 0.1]],
+        "tuple_fields": ["n_estimators", "max_depth", "learning_rate", "reg_lambda", "gamma"],
+    }}), encoding="utf-8")
+    assert main(["train", "--model", "xgboost", "--variant", "with_spike",
+                 "--grid", str(grid), "--output-root", str(tmp_path)]) == 0
+    results = json.loads(
+        (tmp_path / "with_spike" / "classification" / "xgboost" / "search_results.json").read_text(encoding="utf-8")
+    )
+    assert [result["params"]["n_estimators"] for result in results] == [2, 3]
 
 
 def test_unknown_model_name_fails_without_traceback(tmp_path, capsys):

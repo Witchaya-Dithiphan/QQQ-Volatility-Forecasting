@@ -107,6 +107,10 @@ sklearn สร้างบน **legacy MT19937** ใช้ `np.random.RandomStat
 มาจาก `configs/modeling.json` → `models.<name>.grid` เสมอ **ห้ามแต่งเอง**
 CLI อ่านให้อัตโนมัติ ไม่ต้องส่ง `--grid`
 
+grid ปกติเป็นช่วงค่าที่ trainer คูณกันทุกคู่ · ถ้า config ใช้ `tuples` (ตอนนี้มีแค่ `xgboost`)
+trainer จะแปลงแต่ละ tuple เป็น 1 candidate ตาม `parameters.tuple_fields` ให้เอง
+**โมเดลไม่ต้องรับ `tuples` ใน constructor**
+
 ## คำสั่ง
 
 ```bat

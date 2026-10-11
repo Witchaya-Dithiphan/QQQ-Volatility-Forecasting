@@ -46,6 +46,41 @@ def test_empty_grid_yields_one_default_candidate():
     assert expand_grid({}) == [{}]
 
 
+def test_tuple_grid_lists_candidates_instead_of_multiplying_them():
+    # Some models name whole candidates rather than ranges: five fields with a full
+    # product would be dozens of fits, so the config picks the eight worth running.
+    grid = {"tuples": [[50, 1, 0.1], [100, 2, 0.03]], "tuple_fields": ["n", "depth", "rate"]}
+    assert expand_grid(grid) == [
+        {"n": 50, "depth": 1, "rate": 0.1},
+        {"n": 100, "depth": 2, "rate": 0.03},
+    ]
+
+
+def test_tuple_grid_keeps_the_listed_order():
+    grid = {"tuples": [[3], [1], [2]], "tuple_fields": ["k"]}
+    assert [candidate["k"] for candidate in expand_grid(grid)] == [3, 1, 2]
+
+
+@pytest.mark.parametrize("grid", [
+    {"tuples": [[1, 2]]},                                          # no field names
+    {"tuples": [[1, 2]], "tuple_fields": ["a"]},                   # too many values
+    {"tuples": [[1]], "tuple_fields": ["a", "b"]},                 # too few values
+    {"tuples": [[1]], "tuple_fields": ["a"], "b": [1, 2]},         # mixed with a range
+    {"tuple_fields": ["a"]},                                       # names without tuples
+])
+def test_malformed_tuple_grid_is_rejected(grid):
+    with pytest.raises(ValueError):
+        expand_grid(grid)
+
+
+def test_a_range_grid_is_untouched_by_tuple_support():
+    # A hyperparameter whose values happen to be lists must still multiply out.
+    assert expand_grid({"hidden_layers": [[8], [16, 8]], "l2": [0.0]}) == [
+        {"hidden_layers": [8], "l2": 0.0},
+        {"hidden_layers": [16, 8], "l2": 0.0},
+    ]
+
+
 def test_train_model_writes_every_required_artifact(tmp_path):
     result = train_model(
         MultipleLinear, grid={"fit_intercept": [True, False]}, variant="with_spike", output_root=tmp_path

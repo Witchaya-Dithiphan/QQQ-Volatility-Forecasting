@@ -237,6 +237,21 @@ rem ใช้ hyperparameter grid จากไฟล์ {model: grid}
 .\.venv\Scripts\python.exe -m src.ml.run train --model multiple_linear --variant non_spike --grid grids.json
 ```
 
+ไฟล์ grid เขียนได้ 2 รูปแบบ ห้ามผสมกันในโมเดลเดียว:
+
+```json
+{
+  "gradient_boosting": {"learning_rate": [0.03, 0.1], "max_depth": [1, 2]},
+  "xgboost": {
+    "tuples": [[50, 1, 0.1, 1, 0], [100, 2, 0.03, 10, 0.1]],
+    "tuple_fields": ["n_estimators", "max_depth", "learning_rate", "reg_lambda", "gamma"]
+  }
+}
+```
+
+แบบแรกลองทุกคู่ (2 × 2 = 4 candidates) แบบที่สองลองเฉพาะชุดที่เขียน (2 candidates)
+ใน `configs/modeling.json` ชื่อ field ของแบบที่สองอยู่ที่ `models.<name>.parameters.tuple_fields`
+
 ผลที่คาดหวัง — บรรทัดสรุปต่อโมเดล ต้องลงท้ายด้วย `reload=ok`:
 
 ```text

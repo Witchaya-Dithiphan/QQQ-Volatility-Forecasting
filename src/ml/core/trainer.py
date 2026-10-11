@@ -36,9 +36,20 @@ def config_preprocess(name: str) -> str:
 
 
 def expand_grid(grid: dict) -> list[dict]:
-    """Cartesian product in sorted key order so candidate ids are reproducible."""
+    """Cartesian product in sorted key order so candidate ids are reproducible.
+
+    A grid given as {"tuples": [...], "tuple_fields": [...]} lists whole candidates
+    instead: each tuple becomes one candidate, in the order written.
+    """
     if not grid:
         return [{}]
+    if "tuples" in grid or "tuple_fields" in grid:
+        if set(grid) != {"tuples", "tuple_fields"}:
+            raise ValueError("A tuple grid needs exactly the keys 'tuples' and 'tuple_fields'")
+        fields = grid["tuple_fields"]
+        if any(len(values) != len(fields) for values in grid["tuples"]):
+            raise ValueError(f"Every tuple must have one value per field: {fields}")
+        return [dict(zip(fields, values)) for values in grid["tuples"]]
     keys = sorted(grid)
     return [dict(zip(keys, values)) for values in itertools.product(*(grid[k] for k in keys))]
 

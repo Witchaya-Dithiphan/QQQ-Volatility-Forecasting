@@ -28,7 +28,12 @@ def _load_grid(path: str | None, name: str) -> dict:
         grids = json.loads(Path(path).read_text(encoding="utf-8"))
         return grids.get(name, {})
     config = json.loads((PROJECT_ROOT / "configs" / "modeling.json").read_text(encoding="utf-8"))
-    return config.get("models", {}).get(name, {}).get("grid", {})
+    model = config.get("models", {}).get(name, {})
+    grid = model.get("grid", {})
+    if "tuples" in grid:
+        # The config keeps the field names beside the grid rather than inside it.
+        return {**grid, "tuple_fields": model["parameters"]["tuple_fields"]}
+    return grid
 
 
 def _train(args) -> int:

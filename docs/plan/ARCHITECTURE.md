@@ -173,6 +173,8 @@ artifact 8–12 ไฟล์ + manifest 25 ฟิลด์ต่อ run × 38 ru
 3. for แต่ละชุด hyperparameter ใน grid:
        model.fit(Train)  →  predict(Validation)  →  metrics
        เก็บลง search_results.json
+   grid มี 2 รูปแบบ: ช่วงค่า {a: [...], b: [...]} → ผลคูณทุกคู่ (เรียง key ตามตัวอักษร)
+   หรือ {tuples: [...], tuple_fields: [...]} → 1 tuple = 1 candidate ตามลำดับที่เขียน
 4. select_candidate()                 → ผู้ชนะ 1 ตัว (เกณฑ์: regression=rmse, classification=AP→AUC)
 5. [classification] select_threshold() บน Validation เท่านั้น
 6. save_npz(model.state_dict())  +  save_npz(preprocessor)

@@ -692,6 +692,15 @@ colsample_bylevel=1, colsample_bynode=1, min_child_weight=0, base_score=0.5, ran
 **แผนสำรอง:** ถ้าเกินครึ่งวันแล้วยังต่าง > 1e-3 ให้ลดเหลือกลไกแกน (exact greedy + g/h + leaf shrinkage)
 แล้วอธิบายขอบเขตในรายงานอย่างตรงไปตรงมา — ยังนับเป็น XGBoost from scratch ได้
 
+**ผลจริง (2026-10-11)** ไม่ต้องใช้แผนสำรอง. parity กับ `xgboost` 3.4.1 ครบ 8 candidates × 2 variants (1,400 ต้น):
+โครงสร้างตรงทุกต้น, label ต่าง 0, margin ต่างสูงสุด 4.8e-7, probability ต่างสูงสุด 6.0e-8. fit ช้าสุด 0.3 วินาที.
+ผู้ชนะ: `n=100, depth=1, lr=0.03, λ=1, γ=0` AP 0.2508 / AUC 0.6693 (`with_spike`) ·
+`n=100, depth=2, lr=0.03, λ=10, γ=0.1` AP 0.2652 / AUC 0.6853 (`non_spike`).
+**ความต่างจากสูตรข้างบน (ยึดตาม library):** `loss_chg = score_L + score_R − score_parent` ไม่มีตัวคูณ 0.5 ·
+γ ไม่ได้ใช้ตอนเลือก split แต่ใช้ prune จากล่างขึ้นบนหลังโตเสร็จ · score คำนวณผ่าน `w` float32 เป็น `−(2Gw + (H+λ)w²)`.
+**ความต่างจาก reference ที่เหลือ:** ค่าใบต่าง 1 ulp ของ float32 ใน 20 จาก 1,400 ต้น มาจาก `expf` ของ C runtime
+(พิสูจน์แล้ว). `reference()` เพิ่ม `n_jobs=1`. รายละเอียด: [`MODEL_PROGRESS.md`](../models/xgboost/MODEL_PROGRESS.md)
+
 ---
 
 ### 15. `adaboost` ★ — AdaBoost (extracurricular, classification)
