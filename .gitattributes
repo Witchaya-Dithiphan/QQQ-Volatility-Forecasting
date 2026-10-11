@@ -4,5 +4,9 @@
 *.md text eol=lf
 requirements*.txt text eol=lf
 *.in text eol=lf
+# Tracked CSVs are hashed in the spike reports, so their bytes must not depend on autocrlf.
+*.csv text eol=lf
+*.npz binary
+*.png binary
 .gitattributes text eol=lf
 .gitignore text eol=lf

@@ -61,18 +61,33 @@ def test_threshold_uses_linear_interpolation() -> None:
     assert calculate_high_volatility_threshold(train) == pytest.approx(7.5)
 
 
-def test_validation_values_do_not_affect_threshold() -> None:
-    train, validation, _ = _three_splits()
-    baseline = calculate_high_volatility_threshold(train)
-    validation[TARGET_COLUMN] *= 1_000_000
-    assert calculate_high_volatility_threshold(train) == baseline
+@pytest.mark.parametrize("poisoned_split", ["validation", "test"])
+def test_other_split_values_do_not_affect_pipeline_threshold(
+    tmp_path: Path, poisoned_split: str
+) -> None:
+    def run(label: str, scale: float) -> tuple[pd.DataFrame, float]:
+        root = tmp_path / label
+        root.mkdir()
+        frames = dict(zip(("train", "validation", "test"), _three_splits(), strict=True))
+        frames[poisoned_split][TARGET_COLUMN] *= scale
+        for name, frame in frames.items():
+            frame.to_csv(root / f"{name}.csv", index=False)
+        train_labeled, _, _, threshold = run_classification_target_pipeline(
+            train_input_path=root / "train.csv",
+            validation_input_path=root / "validation.csv",
+            test_input_path=root / "test.csv",
+            train_output_path=root / "train_labeled.csv",
+            validation_output_path=root / "validation_labeled.csv",
+            test_output_path=root / "test_labeled.csv",
+            threshold_report_path=root / "threshold.json",
+        )
+        return train_labeled, threshold
 
+    baseline_train, baseline_threshold = run("baseline", 1.0)
+    poisoned_train, poisoned_threshold = run("poisoned", 1_000.0)
 
-def test_test_values_do_not_affect_threshold() -> None:
-    train, _, test = _three_splits()
-    baseline = calculate_high_volatility_threshold(train)
-    test[TARGET_COLUMN] *= 1_000_000
-    assert calculate_high_volatility_threshold(train) == baseline
+    assert poisoned_threshold == baseline_threshold
+    pd.testing.assert_frame_equal(poisoned_train, baseline_train)
 
 
 def test_threshold_is_calculated_from_train_only() -> None:
