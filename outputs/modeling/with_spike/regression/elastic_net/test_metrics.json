@@ -1,0 +1,79 @@
+{
+  "clipped_metrics": {
+    "mae": {
+      "reason": null,
+      "value": 0.07314025598684186
+    },
+    "mse": {
+      "reason": null,
+      "value": 0.013790315478220268
+    },
+    "r2": {
+      "reason": null,
+      "value": 0.27577213605495576
+    },
+    "rmse": {
+      "reason": null,
+      "value": 0.117432173948285
+    }
+  },
+  "negative_count": 0,
+  "raw_metrics": {
+    "mae": {
+      "reason": null,
+      "value": 0.07314025598684186
+    },
+    "mse": {
+      "reason": null,
+      "value": 0.013790315478220268
+    },
+    "r2": {
+      "reason": null,
+      "value": 0.27577213605495576
+    },
+    "rmse": {
+      "reason": null,
+      "value": 0.117432173948285
+    }
+  },
+  "segments": {
+    "non_spike": {
+      "mae": {
+        "reason": null,
+        "value": 0.056374716122513074
+      },
+      "mse": {
+        "reason": null,
+        "value": 0.004999481555838446
+      },
+      "r2": {
+        "reason": null,
+        "value": 0.13953573119340745
+      },
+      "rmse": {
+        "reason": null,
+        "value": 0.0707070120697972
+      },
+      "rows": 319
+    },
+    "spike_affected": {
+      "mae": {
+        "reason": null,
+        "value": 0.1721811303705619
+      },
+      "mse": {
+        "reason": null,
+        "value": 0.06572135290858695
+      },
+      "r2": {
+        "reason": null,
+        "value": -0.1525823808207225
+      },
+      "rmse": {
+        "reason": null,
+        "value": 0.25636176179100295
+      },
+      "rows": 54
+    }
+  }
+}
