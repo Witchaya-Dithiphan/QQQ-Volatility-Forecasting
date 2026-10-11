@@ -25,3 +25,13 @@ def test_documents_do_not_claim_report_or_finalize_are_missing(document):
     text = document.read_text(encoding="utf-8")
     for stale in ("ยังไม่ implement", "not implemented yet", "exit 1) — เป็นงาน Phase C"):
         assert stale not in text
+
+
+EVIDENCE = re.compile(r"`((?:outputs|src|notebooks|docs|tests|deliverables|configs)/[^`*<>]+)`")
+
+
+def test_every_traceability_evidence_path_exists():
+    text = (PROJECT_ROOT / "docs" / "report" / "TRACEABILITY.md").read_text(encoding="utf-8")
+    paths = EVIDENCE.findall(text)
+    assert len(paths) >= 25
+    assert [path for path in paths if not (PROJECT_ROOT / path).exists()] == []

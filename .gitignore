@@ -96,3 +96,7 @@ Desktop.ini
 .python-version
 site/
 .pytest_tmp/
+
+# Node packages installed for the report build tool
+node_modules/
+package-lock.json
