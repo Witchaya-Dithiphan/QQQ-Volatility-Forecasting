@@ -10,6 +10,7 @@ from .classification.gaussian_nb import GaussianNB
 from .classification.knn import KNN
 from .classification.logistic import Logistic
 from .classification.perceptron import Perceptron
+from .classification.random_forest import RandomForest
 from .classification.slp import SLP
 from .clustering.agglomerative import Agglomerative
 from .clustering.kmeans import KMeans
@@ -28,6 +29,7 @@ MODELS: dict[str, type[BaseModel]] = {
     "knn": KNN,
     "logistic": Logistic,
     "perceptron": Perceptron,
+    "random_forest": RandomForest,
     "slp": SLP,
     "multiple_linear": MultipleLinear,
     "polynomial": Polynomial,
