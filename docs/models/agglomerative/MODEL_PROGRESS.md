@@ -64,3 +64,18 @@ Agglomerative ให้ **labelling ของ train set** ไม่ใช่ก�
 ## ค้างอยู่
 
 - card #19 ใน `MODEL_CARDS.md` ยังไม่ได้ใส่ผลจริง
+
+## ผลจริงจากไฟล์ผล (สร้างอัตโนมัติ ห้ามแก้ด้วยมือ)
+
+ตารางนี้ถูกเติมโดย `python -m src.ml.docs_sync` จาก `validation_metrics.json` และ `test_metrics.json` ของโมเดลนี้ ตารางด้านบนของไฟล์เป็นบันทึกระหว่างพัฒนาและเก็บไว้ตามเดิม
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/agglomerative.md -->
+### ผลจริงของ `agglomerative`
+
+| variant | split | params | silhouette | inertia |
+| --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"k": 2, "linkage": "ward"} | 0.3602 | 1070.4207 |
+| with_spike | test (one-shot) | {"k": 2, "linkage": "ward"} | 0.3221 | 2096.4419 |
+| non_spike | validation (selection score) | {"k": 2, "linkage": "average"} | 0.4642 | 1844.8884 |
+| non_spike | test (one-shot) | {"k": 2, "linkage": "average"} | 0.4822 | 3532.7917 |
+<!-- END GENERATED -->

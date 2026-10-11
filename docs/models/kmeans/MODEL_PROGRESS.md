@@ -72,3 +72,18 @@ reload ✅ · preprocess `standardize` · เกณฑ์เลือก = train
 ## ค้างอยู่
 
 - card #18 ใน `MODEL_CARDS.md` ยังไม่ได้ใส่ผลจริง
+
+## ผลจริงจากไฟล์ผล (สร้างอัตโนมัติ ห้ามแก้ด้วยมือ)
+
+ตารางนี้ถูกเติมโดย `python -m src.ml.docs_sync` จาก `validation_metrics.json` และ `test_metrics.json` ของโมเดลนี้ ตารางด้านบนของไฟล์เป็นบันทึกระหว่างพัฒนาและเก็บไว้ตามเดิม
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/kmeans.md -->
+### ผลจริงของ `kmeans`
+
+| variant | split | params | silhouette | inertia |
+| --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"k": 2, "max_iter": 300, "n_init": 10, "random_state": 42, "tol": 1e-06} | 0.3666 | 1075.1372 |
+| with_spike | test (one-shot) | {"k": 2, "max_iter": 300, "n_init": 10, "random_state": 42, "tol": 1e-06} | 0.3237 | 2090.4357 |
+| non_spike | validation (selection score) | {"k": 2, "max_iter": 300, "n_init": 10, "random_state": 42, "tol": 1e-06} | 0.3298 | 1448.9259 |
+| non_spike | test (one-shot) | {"k": 2, "max_iter": 300, "n_init": 10, "random_state": 42, "tol": 1e-06} | 0.2994 | 3276.0491 |
+<!-- END GENERATED -->

@@ -56,3 +56,18 @@ exact ครบ **16/16 candidates** (ทดสอบทุก degree × ทุ�
 ## ค้างอยู่
 
 - card #3 ใน `MODEL_CARDS.md` ยังไม่ได้ใส่ผลจริง
+
+## ผลจริงจากไฟล์ผล (สร้างอัตโนมัติ ห้ามแก้ด้วยมือ)
+
+ตารางนี้ถูกเติมโดย `python -m src.ml.docs_sync` จาก `validation_metrics.json` และ `test_metrics.json` ของโมเดลนี้ ตารางด้านบนของไฟล์เป็นบันทึกระหว่างพัฒนาและเก็บไว้ตามเดิม
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/polynomial.md -->
+### ผลจริงของ `polynomial`
+
+| variant | split | params | rmse | mae | r2 |
+| --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"degree": 3, "feature": "historical_volatility_20d", "standardize_before_powers": true} | 0.0691 | 0.0552 | -0.0507 |
+| with_spike | test (one-shot) | {"degree": 3, "feature": "historical_volatility_20d", "standardize_before_powers": true} | 0.1401 | 0.0861 | -0.0314 |
+| non_spike | validation (selection score) | {"degree": 2, "feature": "return_5d", "standardize_before_powers": true} | 0.0661 | 0.0509 | 0.0389 |
+| non_spike | test (one-shot) | {"degree": 2, "feature": "return_5d", "standardize_before_powers": true} | 0.1142 | 0.0743 | 0.3155 |
+<!-- END GENERATED -->

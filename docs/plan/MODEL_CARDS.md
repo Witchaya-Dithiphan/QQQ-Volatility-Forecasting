@@ -123,6 +123,19 @@ b0 = ȳ - b1·x̄
 
 **ความเสี่ยง** ไม่มี เป็นโมเดลที่ควรเขียนเป็นตัวแรกเพื่อทดสอบ framework
 
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/simple_linear.md -->
+### ผลจริงของ `simple_linear`
+
+| variant | split | params | rmse | mae | r2 |
+| --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"feature": "historical_volatility_20d"} | 0.0690 | 0.0557 | -0.0498 |
+| with_spike | test (one-shot) | {"feature": "historical_volatility_20d"} | 0.1356 | 0.0834 | 0.0347 |
+| non_spike | validation (selection score) | {"feature": "return_1d"} | 0.0665 | 0.0527 | 0.0265 |
+| non_spike | test (one-shot) | {"feature": "return_1d"} | 0.1372 | 0.0827 | 0.0114 |
+<!-- END GENERATED -->
+
 ---
 
 ### 2. `multiple_linear` — Multiple Linear Regression (pilot)
@@ -148,6 +161,19 @@ b = pinv(X_design) @ y        โดย X_design = [1, X]
 **Unit test** ระบบที่มีคำตอบเดียว `X=[[1,0],[0,1],[1,1]], y=[2,3,5]`, `fit_intercept=False` → `coef=[2,3]`
 
 **ความเสี่ยง** ไม่มี — ใช้เป็น pilot พิสูจน์ framework ทั้งลูป
+
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/multiple_linear.md -->
+### ผลจริงของ `multiple_linear`
+
+| variant | split | params | rmse | mae | r2 |
+| --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"fit_intercept": true} | 0.0689 | 0.0542 | -0.0446 |
+| with_spike | test (one-shot) | {"fit_intercept": true} | 0.1158 | 0.0722 | 0.2959 |
+| non_spike | validation (selection score) | {"fit_intercept": true} | 0.0668 | 0.0530 | 0.0165 |
+| non_spike | test (one-shot) | {"fit_intercept": true} | 0.1180 | 0.0721 | 0.2684 |
+<!-- END GENERATED -->
 
 ---
 
@@ -176,6 +202,19 @@ degree 3 บนฟีเจอร์ที่มี outlier ทำให้ desi
 **Unit test** `y = 1 + 2z + 3z²` พอดี ๆ → ค่าสัมประสิทธิ์กลับมา `[1, 2, 3]` ภายใน 1e-10
 
 **ความเสี่ยง** ต่ำ
+
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/polynomial.md -->
+### ผลจริงของ `polynomial`
+
+| variant | split | params | rmse | mae | r2 |
+| --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"degree": 3, "feature": "historical_volatility_20d", "standardize_before_powers": true} | 0.0691 | 0.0552 | -0.0507 |
+| with_spike | test (one-shot) | {"degree": 3, "feature": "historical_volatility_20d", "standardize_before_powers": true} | 0.1401 | 0.0861 | -0.0314 |
+| non_spike | validation (selection score) | {"degree": 2, "feature": "return_5d", "standardize_before_powers": true} | 0.0661 | 0.0509 | 0.0389 |
+| non_spike | test (one-shot) | {"degree": 2, "feature": "return_5d", "standardize_before_powers": true} | 0.1142 | 0.0743 | 0.3155 |
+<!-- END GENERATED -->
 
 ---
 
@@ -252,6 +291,19 @@ soft-threshold:  S(v, γ) = sign(v)·max(|v| - γ, 0)
 **ความเสี่ยง** กลาง — ถ้าไล่ไม่ตรง sklearn ภายใน 3 ชม. ให้เทียบที่ objective value แทน predict
 แล้วบันทึกว่า "ลู่เข้าจุดเดียวกัน แต่หยุดคนละ iteration เพราะเกณฑ์ dual gap" ซึ่งยังเป็นหลักฐานที่ยอมรับได้
 
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/elastic_net.md -->
+### ผลจริงของ `elastic_net`
+
+| variant | split | params | rmse | mae | r2 |
+| --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"alpha": 0.1, "l1_ratio": 0.25, "max_iter": 5000, "tol": 1e-06} | 0.0668 | 0.0539 | 0.0169 |
+| with_spike | test (one-shot) | {"alpha": 0.1, "l1_ratio": 0.25, "max_iter": 5000, "tol": 1e-06} | 0.1174 | 0.0731 | 0.2758 |
+| non_spike | validation (selection score) | {"alpha": 0.1, "l1_ratio": 0.25, "max_iter": 5000, "tol": 1e-06} | 0.0643 | 0.0510 | 0.0906 |
+| non_spike | test (one-shot) | {"alpha": 0.1, "l1_ratio": 0.25, "max_iter": 5000, "tol": 1e-06} | 0.1230 | 0.0736 | 0.2059 |
+<!-- END GENERATED -->
+
 ---
 
 ## 3. Classification
@@ -326,6 +378,19 @@ objective ลดลงทุก iteration
 
 **ความเสี่ยง** กลาง — เพราะ reference เป็น SGD ที่ path ต่างกัน ดูแผนสำรองข้างบน
 
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/logistic.md -->
+### ผลจริงของ `logistic`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"class_weight": null, "l2": 0.01, "learning_rate": 0.05, "max_iter": 5000, "tol": 1e-06} | 0.2330 | 0.6732 | 0.2609 | 0.1765 | 0.5000 | 0.9822 | 0.9084 |
+| with_spike | test (one-shot) | {"class_weight": null, "l2": 0.01, "learning_rate": 0.05, "max_iter": 5000, "tol": 1e-06} | 0.5518 | 0.7822 | 0.5203 | 0.4384 | 0.6400 | 0.9400 | 0.8418 |
+| non_spike | validation (selection score) | {"class_weight": null, "l2": 0, "learning_rate": 0.05, "max_iter": 5000, "tol": 1e-06} | 0.2513 | 0.6824 | 0.2553 | 0.1765 | 0.4615 | 0.9792 | 0.9057 |
+| non_spike | test (one-shot) | {"class_weight": null, "l2": 0, "learning_rate": 0.05, "max_iter": 5000, "tol": 1e-06} | 0.5510 | 0.7782 | 0.5041 | 0.4247 | 0.6200 | 0.9367 | 0.8365 |
+<!-- END GENERATED -->
+
 ---
 
 ### 6. `gaussian_nb` — Gaussian Naive Bayes
@@ -359,6 +424,19 @@ log p(x|c) = -0.5·Σ[ log(2π σ²_cj) + (xj - μ_cj)² / σ²_cj ]
 
 **ความเสี่ยง** ต่ำมาก — ควรผ่าน parity ในรอบแรก
 
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/gaussian_nb.md -->
+### ผลจริงของ `gaussian_nb`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"var_smoothing": 1e-07} | 0.2218 | 0.6665 | 0.2812 | 0.2647 | 0.3000 | 0.9377 | 0.8760 |
+| with_spike | test (one-shot) | {"var_smoothing": 1e-07} | 0.5538 | 0.7703 | 0.5806 | 0.6164 | 0.5488 | 0.8767 | 0.8257 |
+| non_spike | validation (selection score) | {"var_smoothing": 1e-08} | 0.2292 | 0.6789 | 0.2381 | 0.2941 | 0.2000 | 0.8813 | 0.8275 |
+| non_spike | test (one-shot) | {"var_smoothing": 1e-08} | 0.5884 | 0.7779 | 0.5824 | 0.7260 | 0.4862 | 0.8133 | 0.7962 |
+<!-- END GENERATED -->
+
 ---
 
 ### 7. `knn` — k-Nearest Neighbors
@@ -390,6 +468,19 @@ probability = vote_class1 / vote_total
 **Unit test** 3 จุดที่คำนวณระยะมือได้ · กรณี tie ที่ระยะเท่ากันเป๊ะ → ต้องได้คำตอบเดียวกับ sklearn
 
 **ความเสี่ยง** ต่ำ
+
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/knn.md -->
+### ผลจริงของ `knn`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"k": 15, "weights": "distance"} | 0.2037 | 0.6987 | 0.2000 | 0.1471 | 0.3125 | 0.9674 | 0.8922 |
+| with_spike | test (one-shot) | {"k": 15, "weights": "distance"} | 0.5472 | 0.7847 | 0.5512 | 0.4795 | 0.6481 | 0.9367 | 0.8472 |
+| non_spike | validation (selection score) | {"k": 9, "weights": "distance"} | 0.2082 | 0.6455 | 0.2222 | 0.1765 | 0.3000 | 0.9585 | 0.8868 |
+| non_spike | test (one-shot) | {"k": 9, "weights": "distance"} | 0.5389 | 0.8008 | 0.4237 | 0.3425 | 0.5556 | 0.9333 | 0.8177 |
+<!-- END GENERATED -->
 
 ---
 
@@ -425,6 +516,19 @@ output เป็น **decision score** ไม่ใช่ probability (`output: 
 ตัวอย่างเดียวที่ทายผิด → ตรวจว่า w เปลี่ยนไปเท่ากับ `lr·y·x` พอดี
 
 **ความเสี่ยง** ต่ำ ถ้าตั้ง `tol=None`
+
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/perceptron.md -->
+### ผลจริงของ `perceptron`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"learning_rate": 0.001, "max_epochs": 1000} | 0.0648 | 0.2993 | 0.0000 | 0.0000 | 0.0000 | 0.9644 | 0.8760 |
+| with_spike | test (one-shot) | {"learning_rate": 0.001, "max_epochs": 1000} | 0.1374 | 0.2749 | 0.0577 | 0.0411 | 0.0968 | 0.9067 | 0.7373 |
+| non_spike | validation (selection score) | {"learning_rate": 0.001, "max_epochs": 1000} | 0.0742 | 0.3383 | 0.1159 | 0.1176 | 0.1143 | 0.9080 | 0.8356 |
+| non_spike | test (one-shot) | {"learning_rate": 0.001, "max_epochs": 1000} | 0.1328 | 0.2626 | 0.0813 | 0.0685 | 0.1000 | 0.8500 | 0.6971 |
+<!-- END GENERATED -->
 
 ---
 
@@ -463,6 +567,19 @@ early stopping: ดู BCE บน internal tail 15% ของ train, patience 50
 batch=full ต้องให้ผลเท่ากับ full-batch gradient descent ที่คำนวณมือ
 
 **ความเสี่ยง** กลาง — ส่วนที่พลาดบ่อยคือ early stopping ไม่ใช่ตัว gradient
+
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/slp.md -->
+### ผลจริงของ `slp`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"batch": 32, "l2": 0, "learning_rate": 0.001, "max_epochs": 1000, "min_delta": 1e-06, "patience": 50, "random_state": 42} | 0.2427 | 0.6803 | 0.2609 | 0.1765 | 0.5000 | 0.9822 | 0.9084 |
+| with_spike | test (one-shot) | {"batch": 32, "l2": 0, "learning_rate": 0.001, "max_epochs": 1000, "min_delta": 1e-06, "patience": 50, "random_state": 42} | 0.5536 | 0.7798 | 0.5041 | 0.4247 | 0.6200 | 0.9367 | 0.8365 |
+| non_spike | validation (selection score) | {"batch": "full", "l2": 0, "learning_rate": 0.01, "max_epochs": 1000, "min_delta": 1e-06, "patience": 50, "random_state": 42} | 0.2474 | 0.6778 | 0.2258 | 0.2059 | 0.2500 | 0.9377 | 0.8706 |
+| non_spike | test (one-shot) | {"batch": "full", "l2": 0, "learning_rate": 0.01, "max_epochs": 1000, "min_delta": 1e-06, "patience": 50, "random_state": 42} | 0.4963 | 0.7420 | 0.5000 | 0.4795 | 0.5224 | 0.8933 | 0.8123 |
+<!-- END GENERATED -->
 
 ---
 
@@ -512,6 +629,19 @@ probability ต่างสูงสุด 3.3e-16, label ต่าง 0.
 `scaler_fit: subtrain` ยังไม่ได้ทำ.
 รายละเอียด: [`MODEL_PROGRESS.md`](../models/mlp/MODEL_PROGRESS.md)
 
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/mlp.md -->
+### ผลจริงของ `mlp`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"activation": "relu", "batch": 32, "hidden_layers": [16], "l2": 0, "learning_rate": 0.001, "max_epochs": 1000, "min_delta": 1e-06, "momentum": 0.9, "patience": 50, "random_state": 42} | 0.2668 | 0.6757 | 0.3200 | 0.2353 | 0.5000 | 0.9763 | 0.9084 |
+| with_spike | test (one-shot) | {"activation": "relu", "batch": 32, "hidden_layers": [16], "l2": 0, "learning_rate": 0.001, "max_epochs": 1000, "min_delta": 1e-06, "momentum": 0.9, "patience": 50, "random_state": 42} | 0.5991 | 0.7930 | 0.5714 | 0.4932 | 0.6792 | 0.9433 | 0.8552 |
+| non_spike | validation (selection score) | {"activation": "relu", "batch": 32, "hidden_layers": [16, 8], "l2": 0, "learning_rate": 0.01, "max_epochs": 1000, "min_delta": 1e-06, "momentum": 0.9, "patience": 50, "random_state": 42} | 0.2808 | 0.6992 | 0.3077 | 0.2353 | 0.4444 | 0.9703 | 0.9030 |
+| non_spike | test (one-shot) | {"activation": "relu", "batch": 32, "hidden_layers": [16, 8], "l2": 0, "learning_rate": 0.01, "max_epochs": 1000, "min_delta": 1e-06, "momentum": 0.9, "patience": 50, "random_state": 42} | 0.5639 | 0.7894 | 0.5039 | 0.4384 | 0.5926 | 0.9267 | 0.8311 |
+<!-- END GENERATED -->
+
 ---
 
 ### 11. `decision_tree` — Decision Tree
@@ -560,6 +690,19 @@ Validation AUC = **0.641779** (`with_spike`, depth 2, leaf 5) และ **0.6923
 
 **ความเสี่ยง** กลาง แต่ **ผลกระทบสูง** เพราะอีก 4 โมเดลพึ่งโค้ดนี้ — ให้เวลากับมันมากกว่าที่ประมาณไว้
 
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/decision_tree.md -->
+### ผลจริงของ `decision_tree`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"max_depth": 2, "max_features": null, "min_samples_leaf": 5, "random_state": 42} | 0.1732 | 0.6418 | 0.3099 | 0.3235 | 0.2973 | 0.9228 | 0.8679 |
+| with_spike | test (one-shot) | {"max_depth": 2, "max_features": null, "min_samples_leaf": 5, "random_state": 42} | 0.3792 | 0.7450 | 0.4800 | 0.4932 | 0.4675 | 0.8633 | 0.7909 |
+| non_spike | validation (selection score) | {"max_depth": 5, "max_features": null, "min_samples_leaf": 5, "random_state": 42} | 0.1887 | 0.6924 | 0.1887 | 0.1471 | 0.2632 | 0.9585 | 0.8841 |
+| non_spike | test (one-shot) | {"max_depth": 5, "max_features": null, "min_samples_leaf": 5, "random_state": 42} | 0.3844 | 0.6916 | 0.4310 | 0.3425 | 0.5814 | 0.9400 | 0.8231 |
+<!-- END GENERATED -->
+
 ---
 
 ### 12. `random_forest` — Random Forest
@@ -599,6 +742,19 @@ max_features="sqrt", bootstrap=True, random_state=42)`
 `_generate_sample_indices` ของ sklearn
 
 **ความเสี่ยง** กลาง — ถ้า RNG ตรง ที่เหลือจะตรงตามไปเอง
+
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/random_forest.md -->
+### ผลจริงของ `random_forest`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"bootstrap": true, "max_depth": 3, "max_features": "sqrt", "min_samples_leaf": 5, "n_estimators": 100, "random_state": 42} | 0.2548 | 0.6862 | 0.2917 | 0.2059 | 0.5000 | 0.9792 | 0.9084 |
+| with_spike | test (one-shot) | {"bootstrap": true, "max_depth": 3, "max_features": "sqrt", "min_samples_leaf": 5, "n_estimators": 100, "random_state": 42} | 0.5775 | 0.7866 | 0.5000 | 0.4247 | 0.6078 | 0.9333 | 0.8338 |
+| non_spike | validation (selection score) | {"bootstrap": true, "max_depth": 5, "max_features": "sqrt", "min_samples_leaf": 5, "n_estimators": 50, "random_state": 42} | 0.3010 | 0.6766 | 0.2917 | 0.2059 | 0.5000 | 0.9792 | 0.9084 |
+| non_spike | test (one-shot) | {"bootstrap": true, "max_depth": 5, "max_features": "sqrt", "min_samples_leaf": 5, "n_estimators": 50, "random_state": 42} | 0.5240 | 0.7814 | 0.4715 | 0.3973 | 0.5800 | 0.9300 | 0.8257 |
+<!-- END GENERATED -->
 
 ---
 
@@ -645,6 +801,19 @@ n_estimators=n, min_samples_leaf=5, max_features=None, random_state=42, subsampl
 **จุดที่ parity พลาดจริงและไม่ได้อยู่ในรายการข้างบน:** `F0` ต้องคำนวณแบบ `scipy.special.logit` (สลับสูตรในช่วง `0.3 ≤ p ≤ 0.65`)
 — ต่าง 1 ulp แล้วพลิก tie ของฟีเจอร์ในต้นที่ 37 · impurity ของ node ต้องบวกแบบ sequential ตามลำดับแถวของ sklearn ·
 `predict` ใช้ `>= 0` · `train_score_` เป็น 2 × log loss. รายละเอียด: [`MODEL_PROGRESS.md`](../models/gradient_boosting/MODEL_PROGRESS.md)
+
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/gradient_boosting.md -->
+### ผลจริงของ `gradient_boosting`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"learning_rate": 0.1, "max_depth": 1, "min_samples_leaf": 5, "n_estimators": 50, "random_state": 42} | 0.2531 | 0.6754 | 0.2449 | 0.1765 | 0.4000 | 0.9733 | 0.9003 |
+| with_spike | test (one-shot) | {"learning_rate": 0.1, "max_depth": 1, "min_samples_leaf": 5, "n_estimators": 50, "random_state": 42} | 0.5332 | 0.7665 | 0.4390 | 0.3699 | 0.5400 | 0.9233 | 0.8150 |
+| non_spike | validation (selection score) | {"learning_rate": 0.03, "max_depth": 2, "min_samples_leaf": 5, "n_estimators": 50, "random_state": 42} | 0.2525 | 0.6732 | 0.2667 | 0.1765 | 0.5455 | 0.9852 | 0.9111 |
+| non_spike | test (one-shot) | {"learning_rate": 0.03, "max_depth": 2, "min_samples_leaf": 5, "n_estimators": 50, "random_state": 42} | 0.5653 | 0.7861 | 0.3762 | 0.2603 | 0.6786 | 0.9700 | 0.8311 |
+<!-- END GENERATED -->
 
 ---
 
@@ -710,6 +879,19 @@ colsample_bylevel=1, colsample_bynode=1, min_child_weight=0, base_score=0.5, ran
 γ ไม่ได้ใช้ตอนเลือก split แต่ใช้ prune จากล่างขึ้นบนหลังโตเสร็จ · score คำนวณผ่าน `w` float32 เป็น `−(2Gw + (H+λ)w²)`.
 **ความต่างจาก reference ที่เหลือ:** ค่าใบต่าง 1 ulp ของ float32 ใน 20 จาก 1,400 ต้น มาจาก `expf` ของ C runtime
 (พิสูจน์แล้ว). `reference()` เพิ่ม `n_jobs=1`. รายละเอียด: [`MODEL_PROGRESS.md`](../models/xgboost/MODEL_PROGRESS.md)
+
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/xgboost.md -->
+### ผลจริงของ `xgboost`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"gamma": 0, "learning_rate": 0.03, "max_depth": 1, "n_estimators": 100, "random_state": 42, "reg_lambda": 1} | 0.2508 | 0.6693 | 0.2449 | 0.1765 | 0.4000 | 0.9733 | 0.9003 |
+| with_spike | test (one-shot) | {"gamma": 0, "learning_rate": 0.03, "max_depth": 1, "n_estimators": 100, "random_state": 42, "reg_lambda": 1} | 0.5305 | 0.7716 | 0.4553 | 0.3836 | 0.5600 | 0.9267 | 0.8204 |
+| non_spike | validation (selection score) | {"gamma": 0.1, "learning_rate": 0.03, "max_depth": 2, "n_estimators": 100, "random_state": 42, "reg_lambda": 10} | 0.2652 | 0.6853 | 0.2800 | 0.2059 | 0.4375 | 0.9733 | 0.9030 |
+| non_spike | test (one-shot) | {"gamma": 0.1, "learning_rate": 0.03, "max_depth": 2, "n_estimators": 100, "random_state": 42, "reg_lambda": 10} | 0.5823 | 0.7887 | 0.5469 | 0.4795 | 0.6364 | 0.9333 | 0.8445 |
+<!-- END GENERATED -->
 
 ---
 
@@ -785,6 +967,19 @@ n_estimators=n, learning_rate=lr, algorithm="SAMME", random_state=42)`
 **ความต่างจาก config:** section `adaboost` ระบุ `alpha_factor: 0.5` และ zero-vote → คลาส 1 แต่ implementation
 ตาม sklearn (α เต็ม, zero-vote → คลาส 0) เพื่อ strict parity. รายละเอียด: [`MODEL_PROGRESS.md`](../models/adaboost/MODEL_PROGRESS.md)
 
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/adaboost.md -->
+### ผลจริงของ `adaboost`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"learning_rate": 0.5, "n_estimators": 100, "random_state": 42} | 0.2363 | 0.6768 | 0.2222 | 0.1765 | 0.3000 | 0.9585 | 0.8868 |
+| with_spike | test (one-shot) | {"learning_rate": 0.5, "n_estimators": 100, "random_state": 42} | 0.4858 | 0.7614 | 0.4853 | 0.4521 | 0.5238 | 0.9000 | 0.8123 |
+| non_spike | validation (selection score) | {"learning_rate": 0.5, "n_estimators": 100, "random_state": 42} | 0.2407 | 0.6409 | 0.2353 | 0.1765 | 0.3529 | 0.9674 | 0.8949 |
+| non_spike | test (one-shot) | {"learning_rate": 0.5, "n_estimators": 100, "random_state": 42} | 0.5443 | 0.7735 | 0.5000 | 0.4110 | 0.6383 | 0.9433 | 0.8391 |
+<!-- END GENERATED -->
+
 ---
 
 ### 16. `stacking` — Stacking Classifier
@@ -831,6 +1026,19 @@ cv=TimeSeriesSplit(4), passthrough=False)` เป็น behavioral reference เ
 **แก้ข้อความเรื่อง purge:** นับแถวบน `non_spike` ไม่ได้ทำให้รั่ว (purge มากกว่า 5 วันเสมอ) แต่ทำให้ขอบ block เลื่อน —
 166 แถวอยู่คนละ fold. base ใช้ค่า default; base logistic รันจนลู่เข้าเพราะค่าตาม config ไม่ลู่เข้า.
 รายละเอียด: [`MODEL_PROGRESS.md`](../models/stacking/MODEL_PROGRESS.md)
+
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/stacking.md -->
+### ผลจริงของ `stacking`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"folds": 4, "initial_fraction": 0.4, "purge": 5, "random_state": 42} | 0.2262 | 0.6641 | 0.2353 | 0.1765 | 0.3529 | 0.9674 | 0.8949 |
+| with_spike | test (one-shot) | {"folds": 4, "initial_fraction": 0.4, "purge": 5, "random_state": 42} | 0.5131 | 0.7902 | 0.5714 | 0.5753 | 0.5676 | 0.8933 | 0.8311 |
+| non_spike | validation (selection score) | {"folds": 4, "initial_fraction": 0.4, "purge": 5, "random_state": 42} | 0.2311 | 0.6650 | 0.1961 | 0.1471 | 0.2941 | 0.9644 | 0.8895 |
+| non_spike | test (one-shot) | {"folds": 4, "initial_fraction": 0.4, "purge": 5, "random_state": 42} | 0.5499 | 0.7890 | 0.4853 | 0.4521 | 0.5238 | 0.9000 | 0.8123 |
+<!-- END GENERATED -->
 
 ---
 
@@ -897,6 +1105,19 @@ PCA ช่วยทุกขนาด (AP ~0.21 → ~0.25) ส่วน C แท
 ทำให้ subgradient ลู่เข้าช้าจนได้คำตอบผิด — พบจากการตรวจครั้งสุดท้าย.
 รายละเอียด: [`MODEL_PROGRESS.md`](../models/svm/MODEL_PROGRESS.md)
 
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/svm.md -->
+### ผลจริงของ `svm`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"C": 0.1, "fit_intercept": true, "max_iter": 20000, "random_state": 42} | 0.2514 | 0.6786 | 0.2553 | 0.1765 | 0.4615 | 0.9792 | 0.9057 |
+| with_spike | test (one-shot) | {"C": 0.1, "fit_intercept": true, "max_iter": 20000, "random_state": 42} | 0.5716 | 0.7835 | 0.4874 | 0.3973 | 0.6304 | 0.9433 | 0.8365 |
+| non_spike | validation (selection score) | {"C": 10, "fit_intercept": true, "max_iter": 20000, "random_state": 42} | 0.2501 | 0.6804 | 0.2727 | 0.1765 | 0.6000 | 0.9881 | 0.9137 |
+| non_spike | test (one-shot) | {"C": 10, "fit_intercept": true, "max_iter": 20000, "random_state": 42} | 0.5805 | 0.7853 | 0.4587 | 0.3425 | 0.6944 | 0.9633 | 0.8418 |
+<!-- END GENERATED -->
+
 ---
 
 ## 4. Clustering
@@ -939,6 +1160,19 @@ inertia ลดลง monotone ทุก iteration · k=1 → centroid = ค่�
 **ความเสี่ยง** กลาง — ถ้า k-means++ ไม่ตรง ให้ fix init ด้วย centroid ที่กำหนดเองทั้งสองฝั่งแล้วเทียบ
 เฉพาะส่วน Lloyd ซึ่งพิสูจน์ความถูกต้องของอัลกอริทึมได้เหมือนกัน
 
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/kmeans.md -->
+### ผลจริงของ `kmeans`
+
+| variant | split | params | silhouette | inertia |
+| --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"k": 2, "max_iter": 300, "n_init": 10, "random_state": 42, "tol": 1e-06} | 0.3666 | 1075.1372 |
+| with_spike | test (one-shot) | {"k": 2, "max_iter": 300, "n_init": 10, "random_state": 42, "tol": 1e-06} | 0.3237 | 2090.4357 |
+| non_spike | validation (selection score) | {"k": 2, "max_iter": 300, "n_init": 10, "random_state": 42, "tol": 1e-06} | 0.3298 | 1448.9259 |
+| non_spike | test (one-shot) | {"k": 2, "max_iter": 300, "n_init": 10, "random_state": 42, "tol": 1e-06} | 0.2994 | 3276.0491 |
+<!-- END GENERATED -->
+
 ---
 
 ### 19. `agglomerative` — Agglomerative Clustering
@@ -974,6 +1208,19 @@ inertia ลดลง monotone ทุก iteration · k=1 → centroid = ค่�
 k = n → ทุกจุดเป็น cluster เดี่ยว · ward บนสองกลุ่มที่สมมาตร → merge คู่ที่ใกล้ที่สุดก่อน
 
 **ความเสี่ยง** กลาง — ความยากอยู่ที่ Lance-Williams และ OOS extension ไม่ใช่ตัว merge
+
+#### ผลจริง (สร้างจากไฟล์ผล ห้ามแก้ด้วยมือ)
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/agglomerative.md -->
+### ผลจริงของ `agglomerative`
+
+| variant | split | params | silhouette | inertia |
+| --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"k": 2, "linkage": "ward"} | 0.3602 | 1070.4207 |
+| with_spike | test (one-shot) | {"k": 2, "linkage": "ward"} | 0.3221 | 2096.4419 |
+| non_spike | validation (selection score) | {"k": 2, "linkage": "average"} | 0.4642 | 1844.8884 |
+| non_spike | test (one-shot) | {"k": 2, "linkage": "average"} | 0.4822 | 3532.7917 |
+<!-- END GENERATED -->
 
 ---
 
