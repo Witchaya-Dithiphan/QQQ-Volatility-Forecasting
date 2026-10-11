@@ -282,7 +282,7 @@ leaderboard คือตารางเปรียบเทียบ metric ข
 - [x] รองรับ PCA ผ่าน trainer (ไม่ต้องเขียน PCA เอง core มีให้แล้ว)
 - [x] **เกณฑ์ผ่าน:** `assert_parity` ผ่าน strict
 
-**ผลรัน T2 (2026-10-11):** grid ดิบ 4 ค่า แล้วใช้ hyperparameter ที่ชนะใน grid ดิบกับ PCA(2,4,6) อีก 3 ค่า; เลือกผู้ชนะจากทั้ง 7 แถวด้วย AP ก่อน AUC. ทดสอบบังคับให้ PCA(4) ชนะแล้วตรวจว่า save, reload และ metadata ใช้ validation matrix ขนาด 4 มิติจริง. `tests/ml/core/test_trainer.py`, `test_decision_tree.py`, `test_random_forest.py` ผ่านรวม 81 tests; forest parity บน synthetic และ Train/Validation จริงที่ `(50,3)` และ `(100,5)` ในทั้งสอง variant ผ่าน label, probability และโครงสร้างทุก tree ที่ตรวจ.
+**ผลรัน T2 (2026-10-11):** grid ดิบ 4 ค่า แล้วใช้ hyperparameter ที่ชนะใน grid ดิบกับ PCA(2,4,6) อีก 3 ค่า; เลือกผู้ชนะจากทั้ง 7 แถวด้วย AP ก่อน AUC. ทดสอบบังคับให้ PCA(4) ชนะแล้วตรวจว่า save, reload และ metadata ใช้ validation matrix ขนาด 4 มิติจริง. `tests/ml/core/test_trainer.py`, `test_preprocess.py`, `test_decision_tree.py`, `test_random_forest.py` ผ่านรวม 108 tests; forest parity บน synthetic และ Train/Validation จริงที่ `(50,3)` และ `(100,5)` ในทั้งสอง variant ผ่าน label, probability และโครงสร้างทุก tree ที่ตรวจ. หลัง PCA(2,4,6) ทั้งสอง variant ก็ผ่าน strict parity บน Train/Validation; bootstrap count ที่ส่งเข้าต้นไม้ตรง sklearn โดยตรง. PCA ที่ rank ไม่พอถูกบันทึกเป็น invalid candidate และ reload ใช้ preprocessor ที่บันทึกจริง.
 
 | variant | candidate ที่เลือก | PCA | AP | AUC | F1 | reload |
 | --- | --- | ---: | ---: | ---: | ---: | --- |

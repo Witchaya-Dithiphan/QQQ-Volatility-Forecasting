@@ -13,7 +13,7 @@
 
 ## Parity
 
-`assert_parity` ผ่าน strict บน synthetic 2 seeds และ Train/Validation จริงสำหรับ `(n_estimators, max_depth) = (50,3), (100,5)` ในทั้งสอง variant: label ตรง 100%, probability ผ่าน `allclose(rtol=1e-5)`, โครงสร้าง feature/threshold ตรง sklearn ทุก tree ที่ทดสอบ. Unit tests ยืนยัน bootstrap indices, probability averaging, และ save→load. Focused suite ของ trainer, tree, forest ผ่าน 81 tests.
+`assert_parity` ผ่าน strict บน synthetic 2 seeds และ Train/Validation จริงสำหรับ `(n_estimators, max_depth) = (50,3), (100,5)` ในทั้งสอง variant: label ตรง 100%, probability ผ่าน `allclose(rtol=1e-5)`, โครงสร้าง feature/threshold ตรง sklearn ทุก tree ที่ทดสอบ. ทดสอบเพิ่มหลัง PCA(2,4,6) บน Train/Validation ทั้งสอง variant แล้วผ่าน strict เช่นกัน; test ดัก `sample_weight` ที่ส่งเข้าต้นไม้และยืนยัน bootstrap count ตรง sklearn โดยตรง. Unit tests ครอบคลุม probability averaging และ save→load. Focused suite ล่าสุดของ trainer, preprocess, tree, forest ผ่าน 108 tests.
 
 ## การตัดสินใจ
 
@@ -30,7 +30,7 @@
 
 trainer เดิมใช้ preprocessing ชุดเดียวกับทุก grid candidate จึงรันได้เพียง 4 raw rows และถ้า PCA ชนะ จะ reload ด้วย validation matrix ผิดมิติ. เพิ่ม PCA อีกสาม candidate หลังหา best raw และเก็บ matrix/standardizer/components ประจำ candidate; test บังคับให้ PCA(4) ชนะตรวจทั้ง 7 rows, params ที่ reuse, metadata, และ reload. การทดสอบก่อนแก้ fail ที่ 4 rows; หลังแก้ผ่าน.
 
-เมื่อ `PCA(6)` เกิน numerical rank เดิม trainer หยุดทั้ง grid. ตอนนี้บันทึกแถวที่ 7 เป็น `invalid` พร้อม AP/AUC เป็น `null` และเหตุผล; error ประเภทอื่นยัง raise. เดิม reload ตรวจเฉพาะ model บน validation matrix ในหน่วยความจำ ทำให้ไม่ตรวจ preprocessor ที่ save. ตอนนี้อ่าน `preprocessor.npz` กลับมาแล้ว transform Validation ดิบด้วย mean/scale, constant mask และ PCA components; test ปรับ components ที่อ่านกลับให้ผิดแล้วตรวจว่า verification fail. อีก test ใช้ feature คงที่บน Train แต่ต่างบน Validation เพื่อยืนยันว่าการ reload ยัง zero feature นั้นตาม Standardizer. Focused tests ของ trainer, preprocess, tree, forest ผ่าน 102 tests.
+เมื่อ `PCA(6)` เกิน numerical rank เดิม trainer หยุดทั้ง grid. ตอนนี้บันทึกแถวที่ 7 เป็น `invalid` พร้อม AP/AUC เป็น `null` และเหตุผล; error ประเภทอื่นยัง raise. เดิม reload ตรวจเฉพาะ model บน validation matrix ในหน่วยความจำ ทำให้ไม่ตรวจ preprocessor ที่ save. ตอนนี้อ่าน `preprocessor.npz` กลับมาแล้ว transform Validation ดิบด้วย mean/scale, constant mask และ PCA components; test ปรับ components ที่อ่านกลับให้ผิดแล้วตรวจว่า verification fail. อีก test ใช้ feature คงที่บน Train แต่ต่างบน Validation เพื่อยืนยันว่าการ reload ยัง zero feature นั้นตาม Standardizer. Focused tests ของ trainer, preprocess, tree, forest ผ่าน 108 tests.
 
 ## ค้างอยู่
 
