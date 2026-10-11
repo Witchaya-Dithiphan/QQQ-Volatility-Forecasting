@@ -43,17 +43,32 @@ reload ✅ · preprocess `standardize`
 - **patience นับจาก epoch ที่ดีที่สุด** ไม่ใช่นับต่อเนื่องจาก epoch ล่าสุด · tie เลือก epoch แรก
 - early stopping ดูจาก **tail 15% ของ train** แล้ว **refit บน train เต็ม** ด้วยจำนวน epoch
   ที่ดีที่สุด ตาม `refit_full_train: true` + `refit_epochs: selected_best_epoch`
+- **purge 5 วันทำการก่อน tail** (เพิ่ม 2026-10-11 ตาม `neural.purge_original_trading_days: 5`):
+  target มองไปข้างหน้า 5 วัน แถวของชุดเทรนย่อยที่อยู่ภายใน 5 วันก่อน tail จึงมี label ที่คำนวณจาก
+  ช่วงเวลาของ tail เอง — ทิ้งแถวเหล่านั้นออกจากการเทรนรอบ early stopping (refit ยังใช้ train เต็ม).
+  นับวันบน timeline เดิมผ่าน `positions` ที่ trainer ส่งให้ ไม่ใช่นับแถว. ทั้งสอง variant ถูกทิ้ง 5 แถว
+  (1,473 → 1,468 และ 1,292 → 1,287)
 
 ## ไฟล์
 
 - `src/ml/classification/slp.py`
-- `tests/ml/classification/test_slp.py` (16 tests)
+- `tests/ml/classification/test_slp.py` (21 tests)
 
 ## ปัญหาที่เจอ
 
 ไม่มี parity failure — แต่ต้องคิดเรื่อง reference ก่อนว่าจะเทียบกับอะไร เพราะไม่มี
 sklearn estimator ที่ตรงรูปแบบนี้ สรุปว่าเทียบที่ objective ซึ่งเป็นคำถามที่ถูกต้อง
 
+## ผลของ purge (2026-10-11)
+
+train ใหม่ทั้งสอง variant หลังเพิ่ม purge: **ผู้ชนะและตัวเลขในตารางข้างบนไม่เปลี่ยนเลย**
+(`slp-00` และ `slp-05` เดิม, metric เท่าเดิมทุกหลัก — ทั้งคู่วิ่งครบ 1,000 epochs ไม่ว่ามี purge หรือไม่).
+candidates อื่นขยับเล็กน้อย: `with_spike` 2 จาก 8 ตัว (AP ต่างไม่เกิน 0.0005),
+`non_spike` 4 จาก 8 ตัว (AP ต่างไม่เกิน 0.0016). parity ไม่กระทบเพราะเทียบที่ขั้นลู่เข้าซึ่งไม่ใช้ early stopping.
+`test_slp.py` เพิ่มเป็น 21 tests (purge 5 ตัว รวม probe ว่าแถวที่ถูก purge เปลี่ยน label แล้วจำนวน epoch ไม่ขยับ).
+
 ## ค้างอยู่
 
 - card #9 ใน `MODEL_CARDS.md` ยังไม่ได้ใส่ผลจริง
+- `neural.scaler_fit: subtrain` ยังไม่ได้ทำ: trainer standardize บน train เต็มก่อนส่งให้โมเดล
+  จึงยังมีค่าเฉลี่ย/ส่วนเบี่ยงเบนของ tail ปนอยู่ในการเลือกจำนวน epoch (ไม่เกี่ยวกับ Validation/Test)

@@ -409,14 +409,14 @@ leaderboard คือตารางเปรียบเทียบ metric ข
 - [x] unit test: XOR ที่มีชั้นซ่อนต้องแก้ได้ accuracy 1.0 ← พิสูจน์ว่า backprop ถูกจริง
 - [x] reference ตั้ง `tol=0` และ `n_iter_no_change` ใหญ่กว่า `max_iter` เพื่อปิด early stopping ของ sklearn
 
-**ผลรัน T7 (2026-10-11):** 12 candidates ต่อ variant. เทียบ `MLPClassifier` ครบ 24 ชุดบน Train และ Validation: น้ำหนักทุกชั้นต่างสูงสุด 2.2e-16, probability ต่างสูงสุด 3.3e-16, label ต่าง 0. `test_mlp.py` 34 tests ผ่าน รวม gradient check ทุกชั้นและ XOR.
+**ผลรัน T7 (2026-10-11):** 12 candidates ต่อ variant. เทียบ `MLPClassifier` ครบ 24 ชุดบน Train และ Validation: น้ำหนักทุกชั้นต่างสูงสุด 2.2e-16, probability ต่างสูงสุด 3.3e-16, label ต่าง 0. `test_mlp.py` 39 tests ผ่าน รวม gradient check ทุกชั้นและ XOR.
 
 | variant | candidate ที่เลือก | best epoch | AP | AUC | F1 | reload |
 | --- | --- | ---: | ---: | ---: | ---: | --- |
 | `with_spike` | [16], l2 0, lr 0.001 | 17 | 0.266817 | 0.675685 | 0.320000 | ผ่าน |
-| `non_spike` | [32], l2 0, lr 0.001 | 9 | 0.274049 | 0.661023 | 0.260870 | ผ่าน |
+| `non_spike` | [16, 8], l2 0, lr 0.01 | 5 | 0.280762 | 0.699249 | 0.307692 | ผ่าน |
 
-**ความต่างจาก checklist:** "L2 หารด้วยจำนวนตัวอย่าง ไม่ใช่ขนาด batch" ตรงข้ามกับ source ของ sklearn 1.9.1 ซึ่งหารด้วยขนาด **batch** — ยึดตาม source. มี Nesterov momentum 0.9 เพราะเป็น default ของ reference ที่ card ระบุ. ใช้ protocol เดียวกับ `slp` (ไม่มี purge ระหว่าง subtrain กับ tail). ผลเต็ม: [`MODEL_PROGRESS.md`](../models/mlp/MODEL_PROGRESS.md).
+**ความต่างจาก checklist:** "L2 หารด้วยจำนวนตัวอย่าง ไม่ใช่ขนาด batch" ตรงข้ามกับ source ของ sklearn 1.9.1 ซึ่งหารด้วยขนาด **batch** — ยึดตาม source. มี Nesterov momentum 0.9 เพราะเป็น default ของ reference ที่ card ระบุ. ใช้ protocol เดียวกับ `slp`. ผลเต็ม: [`MODEL_PROGRESS.md`](../models/mlp/MODEL_PROGRESS.md).
 
 ### T8 — `stacking` (card #16) · ~3.5 ชม. · **ต้องรออีกฝั่ง**
 
@@ -438,6 +438,13 @@ leaderboard คือตารางเปรียบเทียบ metric ข
 **ความต่างจาก checklist:** `StackingClassifier(cv=TimeSeriesSplit(4))` ตาม card **รันไม่ได้** (sklearn ต้องการ fold ที่แบ่งครบทุกแถว) จึงใช้ `KFold` เป็น behavioural reference และย้ายการตรวจจริงไปที่ rebuild. เรื่อง purge: บน `non_spike` การนับวันกับการนับแถวต่างกันจริง 166 แถว แต่ทิศทางไม่ใช่ leakage อย่างที่ checklist เขียน — นับแถวจะ purge **มากกว่า** ที่ผิดคือขอบ block เลื่อน. ผลเต็ม: [`MODEL_PROGRESS.md`](../models/stacking/MODEL_PROGRESS.md).
 
 **สิ่งที่ T8 เจอเกี่ยวกับ `logistic` — ผลเล็ก ไม่ได้แก้:** ด้วยค่าตาม config (`learning_rate=0.05, max_iter=5000`) โมเดล `logistic` ไม่ลู่เข้าบนข้อมูลจริง. ทั้ง 12 การรัน (6 candidates × 2 variants) หยุดเพราะครบ 5,000 รอบ ไม่ใช่เพราะถึง `tol`. เทียบกับโมเดลที่รันจนลู่เข้า บน Validation: probability ต่างสูงสุด 0.0079, AP ต่างสูงสุด 0.0007, AUC ต่างสูงสุด 0.0012, label ต่างสูงสุด 1 จาก 371 แถว; ผู้ชนะทั้งสอง variant ได้ AP/AUC เท่าเดิมถึงทศนิยม 4 ตำแหน่ง. stacking รัน base logistic จนลู่เข้าเองเพราะ fold ที่เล็กกว่าห่างจาก optimum 0.03–0.07 ซึ่งมากพอจะทำให้การเทียบ meta features ไม่มีความหมาย.
+
+**แก้ไขหลัง merge (2026-10-11) — purge ของ `slp` และ `mlp`:** เพิ่ม purge 5 วันทำการก่อน tail ของ early stopping ตาม
+`neural.purge_original_trading_days: 5` ในทั้งสองโมเดล (แก้ `slp.py` ของฝั่ง linear ด้วย ตามคำสั่งเจ้าของโปรเจกต์).
+ไม่ได้แก้ trainer — ใช้ `positions` ที่ส่งให้อยู่แล้ว. ผล: ผู้ชนะของ `slp` ทั้งสอง variant และ `mlp` บน `with_spike`
+ไม่เปลี่ยนเลย; `mlp` บน `non_spike` เปลี่ยนจาก `[32], lr 0.001` (AP 0.2740) เป็น `[16, 8], lr 0.01` (AP 0.2808)
+เพราะ candidate นั้นเลื่อนจาก 1 เป็น 5 epochs. parity ของ mlp วัดซ้ำครบ 24 ชุดได้ 2.2e-16 เท่าเดิม.
+`scaler_fit: subtrain` ยังไม่ได้ทำ. โมเดล `logistic` ไม่ได้แก้ — เพิ่มเฉพาะหมายเหตุในเอกสารของมัน.
 
 **บทเรียน T6–T8:**
 

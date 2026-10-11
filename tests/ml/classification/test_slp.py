@@ -81,8 +81,9 @@ def test_batches_are_contiguous_and_chronological():
 
 def test_objective_decreases_on_a_separable_problem():
     X = np.array([[-3.0], [-2.0], [2.0], [3.0]])
+    # Four rows cannot spare a 5-day purge, so they are placed 10 trading days apart.
     model = SLP(batch="full", learning_rate=0.5, max_epochs=200, patience=10**6).fit(
-        X, np.array([0, 0, 1, 1])
+        X, np.array([0, 0, 1, 1]), positions=np.array([0, 10, 20, 30])
     )
     losses = model.history_["loss"]
     assert losses[-1] < losses[0]
@@ -170,3 +171,55 @@ def test_probabilities_stay_in_range(data):
     X, y = data
     probabilities = SLP().fit(X, y).predict_proba(X)
     assert ((probabilities >= 0) & (probabilities <= 1)).all()
+
+
+def _labelled(rows=200, seed=0):
+    rng = np.random.RandomState(seed)
+    X = rng.normal(size=(rows, 4))
+    return X, (X[:, 0] + 0.5 * rng.normal(size=rows) > 0).astype(int)
+
+
+def test_purge_drops_the_five_trading_days_before_the_tail():
+    """config neural.purge_original_trading_days: 5. The target looks 5 days ahead,
+    so the last 5 days of sub-train carry labels computed from the tail's own period."""
+    X, y = _labelled()
+    model = SLP(max_epochs=3).fit(X, y)
+    # 200 rows: the tail is rows 170..199, so sub-train keeps rows 0..164.
+    assert model.n_subtrain_rows_ == 165
+
+
+def test_purge_counts_trading_days_not_rows():
+    X, y = _labelled()
+    # Rows 168 and 169 sit a long gap before the tail starts (as after spike removal),
+    # so nothing in sub-train falls within 5 trading days of it and nothing is dropped.
+    positions = np.arange(200)
+    positions[170:] += 20
+    assert SLP(max_epochs=3).fit(X, y, positions=positions).n_subtrain_rows_ == 170
+    # With only rows 168 and 169 inside the window, exactly those two go.
+    positions = np.arange(200)
+    positions[168:] += 20
+    assert SLP(max_epochs=3).fit(X, y, positions=positions).n_subtrain_rows_ == 168
+
+
+def test_purged_rows_cannot_influence_the_epoch_choice():
+    X, y = _labelled(seed=1)
+    base = SLP(max_epochs=40, patience=5).fit(X, y)
+    flipped = y.copy()
+    flipped[165:170] = 1 - flipped[165:170]
+    probed = SLP(max_epochs=40, patience=5).fit(X, flipped)
+    assert probed.history_ == base.history_
+    assert probed.best_epoch_ == base.best_epoch_
+
+
+def test_invalid_positions_fail():
+    X, y = _labelled()
+    with pytest.raises(ValueError):
+        SLP(max_epochs=3).fit(X, y, positions=np.arange(200)[::-1])
+    with pytest.raises(ValueError):
+        SLP(max_epochs=3).fit(X, y, positions=np.arange(199))
+
+
+def test_data_too_short_for_the_purge_fails_clearly():
+    X, y = _labelled(rows=6)
+    with pytest.raises(ValueError, match="purge window"):
+        SLP(max_epochs=3).fit(X, y)

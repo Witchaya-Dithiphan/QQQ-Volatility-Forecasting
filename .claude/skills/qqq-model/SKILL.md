@@ -119,6 +119,9 @@ trainer ยังทำอีก 3 อย่างให้เฉพาะโม
 ส่ง `positions`/`n_positions` (index วันทำการบน timeline เดิม) ให้โมเดลที่ `fit` ประกาศรับ ·
 ไม่ standardize เมื่อ config เป็น `base_specific`
 
+โมเดลที่มี early stopping (`slp`, `mlp`) ต้อง **purge 5 วันทำการก่อน tail** ออกจากชุดเทรนย่อย
+(target มองไปข้างหน้า 5 วัน) โดยรับ `positions` จาก trainer — refit ยังใช้ train เต็ม
+
 ## คำสั่ง
 
 ```bat

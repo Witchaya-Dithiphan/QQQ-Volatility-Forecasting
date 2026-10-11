@@ -32,7 +32,7 @@
 | `gradient_boosting` | 🟡 parity/training/reload ผ่าน; รอ leaderboard | AP 0.2531 (`with_spike`) · 0.2525 (`non_spike`) | [↗](../models/gradient_boosting/MODEL_PROGRESS.md) |
 | `xgboost` | 🟡 parity/training/reload ผ่าน; รอ leaderboard | AP 0.2508 (`with_spike`) · 0.2652 (`non_spike`) | [↗](../models/xgboost/MODEL_PROGRESS.md) |
 | `svm` | 🟡 parity/training/reload ผ่าน; รอ leaderboard | AP 0.2514 (`with_spike`) · 0.2501 (`non_spike`) | [↗](../models/svm/MODEL_PROGRESS.md) |
-| `mlp` | 🟡 parity/training/reload ผ่าน; รอ leaderboard | AP 0.2668 (`with_spike`) · 0.2740 (`non_spike`) | [↗](../models/mlp/MODEL_PROGRESS.md) |
+| `mlp` | 🟡 parity/training/reload ผ่าน; รอ leaderboard | AP 0.2668 (`with_spike`) · 0.2808 (`non_spike`) | [↗](../models/mlp/MODEL_PROGRESS.md) |
 | `stacking` | 🟡 parity/training/reload ผ่าน; รอ leaderboard | AP 0.2262 (`with_spike`) · 0.2311 (`non_spike`) | [↗](../models/stacking/MODEL_PROGRESS.md) |
 
 เจ้าของดูแล progress เอง บน branch `feat/models-tree-family`; T1/T2 ยังไม่ครบ DoD ข้อ leaderboard

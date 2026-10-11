@@ -505,9 +505,11 @@ alpha=..., max_iter=<epoch ที่เลือกได้>, n_iter_no_change=
 **ผลจริง (2026-10-11)** ไม่ต้องใช้แผนสำรอง. parity ครบ 12 candidates × 2 variants: น้ำหนักทุกชั้นต่างสูงสุด 2.2e-16,
 probability ต่างสูงสุด 3.3e-16, label ต่าง 0.
 ผู้ชนะ: `[16], l2=0, lr=0.001` (17 epochs) AP 0.2668 / AUC 0.6757 (`with_spike`) ·
-`[32], l2=0, lr=0.001` (9 epochs) AP 0.2740 / AUC 0.6610 (`non_spike`). early stopping หยุดที่ 1–17 epochs ใน 22 จาก 24 การรัน.
+`[16, 8], l2=0, lr=0.01` (5 epochs) AP 0.2808 / AUC 0.6992 (`non_spike`). early stopping หยุดไม่เกิน 17 epochs ใน 20 จาก 24 การรัน.
 **แก้ข้อความข้างบน:** sklearn 1.9.1 หาร L2 ด้วยขนาด **batch** (`sw_sum` ของ batch) ไม่ใช่จำนวนตัวอย่างทั้งหมด.
-**เพิ่มจาก card:** Nesterov momentum 0.9 (default ของ reference ที่ card ระบุ). ไม่มี purge ระหว่าง subtrain กับ tail — เหมือน `slp`.
+**เพิ่มจาก card:** Nesterov momentum 0.9 (default ของ reference ที่ card ระบุ). มี purge 5 วันทำการก่อน tail ตาม config
+(เพิ่มทีหลัง; ทำให้ผู้ชนะของ `non_spike` เปลี่ยนจาก `[32], lr=0.001` AP 0.2740 — การเลือกเปราะ ไม่ใช่โมเดลดีขึ้น).
+`scaler_fit: subtrain` ยังไม่ได้ทำ.
 รายละเอียด: [`MODEL_PROGRESS.md`](../models/mlp/MODEL_PROGRESS.md)
 
 ---

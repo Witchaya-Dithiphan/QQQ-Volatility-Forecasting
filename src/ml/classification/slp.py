@@ -19,14 +19,16 @@ class SLP(BaseModel):
         dw = X.T @ (p - y) / batch + l2*w      # sigmoid and BCE cancel to this
 
     Training follows the config's neural protocol: chronological contiguous
-    batches with no shuffling, early stopping watched on the last 15% of train,
-    then a refit on the full training set for the epoch count that scored best.
+    batches with no shuffling, early stopping watched on the last 15% of train
+    (with the 5 trading days before it purged from the fitting rows), then a refit on the full training set for the epoch count that scored best.
     """
 
     name = "slp"
     task = "classification"
 
     INTERNAL_TAIL_FRACTION = 0.15
+    # configs/modeling.json -> neural.purge_original_trading_days
+    PURGE_TRADING_DAYS = 5
 
     def __init__(
         self,
@@ -100,12 +102,34 @@ class SLP(BaseModel):
                 intercept -= self.learning_rate * gradient_b
         return weights, intercept
 
-    def fit(self, X, y=None) -> "SLP":
+    def _subtrain_rows(self, positions, n_samples: int) -> np.ndarray:
+        """Rows that train the early-stopping run: everything before the tail, minus the purge.
+
+        The target looks 5 trading days ahead, so a row within 5 days of the tail has a
+        label computed from the tail's own period. Days are counted on the original
+        timeline because non_spike has rows removed.
+        """
+        positions = np.arange(n_samples) if positions is None else np.asarray(positions)
+        if positions.shape != (n_samples,) or (np.diff(positions) <= 0).any():
+            raise ValueError("positions must be strictly increasing, one per row")
+        cut = int(n_samples * (1 - self.INTERNAL_TAIL_FRACTION))
+        rows = np.arange(cut)
+        if cut < n_samples:
+            rows = rows[positions[:cut] < positions[cut] - self.PURGE_TRADING_DAYS]
+        if len(rows) == 0:
+            raise ValueError("No training rows are left once the purge window before the tail is removed")
+        return rows
+
+    def fit(self, X, y=None, positions=None, n_positions=None) -> "SLP":
+        """`positions` are trading-day indices on the original timeline; rows are assumed
+        to be consecutive days when it is omitted. `n_positions` is accepted because the
+        trainer passes it, and is not needed here."""
         X = np.asarray(X, dtype=np.float64)
         y = np.asarray(y, dtype=np.float64)
 
         cut = self._subtrain_size(len(X))
-        sub_X, sub_y = X[:cut], y[:cut]
+        rows = self._subtrain_rows(positions, len(X))
+        sub_X, sub_y = X[rows], y[rows]
         tail_X, tail_y = X[cut:], y[cut:]
 
         weights, intercept = self._initial_weights(X.shape[1])
@@ -137,6 +161,7 @@ class SLP(BaseModel):
         self.best_epoch_ = best_epoch or epoch
         self.refit_epochs_ = self.best_epoch_
         self.n_train_rows_ = len(X)
+        self.n_subtrain_rows_ = len(rows)
         # Refit on everything for the epoch count the tail liked best.
         self.coef_, self.intercept_ = self._descend(X, y, self.refit_epochs_)
         return self

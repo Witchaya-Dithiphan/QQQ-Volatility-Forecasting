@@ -7,8 +7,8 @@
                dW_l   = (a_(l-1)^T d_l + l2 * W_l) / batch ;   db_l = mean(d_l)
 
 Training follows the config's neural protocol, the same one `slp` uses: chronological
-contiguous batches with no shuffling, early stopping watched on the last 15% of train,
-then a refit on the full training set for the epoch count that scored best.
+contiguous batches with no shuffling, early stopping watched on the last 15% of train
+(with the 5 trading days before it purged from the fitting rows), then a refit on the full training set for the epoch count that scored best.
 """
 from __future__ import annotations
 
@@ -22,6 +22,8 @@ class MLP(BaseModel):
     task = "classification"
 
     INTERNAL_TAIL_FRACTION = 0.15
+    # configs/modeling.json -> neural.purge_original_trading_days
+    PURGE_TRADING_DAYS = 5
 
     def __init__(self, hidden_layers=(16,), l2: float = 0.0, learning_rate: float = 0.01,
                  batch: int = 32, max_epochs: int = 1000, patience: int = 50,
@@ -139,7 +141,28 @@ class MLP(BaseModel):
         margin = (z @ parameters[n_layers - 1] + parameters[-1])[:, 0]
         return float(np.mean(np.logaddexp(0.0, margin) - y * margin))
 
-    def fit(self, X, y=None) -> "MLP":
+    def _subtrain_rows(self, positions, n_samples: int) -> np.ndarray:
+        """Rows that train the early-stopping run: everything before the tail, minus the purge.
+
+        The target looks 5 trading days ahead, so a row within 5 days of the tail has a
+        label computed from the tail's own period. Days are counted on the original
+        timeline because non_spike has rows removed.
+        """
+        positions = np.arange(n_samples) if positions is None else np.asarray(positions)
+        if positions.shape != (n_samples,) or (np.diff(positions) <= 0).any():
+            raise ValueError("positions must be strictly increasing, one per row")
+        cut = int(n_samples * (1 - self.INTERNAL_TAIL_FRACTION))
+        rows = np.arange(cut)
+        if cut < n_samples:
+            rows = rows[positions[:cut] < positions[cut] - self.PURGE_TRADING_DAYS]
+        if len(rows) == 0:
+            raise ValueError("No training rows are left once the purge window before the tail is removed")
+        return rows
+
+    def fit(self, X, y=None, positions=None, n_positions=None) -> "MLP":
+        """`positions` are trading-day indices on the original timeline; rows are assumed
+        to be consecutive days when it is omitted. `n_positions` is accepted because the
+        trainer passes it, and is not needed here."""
         if (not self.hidden_layers
                 or any(not isinstance(size, (int, np.integer)) or size < 1 for size in self.hidden_layers)
                 or not np.isfinite(self.l2) or self.l2 < 0
@@ -159,7 +182,8 @@ class MLP(BaseModel):
         y = labels.astype(np.float64)
 
         cut = int(len(X) * (1 - self.INTERNAL_TAIL_FRACTION))
-        sub_X, sub_y, tail_X, tail_y = X[:cut], y[:cut], X[cut:], y[cut:]
+        rows = self._subtrain_rows(positions, len(X))
+        sub_X, sub_y, tail_X, tail_y = X[rows], y[rows], X[cut:], y[cut:]
 
         parameters, velocities = self._start(X.shape[1])
         best_score, best_epoch, since_best = np.inf, 0, 0
@@ -182,6 +206,7 @@ class MLP(BaseModel):
         self.n_epochs_ = epoch
         self.best_epoch_ = best_epoch or epoch
         self.n_train_rows_ = len(X)
+        self.n_subtrain_rows_ = len(rows)
         # Refit on everything for the epoch count the tail liked best.
         self.coefs_, self.intercepts_ = self._descend(X, y, self.best_epoch_)
         return self

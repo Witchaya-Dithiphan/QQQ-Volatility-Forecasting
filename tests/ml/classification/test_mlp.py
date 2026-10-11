@@ -219,3 +219,48 @@ def test_save_load_preserves_scores(tmp_path):
 def test_registry_exposes_mlp():
     assert "mlp" in model_names()
     assert isinstance(build("mlp"), MLP)
+
+
+def test_purge_drops_the_five_trading_days_before_the_tail():
+    """config neural.purge_original_trading_days: 5. The target looks 5 days ahead,
+    so the last 5 days of sub-train carry labels computed from the tail's own period."""
+    X, y = _problem(rows=200)
+    model = MLP(max_epochs=3).fit(X, y)
+    # 200 rows: the tail is rows 170..199, so sub-train keeps rows 0..164.
+    assert model.n_subtrain_rows_ == 165
+
+
+def test_purge_counts_trading_days_not_rows():
+    X, y = _problem(rows=200)
+    # A long gap before the tail (as after spike removal): nothing is within 5 days of it.
+    positions = np.arange(200)
+    positions[170:] += 20
+    assert MLP(max_epochs=3).fit(X, y, positions=positions).n_subtrain_rows_ == 170
+    # With only rows 168 and 169 inside the window, exactly those two go.
+    positions = np.arange(200)
+    positions[168:] += 20
+    assert MLP(max_epochs=3).fit(X, y, positions=positions).n_subtrain_rows_ == 168
+
+
+def test_purged_rows_cannot_influence_the_epoch_choice():
+    X, y = _problem(seed=1, rows=200)
+    base = MLP(hidden_layers=[8], max_epochs=40, patience=5).fit(X, y)
+    flipped = y.copy()
+    flipped[165:170] = 1 - flipped[165:170]
+    probed = MLP(hidden_layers=[8], max_epochs=40, patience=5).fit(X, flipped)
+    assert probed.history_ == base.history_
+    assert probed.best_epoch_ == base.best_epoch_
+
+
+def test_invalid_positions_fail():
+    X, y = _problem(rows=200)
+    with pytest.raises(ValueError):
+        MLP(max_epochs=3).fit(X, y, positions=np.arange(200)[::-1])
+    with pytest.raises(ValueError):
+        MLP(max_epochs=3).fit(X, y, positions=np.arange(199))
+
+
+def test_data_too_short_for_the_purge_fails_clearly():
+    X, y = _problem(rows=6)
+    with pytest.raises(ValueError, match="purge window"):
+        MLP(max_epochs=3).fit(X, y)
