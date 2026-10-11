@@ -1,7 +1,9 @@
 """Accepted feature/target identities and dataset paths. These are frozen."""
 from config import (
     NON_SPIKE_TRAIN_PATH,
+    TEST_FLAGGED_PATH,
     TEST_LABELED_DATA_PATH,
+    VALIDATION_FLAGGED_PATH,
     VALIDATION_LABELED_DATA_PATH,
     WITH_SPIKES_TRAIN_PATH,
 )
@@ -26,3 +28,5 @@ VARIANT_TRAIN_PATHS = {
 }
 VALIDATION_PATH = VALIDATION_LABELED_DATA_PATH
 TEST_PATH = TEST_LABELED_DATA_PATH
+SEGMENT_COLUMN = "diagnostic_segment"
+SEGMENT_PATHS = {"validation": VALIDATION_FLAGGED_PATH, "test": TEST_FLAGGED_PATH}
