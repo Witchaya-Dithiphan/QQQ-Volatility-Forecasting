@@ -6,6 +6,8 @@ requirements*.txt text eol=lf
 *.in text eol=lf
 # Tracked CSVs are hashed in the spike reports, so their bytes must not depend on autocrlf.
 *.csv text eol=lf
+# The raw snapshot is hashed in its manifest with the CRLF bytes Nasdaq delivered; store it untouched.
+data/raw/qqq_daily.csv -text
 *.npz binary
 *.png binary
 .gitattributes text eol=lf
