@@ -127,27 +127,55 @@ def train_model(
 
     y_train = data.train.y_regression if task == "regression" else data.train.y_classification
     search_results = []
-    for index, params in enumerate(expand_grid(grid)):
-        candidate = model_class(**params).fit(train_X, None if task == "clustering" else y_train)
+    def add_candidate(params, candidate_train_X, candidate_validation_X, arrays, components):
+        candidate = model_class(**params).fit(
+            candidate_train_X, None if task == "clustering" else y_train
+        )
         candidate_metrics, prediction, scores = evaluate(
-            candidate, validation_X, data.validation.y_regression, data.validation.y_classification, task
+            candidate, candidate_validation_X,
+            data.validation.y_regression, data.validation.y_classification, task
         )
         search_results.append(
             {
-                "id": f"{model_class.name}-{index:02d}",
+                "id": f"{model_class.name}-{len(search_results):02d}",
                 "params": params,
                 "metrics": candidate_metrics,
                 "model": candidate,
                 "prediction": prediction,
                 "scores": scores,
+                "pca_components": components,
+                "validation_X": candidate_validation_X,
+                "preprocessor_arrays": arrays,
             }
         )
+
+    for params in expand_grid(grid):
+        add_candidate(params, train_X, validation_X, preprocessor_arrays, pca_components)
+
+    if model_class.name == "random_forest" and pca_components is None:
+        raw_best = metrics_module.select_candidate(
+            [{"id": c["id"], "metrics": c["metrics"]} for c in search_results], task=task
+        )
+        raw_params = next(c["params"] for c in search_results if c["id"] == raw_best["id"])
+        standardizer = Standardizer().fit(data.train.X)
+        standardized_train = standardizer.transform(data.train.X)
+        standardized_validation = standardizer.transform(data.validation.X)
+        for components in (2, 4, 6):
+            pca = PCA(components).fit(standardized_train)
+            arrays = {"mean": standardizer.mean_, "scale": standardizer.scale_,
+                      "components": pca.components_}
+            add_candidate(raw_params, pca.transform(standardized_train),
+                          pca.transform(standardized_validation), arrays, components)
 
     best = metrics_module.select_candidate(
         [{"id": c["id"], "metrics": c["metrics"]} for c in search_results], task=task
     )
     winner = next(c for c in search_results if c["id"] == best["id"])
     model = winner["model"]
+    validation_X = winner["validation_X"]
+    preprocessor_arrays = winner["preprocessor_arrays"]
+    pca_components = winner["pca_components"]
+    scaled = mode != "none" or bool(pca_components)
 
     save_npz(directory / "model.npz", model.state_dict(), {"params": model.get_params(), "seed": seed})
     save_npz(
@@ -179,10 +207,11 @@ def train_model(
             "validation_sha256": data.validation.sha256,
         },
     )
-    write_json(
-        directory / "search_results.json",
-        [{k: c[k] for k in ("id", "params", "metrics")} for c in search_results],
-    )
+    search_fields = ("id", "params", "metrics")
+    if model_class.name == "random_forest":
+        search_fields += ("pca_components",)
+    write_json(directory / "search_results.json",
+               [{k: c[k] for k in search_fields} for c in search_results])
     write_json(directory / "validation_metrics.json", winner["metrics"])
     write_json(directory / "load_verification.json", verification)
     if getattr(model, "history_", None):

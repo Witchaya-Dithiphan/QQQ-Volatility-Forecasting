@@ -1,6 +1,7 @@
 import inspect
 import json
 
+import numpy as np
 import pytest
 
 from src.ml.core.trainer import evaluate, expand_grid, train_model
@@ -145,3 +146,59 @@ def test_trainer_source_never_references_the_test_split():
     source = inspect.getsource(trainer_module)
     assert "load_test" not in source
     assert "TEST_PATH" not in source
+
+
+def test_random_forest_search_persists_the_pca_winner(tmp_path, monkeypatch):
+    from src.ml.core.persist import load_npz
+    import src.ml.core.trainer as trainer
+
+    class TinyForest:
+        name = "random_forest"
+        task = "classification"
+
+        def __init__(self, max_depth=3, n_estimators=2):
+            self.max_depth, self.n_estimators = max_depth, n_estimators
+
+        def fit(self, X, y):
+            self.n_features_ = X.shape[1]
+            return self
+
+        def get_params(self):
+            return {"max_depth": self.max_depth, "n_estimators": self.n_estimators}
+
+        def predict(self, X):
+            assert X.shape[1] == self.n_features_
+            return np.zeros(len(X), dtype=int)
+
+        def state_dict(self):
+            return {"n_features": np.array([self.n_features_])}
+
+        def load_state(self, arrays, metadata):
+            self.n_features_ = int(arrays["n_features"][0])
+            return self
+
+    def score(candidate, X, *_):
+        # Force PCA(4) above all raw and other PCA candidates.
+        value = (0.9 if X.shape[1] == 4 else
+                 0.7 if X.shape[1] == 8 and candidate.max_depth == 5 and candidate.n_estimators == 2
+                 else 0.6 if X.shape[1] == 8 else 0.5)
+        metrics = {key: {"value": value, "reason": None} for key in ("average_precision", "roc_auc")}
+        return metrics, candidate.predict(X), np.full(len(X), value)
+
+    monkeypatch.setattr(trainer, "evaluate", score)
+    result = train_model(TinyForest, grid={"max_depth": [3, 5], "n_estimators": [2, 3]},
+                         output_root=tmp_path)
+    directory = result["directory"]
+    rows = json.loads((directory / "search_results.json").read_text(encoding="utf-8"))
+    config = json.loads((directory / "config.json").read_text(encoding="utf-8"))
+    arrays, metadata = load_npz(directory / "preprocessor.npz")
+
+    assert len(rows) == 7 and len({row["id"] for row in rows}) == 7
+    assert [row["pca_components"] for row in rows] == [None] * 4 + [2, 4, 6]
+    assert all(row["params"] == rows[2]["params"] for row in rows[4:])
+    assert config["selected_candidate"] == rows[5]["id"]
+    assert config["params"] == rows[2]["params"]
+    assert config["pca_components"] == metadata["pca_components"] == 4
+    assert metadata["standardized"] is True
+    assert arrays["components"].shape == (4, 8)
+    assert result["load_verification"]["passed"] is True

@@ -27,9 +27,10 @@
 | โมเดล | สถานะ | ผลหลัก (validation) | บันทึก |
 | --- | --- | --- | --- |
 | `decision_tree` | 🟡 parity/training/reload ผ่าน; รอ leaderboard | AUC 0.6418 (`with_spike`) · 0.6924 (`non_spike`) | [↗](../models/decision_tree/MODEL_PROGRESS.md) |
-| `random_forest`, `adaboost` ★, `gradient_boosting`, `xgboost`, `stacking`, `svm`, `mlp` | ⬜ ยังไม่เริ่ม | — | |
+| `random_forest` | 🟡 parity/training/reload ผ่าน; รอ leaderboard | AP 0.2548 (`with_spike`) · 0.3010 (`non_spike`) | [↗](../models/random_forest/MODEL_PROGRESS.md) |
+| `adaboost` ★, `gradient_boosting`, `xgboost`, `stacking`, `svm`, `mlp` | ⬜ ยังไม่เริ่ม | — | |
 
-เจ้าของดูแล progress เอง บน branch `feat/models-tree-family`; T1 ยังไม่ครบ DoD ข้อ leaderboard
+เจ้าของดูแล progress เอง บน branch `feat/models-tree-family`; T1/T2 ยังไม่ครบ DoD ข้อ leaderboard
 
 ## Dependency
 

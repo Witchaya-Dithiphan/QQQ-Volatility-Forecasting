@@ -275,12 +275,21 @@ leaderboard คือตารางเปรียบเทียบ metric ข
 
 ### T2 — `random_forest` (card #12) · ~2.5 ชม.
 
-- [ ] bootstrap ใช้ `np.random.RandomState(seed_i).randint(0, n, n)` — ตรวจว่าตรงกับ
+- [x] bootstrap ใช้ `np.random.RandomState(seed_i).randint(0, n, n)` — ตรวจว่าตรงกับ
       `sklearn.ensemble._forest._generate_sample_indices(seed_i, n, n, None)` เป๊ะ
-- [ ] เฉลี่ย **probability** ไม่ใช่ majority vote
-- [ ] unit test แยกบั๊ก: `n_estimators=1, bootstrap=False, max_features=None` → ต้องเท่ากับ `decision_tree` เดี่ยว
-- [ ] รองรับ PCA ผ่าน trainer (ไม่ต้องเขียน PCA เอง core มีให้แล้ว)
-- [ ] **เกณฑ์ผ่าน:** `assert_parity` ผ่าน strict
+- [x] เฉลี่ย **probability** ไม่ใช่ majority vote
+- [x] unit test แยกบั๊ก: `n_estimators=1, bootstrap=False, max_features=None` → ต้องเท่ากับ `decision_tree` เดี่ยว
+- [x] รองรับ PCA ผ่าน trainer (ไม่ต้องเขียน PCA เอง core มีให้แล้ว)
+- [x] **เกณฑ์ผ่าน:** `assert_parity` ผ่าน strict
+
+**ผลรัน T2 (2026-10-11):** grid ดิบ 4 ค่า แล้วใช้ hyperparameter ที่ชนะใน grid ดิบกับ PCA(2,4,6) อีก 3 ค่า; เลือกผู้ชนะจากทั้ง 7 แถวด้วย AP ก่อน AUC. ทดสอบบังคับให้ PCA(4) ชนะแล้วตรวจว่า save, reload และ metadata ใช้ validation matrix ขนาด 4 มิติจริง. `tests/ml/core/test_trainer.py`, `test_decision_tree.py`, `test_random_forest.py` ผ่านรวม 81 tests; forest parity บน synthetic และ Train/Validation จริงที่ `(50,3)` และ `(100,5)` ในทั้งสอง variant ผ่าน label, probability และโครงสร้างทุก tree ที่ตรวจ.
+
+| variant | candidate ที่เลือก | PCA | AP | AUC | F1 | reload |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| `with_spike` | depth 3, 100 trees | none | 0.254788 | 0.686202 | 0.291667 | ผ่าน |
+| `non_spike` | depth 5, 50 trees | none | 0.301006 | 0.676645 | 0.291667 | ผ่าน |
+
+ผลเต็มอยู่ใน [`MODEL_PROGRESS.md`](../models/random_forest/MODEL_PROGRESS.md) และ `outputs/modeling/<variant>/classification/random_forest/`. **DoD ค้าง leaderboard ข้อ 5** เพราะ `src.ml.run report` ยังไม่ implement; ยังไม่แตะ Test set.
 
 ### T3 — `adaboost` ★ (card #15) · ~3 ชม.
 
