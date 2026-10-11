@@ -96,6 +96,30 @@ def test_sqrt_search_continues_past_constant_features():
     assert_parity(scratch, reference, X, [0, 0, 1, 1], task="classification")
 
 
+def test_sqrt_accepts_zero_gain_split_with_bootstrap_weights():
+    X = np.random.RandomState(0).normal(size=(100, 8))
+    y = (X[:, 0] + X[:, 1] * X[:, 2] > 0).astype(int)
+    weights = np.bincount(np.random.RandomState(16).randint(0, 100, 100), minlength=100)
+    scratch = DecisionTree(max_depth=6, min_samples_leaf=2, random_state=16, max_features="sqrt")
+    scratch.fit(X, y, sample_weight=weights)
+    reference = scratch.reference().fit(X, y, sample_weight=weights)
+    assert np.array_equal(scratch.tree_.feature, reference.tree_.feature)
+    assert np.array_equal(scratch.tree_.threshold, reference.tree_.threshold)
+    assert_parity(scratch, reference, X, y, task="classification")
+
+
+def test_sqrt_uses_feature_order_on_nearly_equal_gains():
+    X = np.random.RandomState(3).normal(size=(100, 8))
+    y = (X[:, 0] + X[:, 1] * X[:, 2] > 0).astype(int)
+    weights = np.bincount(np.random.RandomState(6).randint(0, 100, 100), minlength=100)
+    scratch = DecisionTree(max_depth=8, min_samples_leaf=2, random_state=6, max_features="sqrt")
+    scratch.fit(X, y, sample_weight=weights)
+    reference = scratch.reference().fit(X, y, sample_weight=weights)
+    assert np.array_equal(scratch.tree_.feature, reference.tree_.feature)
+    assert np.array_equal(scratch.tree_.threshold, reference.tree_.threshold)
+    assert_parity(scratch, reference, X, y, task="classification")
+
+
 def test_rejects_unsupported_max_features():
     with pytest.raises(ValueError, match="max_features"):
         DecisionTree(max_features="log2").fit([[0], [1]], [0, 1])

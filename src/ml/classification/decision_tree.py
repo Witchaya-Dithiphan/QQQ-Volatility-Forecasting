@@ -8,7 +8,7 @@ import numpy as np
 from ..core.base import BaseModel
 
 
-def _best_split(X, y, sample_weight, min_samples_leaf):
+def _best_split(X, y, sample_weight, min_samples_leaf, allow_zero_gain=False):
     """Return the highest-gain (feature, midpoint, gain), or None."""
     X = np.asarray(X, dtype=np.float32)
     y = np.asarray(y, dtype=np.int64)
@@ -47,7 +47,12 @@ def _best_split(X, y, sample_weight, min_samples_leaf):
             left_gini = 2 * left_positive[i] * (left_weight[i] - left_positive[i]) / left_weight[i] ** 2
             right_gini = 2 * right_positive[i] * (right_weight[i] - right_positive[i]) / right_weight[i] ** 2
             gain = parent_gini - (left_weight[i] * left_gini + right_weight[i] * right_gini) / total
-            if gain > best_gain:
+            if best is None:
+                better = gain > 0 or (allow_zero_gain and gain == 0.0)
+            else:
+                # shortcut: roundoff-level gain ties keep feature order; revisit if weighted parity differs.
+                better = gain > best_gain + (1e-15 if allow_zero_gain else 0.0)
+            if better:
                 threshold = float(np.float64(values[i] / 2) + np.float64(values[i + 1] / 2))
                 best = feature, threshold, float(gain)
                 best_gain = gain
@@ -144,7 +149,8 @@ class DecisionTree(BaseModel):
                     or positive_weight <= 0 or positive_weight >= node_weight.sum()):
                 return node
             order, n_constants = feature_order(X[indices], n_known_constants)
-            split = _best_split(X[indices][:, order], y[indices], node_weight, self.min_samples_leaf)
+            split = _best_split(X[indices][:, order], y[indices], node_weight, self.min_samples_leaf,
+                                allow_zero_gain=self.max_features == "sqrt")
             if split is None:
                 return node
             column, cutoff, _ = split
