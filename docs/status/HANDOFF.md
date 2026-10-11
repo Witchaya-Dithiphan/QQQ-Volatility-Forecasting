@@ -1,5 +1,12 @@
 # QQQ Volatility Forecasting - เอกสารส่งต่องาน
 
+> ⚠️ **แก้ไข 2026-10-11:** ส่วน data contract ของเอกสารนี้ยังถูกต้อง แต่ส่วน modeling ล้าสมัย:
+> `src/models/` ไม่มีอยู่ (โมเดลอยู่ที่ `src/ml/`, test ที่ `tests/ml/`, ผลที่ `outputs/modeling/`),
+> คำสั่ง `src.ml.run train` มีแล้ว, โมเดลครบ 19/19 พร้อม validation metrics 38 ชุด, inventory คือ 4/13/2,
+> `MODEL_TRAINING_PLAN.md` ถูก archive (ยึด `AGENTS.md` + `docs/plan/MODEL_CARDS.md`), dependency ถูก pin ใน
+> `requirements-lock.txt` และต้องสร้าง venv ด้วย `py -3.14` ตัวเลข "334 passed" และ commit `03dfada`
+> เป็นของรอบตรวจรับเดิม
+
 > **คู่มือการติดตั้งและรันหลัก:** [RUNBOOK.md](../guides/RUNBOOK.md) ใช้ Python 3.14.8
 > (re-frozen 2026-10-10; รอบตรวจรับเดิมใช้ 3.11.9 และผ่าน 3.12.3 มาแล้ว ดู audit
 > trail ใน RUNBOOK.md) และแยกขั้นตอนสำหรับ clone ใหม่, การรันซ้ำที่ project root

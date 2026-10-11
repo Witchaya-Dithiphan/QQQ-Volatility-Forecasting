@@ -8,8 +8,11 @@
 > (สเปก 19 โมเดล) และ [ROADMAP.md](docs/plan/ROADMAP.md) (แผนถึง 18 ต.ค.)
 > — [MODEL_TRAINING_PLAN.md](docs/archive/MODEL_TRAINING_PLAN.md) ถูกแทนที่บางส่วนแล้ว
 >
-> **สถานะจริง:** data pipeline เสร็จ ✅ · test suite **459 passed, 3 skipped** ·
-> **โมเดล 0/19 ยังไม่เริ่ม** · รายละเอียด: [docs/audit/REALITY_AUDIT.md](docs/audit/REALITY_AUDIT.md)
+> **สถานะจริง (⚠️ แก้ไข 2026-10-11):** data pipeline เสร็จและผ่าน audit ✅ · test suite **1,002 passed** ·
+> **โมเดล 19/19 implement แล้ว** (artifact 38 ชุดบน Validation ใน `outputs/modeling/`, โค้ดอยู่ที่ `src/ml/`) ·
+> **ยังไม่ทำ:** leaderboard (`run.py report`), ประเมินบน Test (`run.py finalize`), notebook 03/04, รายงาน ·
+> ส่วนที่ยังเขียนว่า "Planned" หรืออ้าง `src/models/` ด้านล่างเป็นข้อความเก่า ·
+> รายละเอียด: [โมเดล](docs/tasks/claude-model-progress.md) · [ชั้นข้อมูล](docs/audit/DATA_PIPELINE_AUDIT.md)
 
 สำหรับ workspace ที่ตั้งค่าครบแล้ว ใช้คำสั่งต่อไปนี้จาก project root:
 

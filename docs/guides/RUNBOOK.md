@@ -14,6 +14,12 @@ Python หรือ packages คนละ environment
 - [MODEL_TRAINING_PLAN.md](../archive/MODEL_TRAINING_PLAN.md) — modeling requirements,
   inventory 19 รายการ และ implementation milestones; คำสั่ง modeling ในแผนยังไม่พร้อมใช้
 
+> ⚠️ **แก้ไข 2026-10-11:** บันทึกด้านล่างเป็นประวัติ `src/modeling/config_schema.py`,
+> `tests/modeling/test_dependencies.py` และ `python -m src.modeling.config_sync` ถูกลบไปแล้ว
+> (คำสั่งนั้นจะ fail ด้วย `ModuleNotFoundError`) และคำสั่ง `src.ml.run train` **ใช้งานได้แล้ว** ตามข้อ 10
+> ส่วน `report` กับ `finalize` ยังไม่ implement · hash ที่เก็บใน report ใช้ได้บน Windows เท่านั้น
+> (ดู [PATH_AUDIT.md](../audit/PATH_AUDIT.md))
+>
 > หลักฐานตรวจรับเดิมใช้ Python 3.11.9 (recorded 2026-10-07); audit วันที่ 2026-10-08
 > พบว่า `.venv` รายงาน Python 3.12.3 แทน M2 จึง freeze submission/modeling environment
 > ไว้ที่ 3.12.3 ใน `configs/modeling.json` และ `src/modeling/config_schema.py`

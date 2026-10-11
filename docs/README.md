@@ -13,7 +13,7 @@
 | **ผู้พัฒนาที่เพิ่งเข้าโปรเจกต์** | [`AGENTS.md`](../AGENTS.md) → [`guides/RUNBOOK.md`](guides/RUNBOOK.md) → task ของตัวเองใน [`tasks/`](tasks/) |
 | **จะเขียนโมเดล** | [`tasks/claude-model-progress.md`](tasks/claude-model-progress.md) (ดัชนี) → [`models/<name>/MODEL_PROGRESS.md`](models/) → section ของโมเดลนั้นใน [`plan/MODEL_CARDS.md`](plan/MODEL_CARDS.md) |
 | **อยากรู้ว่าทำไมออกแบบแบบนี้** | [`plan/ARCHITECTURE.md`](plan/ARCHITECTURE.md) (ADR-001…006) |
-| **อยากรู้สถานะจริง** | [`audit/REALITY_AUDIT.md`](audit/REALITY_AUDIT.md) แล้วค่อย [`status/PROJECT_STATUS.md`](status/PROJECT_STATUS.md) |
+| **อยากรู้สถานะจริง** | [`tasks/claude-model-progress.md`](tasks/claude-model-progress.md) (โมเดล) และ [`audit/DATA_PIPELINE_AUDIT.md`](audit/DATA_PIPELINE_AUDIT.md) (ข้อมูล) ⚠️ แก้ไข 2026-10-11 |
 | **จะเขียนรายงาน/สไลด์** | [`plan/REPORT_AND_SLIDES_OUTLINE.md`](plan/REPORT_AND_SLIDES_OUTLINE.md) |
 
 ---
@@ -56,8 +56,15 @@
 
 ### `audit/` — หลักฐานการตรวจสอบ
 
-[`REALITY_AUDIT.md`](audit/REALITY_AUDIT.md) — สถานะจริงที่ยืนยันด้วยการรันคำสั่งจริงเมื่อ 2026-10-10
-พร้อมรายการจุดที่เอกสารเก่าขัดกับโค้ด **อ่านไฟล์นี้ก่อนเชื่อตัวเลขใด ๆ ในเอกสารเก่า**
+⚠️ แก้ไข 2026-10-11:
+
+| ไฟล์ | เนื้อหา |
+| --- | --- |
+| [`DATA_PIPELINE_AUDIT.md`](audit/DATA_PIPELINE_AUDIT.md) | **ผลตรวจชั้นข้อมูลล่าสุด (2026-10-11)** — คำตัดสิน, findings รายข้อพร้อมหลักฐาน, ข้อที่ต้องเขียนในรายงาน |
+| [`DATA_FLOW.md`](audit/DATA_FLOW.md) | แผนภาพ raw → split → spike datasets พร้อมจำนวนแถวจริงทุกขั้น |
+| [`PATH_AUDIT.md`](audit/PATH_AUDIT.md) | path ทุกตัว, line ending กับ checksum |
+| [`FILE_INVENTORY.md`](audit/FILE_INVENTORY.md) | ไฟล์ทั้งหมดพร้อมคำตัดสินรายไฟล์ |
+| [`REALITY_AUDIT.md`](audit/REALITY_AUDIT.md) | snapshot ทางประวัติศาสตร์ ณ 2026-10-10 (commit `779c78d`) — **ไม่ใช่สถานะปัจจุบันแล้ว** ตัวเลขชั้นข้อมูลยังถูก ส่วนสถานะโมเดลล้าสมัย |
 
 ### `superpowers/` — spec และ plan ที่สร้างโดย workflow skill
 

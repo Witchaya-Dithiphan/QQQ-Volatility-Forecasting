@@ -4,7 +4,9 @@
 > วิธีทำงาน: invoke skill `qqq-model` (กลั่นจาก `AGENTS.md` + `MODEL_CARDS.md` แล้ว ไม่ต้องอ่านต้นฉบับซ้ำ)
 > อัปเดตตารางนี้ + ไฟล์ของโมเดลนั้น หลังจบทุกตัว · **ห้ามลบผลเก่า**
 
-**สถานะรวม:** ✅ **11/11 ของฝั่ง Claude ครบแล้ว** · test suite `657 passed, 0 failed`
+**สถานะรวม:** ✅ **11/11 ของฝั่ง Claude ครบแล้ว** · ฝั่ง Codex 8 ตัว train ครบ รอ leaderboard ·
+test suite `1002 passed, 0 failed` (⚠️ แก้ไข 2026-10-11 จาก 657) ·
+ชั้นข้อมูลผ่าน audit: [DATA_PIPELINE_AUDIT.md](../audit/DATA_PIPELINE_AUDIT.md)
 
 ## ฝั่ง Claude (11 ตัว — ของเรา)
 
