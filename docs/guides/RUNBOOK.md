@@ -39,10 +39,10 @@ Python หรือ packages คนละ environment
 - Windows และ Command Prompt หรือ VS Code Terminal
 - Python 3.14.8
 - Repository นี้
-- Raw Snapshot `data/raw/qqq_daily.csv` ที่ได้รับแยกจาก Git
+- Raw Snapshot `data/raw/qqq_daily.csv` (⚠️ แก้ไข 2026-10-11: อยู่ใน Git แล้ว ได้มาพร้อม clone)
 
-`.venv`, Raw Snapshot และ generated artifacts ไม่ถูก track ใน Git ผู้รับงานจึงต้อง
-สร้าง environment และรับ Snapshot แยกหลัง clone
+`.venv` และ generated artifacts ใน `data/interim`, `data/processed` ไม่ถูก track ใน Git ผู้รับงานจึงต้อง
+สร้าง environment แล้วรัน data pipeline เองหลัง clone (Raw Snapshot มากับ clone แล้ว)
 
 ## 2. สร้าง virtual environment
 
@@ -85,7 +85,7 @@ Python 3.14.8
 
 ## 4. เตรียมและตรวจ Raw Snapshot
 
-นำ `qqq_daily.csv` ที่ได้รับจากชุดส่งมอบไปวางที่:
+ไฟล์ `qqq_daily.csv` มากับ clone แล้ว (track แบบ `-text` เพื่อคง byte เดิม) และต้องอยู่ที่:
 
 ```text
 data\raw\qqq_daily.csv

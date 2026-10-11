@@ -29,7 +29,7 @@ path constant ทั้ง 39 ตัวใน `config.py` เป็น absolute 
 - **ยังเป็นข้อจำกัด (X2):** CSV ของ Phase 1 เขียนด้วย `to_csv()` ที่ไม่ระบุ `lineterminator` จึงเป็น CRLF บน Windows
   hash ใน report และใน `config.json` ของโมเดล 38 ชุดจึง **ใช้ได้บน Windows เท่านั้น** การแก้ต้อง regenerate
   ข้อมูลและ artifact ทั้งหมด จึงไม่ทำ
-- Raw snapshot ไม่อยู่ใน git (CRLF, 124,154 bytes, ตรง manifest) git จึงเปลี่ยนมันไม่ได้
+- Raw snapshot อยู่ใน git แล้วตั้งแต่ `7690862` ด้วย attribute `-text` (CRLF, 124,154 bytes, ตรง manifest) git จึงไม่แปลง line ending ของมัน
 
 ## Requirements
 
