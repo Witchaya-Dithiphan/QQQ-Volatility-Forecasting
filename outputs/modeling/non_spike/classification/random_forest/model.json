@@ -1,0 +1,11 @@
+{
+  "params": {
+    "bootstrap": true,
+    "max_depth": 5,
+    "max_features": "sqrt",
+    "min_samples_leaf": 5,
+    "n_estimators": 50,
+    "random_state": 42
+  },
+  "seed": 42
+}
