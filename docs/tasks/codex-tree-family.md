@@ -321,11 +321,28 @@ leaderboard คือตารางเปรียบเทียบ metric ข
 
 ### T4 — `gradient_boosting` (card #13) · ~3.5 ชม.
 
-- [ ] `F0` = log-odds ของ prior ไม่ใช่ 0
-- [ ] ค่าในใบใช้ **Newton step** `Σg / Σh` ไม่ใช่ mean ของ residual ← สาเหตุอันดับ 1 ที่ไม่ตรง
-- [ ] tree ภายในใช้ **squared error** ไม่ใช่ Gini
-- [ ] unit test: `n_estimators=1, learning_rate=1` → `F = F0 + γ` ตรวจด้วยมือได้
-- [ ] parity: เทียบทีละ stage ด้วย `staged_decision_function` ของ sklearn
+- [x] `F0` = log-odds ของ prior ไม่ใช่ 0
+- [x] ค่าในใบใช้ **Newton step** `Σg / Σh` ไม่ใช่ mean ของ residual ← สาเหตุอันดับ 1 ที่ไม่ตรง
+- [x] tree ภายในใช้ **squared error** ไม่ใช่ Gini
+- [x] unit test: `n_estimators=1, learning_rate=1` → `F = F0 + γ` ตรวจด้วยมือได้
+- [x] parity: เทียบทีละ stage ด้วย `staged_decision_function` ของ sklearn
+
+**ผลรัน T4 (2026-10-11):** 8 candidates ต่อ variant, เลือกด้วย AP ก่อน AUC. เทียบ sklearn 1.9.1 ทีละ stage ครบ 16 ชุดบน Train และ Validation: ทุกต้นไม้ตรง (node count, feature, threshold), `staged_decision_function` และ `predict_proba` ต่าง 0 พอดี. stress test นอก grid 240 รัน (depth ถึง 4, ข้อมูลมีค่าซ้ำ) ตรงระดับ bit ทั้งหมด. `test_gradient_boosting.py` 31 tests ผ่าน; ทั้งชุด 792 tests ผ่าน.
+
+| variant | candidate ที่เลือก | AP | AUC | F1 | reload |
+| --- | --- | ---: | ---: | ---: | --- |
+| `with_spike` | lr 0.1, depth 1, 50 trees | 0.253083 | 0.675380 | 0.244898 | ผ่าน |
+| `non_spike` | lr 0.03, depth 2, 50 trees | 0.252529 | 0.673154 | 0.266667 | ผ่าน |
+
+ผลเต็มอยู่ใน [`MODEL_PROGRESS.md`](../models/gradient_boosting/MODEL_PROGRESS.md). regression tree อยู่ใน `gradient_boosting.py` เอง ไม่ได้แก้ `decision_tree.py`. **DoD ค้าง leaderboard** เช่นเดียวกับ T1–T3; ยังไม่แตะ Test set.
+
+**บทเรียน T4 สำหรับ T5:**
+
+- **1 ulp ที่จุดเริ่มต้นพลิกต้นไม้ได้.** `F0` ต้องคำนวณแบบ `scipy.special.logit` (ช่วง `0.3 ≤ p ≤ 0.65` ใช้ `log1p(s) − log1p(−s)`) ไม่งั้น residual ต่าง 1 ulp แล้ว tie ระหว่างฟีเจอร์ที่แบ่งแถวชุดเดียวกันถูกตัดสินต่างกัน — เจอที่ต้น 37 ทั้งที่ต้นก่อนหน้าตรงหมด. XGBoost ใช้ `base_score` คนละแบบ แต่หลักเดียวกัน: ถ้าโครงสร้างเริ่มต่างกลางทาง ให้เทียบ raw score แบบ**bitwise ที่ stage 0** ก่อนสงสัยต้นไม้.
+- **วิธีแยกว่าต้นไม้ผิดหรือ input ผิด:** ป้อน residual ของเราให้ tree ของ reference สร้างเอง ถ้าได้ต้นเดียวกับเรา ปัญหาอยู่ที่ residual ไม่ใช่ splitter.
+- **`np.sum` เป็น pairwise** ส่วน reference ที่เขียนด้วย C บวก sequential — ใช้ `np.cumsum(x)[-1]` เมื่อผลรวมถูกเอาไปเทียบกับ threshold ระดับ eps.
+- `predict` ของ gradient boosting ใน sklearn ใช้ `>= 0` ตรงข้ามกับกฎ `> 0.5` ของโมเดล argmax.
+- `train_score_` ของ sklearn เป็น deviance = 2 × log loss.
 
 ### T5 — `xgboost` (card #14) · ~4 ชม. · **เสี่ยงสุด เริ่มตอนเช้า**
 

@@ -629,6 +629,13 @@ n_estimators=n, min_samples_leaf=5, max_features=None, random_state=42, subsampl
 **ความเสี่ยง** สูง — ให้เวลา 3.5 ชม. และเทียบทีละ stage ด้วย `staged_decision_function` ของ sklearn
 ซึ่งทำให้รู้ได้ทันทีว่าเริ่มต่างที่ต้นไหน
 
+**ผลจริง (2026-10-11)** parity กับ sklearn 1.9.1 ครบ 8 candidates × 2 variants บน Train และ Validation: ทุกต้นไม้ตรง,
+`staged_decision_function` ทุก stage และ `predict_proba` ต่าง **0** พอดี. fit ช้าสุด 0.4 วินาที.
+ผู้ชนะ: `lr=0.1, depth=1, n=50` AP 0.2531 / AUC 0.6754 (`with_spike`) · `lr=0.03, depth=2, n=50` AP 0.2525 / AUC 0.6732 (`non_spike`).
+**จุดที่ parity พลาดจริงและไม่ได้อยู่ในรายการข้างบน:** `F0` ต้องคำนวณแบบ `scipy.special.logit` (สลับสูตรในช่วง `0.3 ≤ p ≤ 0.65`)
+— ต่าง 1 ulp แล้วพลิก tie ของฟีเจอร์ในต้นที่ 37 · impurity ของ node ต้องบวกแบบ sequential ตามลำดับแถวของ sklearn ·
+`predict` ใช้ `>= 0` · `train_score_` เป็น 2 × log loss. รายละเอียด: [`MODEL_PROGRESS.md`](../models/gradient_boosting/MODEL_PROGRESS.md)
+
 ---
 
 ### 14. `xgboost` — Extreme Gradient Boosting

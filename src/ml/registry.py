@@ -8,6 +8,7 @@ from __future__ import annotations
 from .classification.adaboost import AdaBoost
 from .classification.decision_tree import DecisionTree
 from .classification.gaussian_nb import GaussianNB
+from .classification.gradient_boosting import GradientBoosting
 from .classification.knn import KNN
 from .classification.logistic import Logistic
 from .classification.perceptron import Perceptron
@@ -27,6 +28,7 @@ MODELS: dict[str, type[BaseModel]] = {
     "decision_tree": DecisionTree,
     "elastic_net": ElasticNet,
     "gaussian_nb": GaussianNB,
+    "gradient_boosting": GradientBoosting,
     "kmeans": KMeans,
     "knn": KNN,
     "logistic": Logistic,
