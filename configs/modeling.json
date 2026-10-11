@@ -692,12 +692,11 @@
     "code_paths": [
       "config.py",
       "configs/modeling.json",
-      "src/modeling/**/*.py",
-      "src/models/**/*.py"
+      "src/ml/**/*.py"
     ],
     "code_stream": "path_utf8_nul_uint64be_byte_length_file_bytes",
     "labels_exact": true,
-    "output_path": "outputs/modeling/<variant>/<task>/<model>/<implementation>/<run_id>/",
+    "output_path": "outputs/modeling/<variant>/<task>/<model>/",
     "overwrite": false,
     "reference": "joblib",
     "reload_atol": 1e-12,
