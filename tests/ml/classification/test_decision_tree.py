@@ -49,6 +49,58 @@ def test_weighted_tree_matches_reference():
     assert_parity(scratch, reference, X, y, task="classification")
 
 
+@pytest.mark.parametrize("min_samples_leaf, expected", [(2, (0, 3.5)), (3, None)])
+def test_zero_weight_rows_do_not_count_toward_minimum_leaf(min_samples_leaf, expected):
+    X = np.arange(6.0).reshape(-1, 1)
+    y = np.array([0, 0, 0, 1, 1, 1])
+    weights = np.array([1, 0, 0, 1, 1, 1], dtype=float)
+    split = _best_split(X, y, weights, min_samples_leaf)
+    assert (None if split is None else split[:2]) == expected
+    scratch = DecisionTree(min_samples_leaf=min_samples_leaf).fit(X, y, sample_weight=weights)
+    reference = scratch.reference().fit(X, y, sample_weight=weights)
+    assert np.array_equal(scratch.tree_.feature, reference.tree_.feature)
+    assert np.array_equal(scratch.tree_.threshold, reference.tree_.threshold)
+    assert_parity(scratch, reference, X, y, task="classification")
+
+
+@pytest.mark.parametrize("seed", [0, 3, 11, 42])
+@pytest.mark.parametrize("constant_features", [False, True])
+def test_sqrt_samples_features_per_node_with_bootstrap_weights(seed, constant_features):
+    rng = np.random.RandomState(29)
+    X = rng.normal(size=(180, 8))
+    y = (X[:, 0] + 0.7 * X[:, 1] * X[:, 2] > 0).astype(int)
+    if constant_features:
+        X[:, 3:6] = 1
+        X[:, 6] = X[:, 0] > 0  # Becomes constant in some descendants.
+        X[:, 7] = X[:, 1] > 0
+    X.setflags(write=False)
+    weights = np.bincount(np.random.RandomState(seed).randint(0, len(X), len(X)), minlength=len(X))
+    scratch = DecisionTree(max_depth=5, min_samples_leaf=5, random_state=seed, max_features="sqrt")
+    scratch.fit(X, y, sample_weight=weights)
+    reference = scratch.reference().fit(X, y, sample_weight=weights)
+    assert np.array_equal(scratch.tree_.feature, reference.tree_.feature)
+    assert np.array_equal(scratch.tree_.threshold, reference.tree_.threshold)
+    assert np.array_equal(scratch.tree_.children_left, reference.tree_.children_left)
+    assert np.array_equal(scratch.tree_.children_right, reference.tree_.children_right)
+    assert_parity(scratch, reference, X, y, task="classification")
+    assert not X.flags.writeable
+
+
+def test_sqrt_search_continues_past_constant_features():
+    X = np.zeros((4, 8))
+    X[:, 7] = [0, 1, 2, 3]
+    scratch = DecisionTree(min_samples_leaf=1, max_features="sqrt").fit(X, [0, 0, 1, 1])
+    assert scratch.tree_.feature.tolist() == [7, -2, -2]
+    assert scratch.tree_.threshold.tolist() == [1.5, -2, -2]
+    reference = scratch.reference().fit(X, [0, 0, 1, 1])
+    assert_parity(scratch, reference, X, [0, 0, 1, 1], task="classification")
+
+
+def test_rejects_unsupported_max_features():
+    with pytest.raises(ValueError, match="max_features"):
+        DecisionTree(max_features="log2").fit([[0], [1]], [0, 1])
+
+
 def test_rejects_invalid_labels_depth_and_weights():
     X = np.arange(4.0).reshape(-1, 1)
     with pytest.raises(ValueError):
@@ -74,9 +126,10 @@ def test_tree_structure_and_outputs_match_sklearn_on_synthetic_data(seed):
 @pytest.mark.parametrize("variant", ["with_spike", "non_spike"])
 @pytest.mark.parametrize("max_depth", [2, 3, 5])
 @pytest.mark.parametrize("min_samples_leaf", [5, 10])
-def test_parity_on_real_train_and_validation(variant, max_depth, min_samples_leaf):
+@pytest.mark.parametrize("max_features", [None, "sqrt"])
+def test_parity_on_real_train_and_validation(variant, max_depth, min_samples_leaf, max_features):
     data = load(variant)
-    scratch = DecisionTree(max_depth=max_depth, min_samples_leaf=min_samples_leaf).fit(
+    scratch = DecisionTree(max_depth=max_depth, min_samples_leaf=min_samples_leaf, max_features=max_features).fit(
         data.train.X, data.train.y_classification
     )
     reference = scratch.reference().fit(data.train.X, data.train.y_classification)
@@ -86,12 +139,17 @@ def test_parity_on_real_train_and_validation(variant, max_depth, min_samples_lea
     assert_parity(scratch, reference, data.validation.X, data.validation.y_classification, task="classification")
 
 
-def test_save_load_preserves_labels_and_probabilities(tmp_path):
+@pytest.mark.parametrize("max_features", [None, "sqrt"])
+def test_save_load_preserves_labels_and_probabilities(tmp_path, max_features):
     X = np.array([[0.0], [1.0], [2.0], [3.0]])
-    original = DecisionTree(max_depth=2, min_samples_leaf=1).fit(X, [0, 0, 1, 1])
+    original = DecisionTree(max_depth=2, min_samples_leaf=1, max_features=max_features).fit(X, [0, 0, 1, 1])
+    direct = DecisionTree().load_state(original.state_dict(), {"params": original.get_params()})
+    assert direct.get_params() == original.get_params()
+    assert np.array_equal(original.predict_proba(X), direct.predict_proba(X))
     path = tmp_path / "model.npz"
     save_npz(path, original.state_dict(), {"params": original.get_params()})
     arrays, metadata = load_npz(path)
     restored = DecisionTree().load_state(arrays, metadata)
+    assert restored.get_params() == original.get_params()
     assert np.array_equal(original.predict(X), restored.predict(X))
     assert np.array_equal(original.predict_proba(X), restored.predict_proba(X))

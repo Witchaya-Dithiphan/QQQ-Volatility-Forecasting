@@ -13,6 +13,8 @@ def _best_split(X, y, sample_weight, min_samples_leaf):
     X = np.asarray(X, dtype=np.float32)
     y = np.asarray(y, dtype=np.int64)
     weights = np.asarray(sample_weight, dtype=np.float64)
+    active = weights > 0
+    X, y, weights = X[active], y[active], weights[active]
     n = len(y)
     if n < 2 * min_samples_leaf:
         return None
@@ -56,16 +58,19 @@ class DecisionTree(BaseModel):
     name = "decision_tree"
     task = "classification"
 
-    def __init__(self, max_depth: int = 3, min_samples_leaf: int = 5, random_state: int = 42):
+    def __init__(self, max_depth: int = 3, min_samples_leaf: int = 5, random_state: int = 42,
+                 max_features: str | None = None):
         self.max_depth = max_depth
         self.min_samples_leaf = min_samples_leaf
         self.random_state = random_state
+        self.max_features = max_features
 
     def get_params(self) -> dict:
         return {
             "max_depth": self.max_depth,
             "min_samples_leaf": self.min_samples_leaf,
             "random_state": self.random_state,
+            "max_features": self.max_features,
         }
 
     def fit(self, X, y=None, sample_weight=None) -> "DecisionTree":
@@ -78,6 +83,8 @@ class DecisionTree(BaseModel):
         y = y.astype(np.int64)
         if self.max_depth < 1 or self.min_samples_leaf < 1:
             raise ValueError("max_depth and min_samples_leaf must be positive")
+        if self.max_features not in (None, "sqrt"):
+            raise ValueError("max_features must be None or 'sqrt'")
         weights = np.ones(len(y)) if sample_weight is None else np.asarray(sample_weight, dtype=np.float64)
         if weights.shape != (len(y),) or not np.isfinite(weights).all() or (weights < 0).any() or weights.sum() <= 0:
             raise ValueError("sample_weight must be finite, nonnegative and have positive sum")
@@ -85,24 +92,46 @@ class DecisionTree(BaseModel):
         self.n_features_in_ = X.shape[1]
         feature, threshold, left, right, probability = [], [], [], [], []
         features = list(range(self.n_features_in_))
+        constant_features = features.copy()
+        max_features = self.n_features_in_ if self.max_features is None else max(1, int(np.sqrt(self.n_features_in_)))
         rng_state = int(np.random.RandomState(self.random_state).randint(0, 2**31 - 1))
 
-        def feature_order():
+        def feature_order(node_X, n_known_constants):
             nonlocal rng_state
             order = []
-            for end in range(len(features), 0, -1):
+            end = len(features)
+            visited = found_constants = drawn_constants = 0
+            total_constants = n_known_constants
+            while end > total_constants and (visited < max_features or visited <= found_constants + drawn_constants):
+                visited += 1
                 # sklearn permutes features even with splitter="best"; ties follow this seeded order.
                 if rng_state == 0:
                     rng_state = 1
                 rng_state ^= (rng_state << 13) & 0xFFFFFFFF
                 rng_state ^= rng_state >> 17
                 rng_state ^= (rng_state << 5) & 0xFFFFFFFF
-                selected = (rng_state & 0x7FFFFFFF) % end
-                order.append(features[selected])
-                features[end - 1], features[selected] = features[selected], features[end - 1]
-            return order
+                selected = drawn_constants + (rng_state & 0x7FFFFFFF) % (end - found_constants - drawn_constants)
+                if selected < n_known_constants:
+                    features[drawn_constants], features[selected] = features[selected], features[drawn_constants]
+                    drawn_constants += 1
+                    continue
+                selected += found_constants
+                column = features[selected]
+                values = node_X[:, column]
+                if values.max() <= values.min() + np.float32(1e-7):
+                    features[selected], features[total_constants] = features[total_constants], features[selected]
+                    found_constants += 1
+                    total_constants += 1
+                    continue
+                order.append(column)
+                end -= 1
+                features[end], features[selected] = features[selected], features[end]
+            # Ancestor constants keep their order for both children, including after a sibling grows.
+            features[:n_known_constants] = constant_features[:n_known_constants]
+            constant_features[n_known_constants:total_constants] = features[n_known_constants:total_constants]
+            return order, total_constants
 
-        def grow(indices, depth):
+        def grow(indices, depth, n_known_constants=0):
             node = len(feature)
             feature.append(-2)
             threshold.append(-2.0)
@@ -114,7 +143,7 @@ class DecisionTree(BaseModel):
             if (depth >= self.max_depth or len(indices) < 2 * self.min_samples_leaf
                     or positive_weight <= 0 or positive_weight >= node_weight.sum()):
                 return node
-            order = feature_order()
+            order, n_constants = feature_order(X[indices], n_known_constants)
             split = _best_split(X[indices][:, order], y[indices], node_weight, self.min_samples_leaf)
             if split is None:
                 return node
@@ -122,11 +151,11 @@ class DecisionTree(BaseModel):
             column = order[column]
             feature[node], threshold[node] = column, cutoff
             mask = X[indices, column] <= cutoff
-            left[node] = grow(indices[mask], depth + 1)
-            right[node] = grow(indices[~mask], depth + 1)
+            left[node] = grow(indices[mask], depth + 1, n_constants)
+            right[node] = grow(indices[~mask], depth + 1, n_constants)
             return node
 
-        grow(np.arange(len(y)), 0)
+        grow(np.flatnonzero(weights > 0), 0)
         self.tree_ = SimpleNamespace(
             feature=np.asarray(feature, dtype=np.int64),
             threshold=np.asarray(threshold, dtype=np.float64),
@@ -182,6 +211,6 @@ class DecisionTree(BaseModel):
             splitter="best",
             max_depth=self.max_depth,
             min_samples_leaf=self.min_samples_leaf,
-            max_features=None,
+            max_features=self.max_features,
             random_state=self.random_state,
         )
