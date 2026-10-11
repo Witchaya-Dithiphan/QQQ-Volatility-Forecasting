@@ -299,14 +299,25 @@ leaderboard คือตารางเปรียบเทียบ metric ข
 
 โมเดลนี้โจทย์บังคับให้ **อธิบายกลไกภายในอย่างละเอียดในรายงาน** และต้องมีทั้ง scratch และ ready-to-use
 
-- [ ] SAMME: `α = lr · log((1-err)/err)` ใช้ natural log
-- [ ] จัดการเคสขอบตาม config: `err ≤ 1e-12` → หยุดแบบ perfect · `err ≥ 0.5` ตัวแรก → failed
-- [ ] normalize น้ำหนักทุกรอบ
-- [ ] unit test: คำนวณ `err`, `α`, `w` ใหม่ 2 รอบด้วยมือบน 4 ตัวอย่าง → เทียบทุกค่า
-- [ ] parity: เทียบ `estimator_weights_` และ `estimator_errors_` กับ sklearn ทีละตัว
-- [ ] **เช็ค API:** sklearn 1.9 ถอด `algorithm="SAMME.R"` แล้ว ถ้า constructor ไม่รับ `algorithm` ให้ตัดทิ้ง
-- [ ] **บันทึกไว้ให้รายงาน:** AdaBoost ใช้ exponential loss จึงไวต่อ outlier ที่สุด และ target ของเรา
+- [x] SAMME: `α = lr · log((1-err)/err)` ใช้ natural log
+- [x] จัดการเคสขอบตาม config: `err ≤ 1e-12` → หยุดแบบ perfect · `err ≥ 0.5` ตัวแรก → failed
+- [x] normalize น้ำหนักทุกรอบ
+- [x] unit test: คำนวณ `err`, `α`, `w` ใหม่ 2 รอบด้วยมือบน 4 ตัวอย่าง → เทียบทุกค่า
+- [x] parity: เทียบ `estimator_weights_` และ `estimator_errors_` กับ sklearn ทีละตัว
+- [x] **เช็ค API:** sklearn 1.9 ถอด `algorithm="SAMME.R"` แล้ว ถ้า constructor ไม่รับ `algorithm` ให้ตัดทิ้ง
+- [x] **บันทึกไว้ให้รายงาน:** AdaBoost ใช้ exponential loss จึงไวต่อ outlier ที่สุด และ target ของเรา
       มี kurtosis 16.26 → คาดว่าจะฟื้นตัวชัดที่สุดใน variant `non_spike` **ให้จดผลจริงไว้ไม่ว่าออกหัวหรือก้อย**
+
+**ผลรัน T3 (2026-10-11):** 6 candidates ต่อ variant, เลือกด้วย AP ก่อน AUC. เทียบ sklearn 1.9.1 ทีละรอบครบทั้ง grid ในทั้งสอง variant: feature/threshold ของ stump ตรงทุกตัว, `estimator_weights_`/`estimator_errors_`/`decision_function` ต่าง 0 พอดี, `predict_proba` ต่าง ≤ 1.1e-16. `test_adaboost.py` 28 tests ผ่าน; ทั้งชุด 761 tests ผ่าน.
+
+| variant | candidate ที่เลือก | AP | AUC | F1 | reload |
+| --- | --- | ---: | ---: | ---: | --- |
+| `with_spike` | lr 0.5, 100 stumps | 0.236309 | 0.676776 | 0.222222 | ผ่าน |
+| `non_spike` | lr 0.5, 100 stumps | 0.240748 | 0.640862 | 0.235294 | ผ่าน |
+
+**สมมติฐาน outlier ไม่ได้รับการสนับสนุน:** AP เพิ่มเพียง +0.0044 และ AUC ลด 0.0359 เมื่อตัด spike (`random_forest` ได้ AP +0.0462). รายละเอียดและข้อจำกัดของการตีความอยู่ใน [`MODEL_PROGRESS.md`](../models/adaboost/MODEL_PROGRESS.md). **DoD ค้าง leaderboard** เช่นเดียวกับ T1/T2; ยังไม่แตะ Test set.
+
+**บทเรียน T3 สำหรับ T4/T5:** boosting ที่อัปเดตน้ำหนักสะสมจะตรง reference ระดับ bit ได้ ถ้าทำตามลำดับ floating point เดียวกัน (clip → fit → `exp(log(w) + α·incorrect)` → หารผลรวม) และสุ่ม seed ของ tree ทีละรอบจาก `RandomState` ตัวเดียว. config section `adaboost` (`alpha_factor: 0.5`, `zero_vote_label: 1`) ขัดกับ sklearn; เลือกตาม sklearn เพราะ strict parity.
 
 ### T4 — `gradient_boosting` (card #13) · ~3.5 ชม.
 

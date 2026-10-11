@@ -5,6 +5,7 @@ sorted by name. That keeps merge conflicts to a single obvious line.
 """
 from __future__ import annotations
 
+from .classification.adaboost import AdaBoost
 from .classification.decision_tree import DecisionTree
 from .classification.gaussian_nb import GaussianNB
 from .classification.knn import KNN
@@ -21,6 +22,7 @@ from .regression.polynomial import Polynomial
 from .regression.simple_linear import SimpleLinear
 
 MODELS: dict[str, type[BaseModel]] = {
+    "adaboost": AdaBoost,
     "agglomerative": Agglomerative,
     "decision_tree": DecisionTree,
     "elastic_net": ElasticNet,

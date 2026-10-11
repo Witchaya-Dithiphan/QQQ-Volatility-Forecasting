@@ -751,6 +751,14 @@ n_estimators=n, learning_rate=lr, algorithm="SAMME", random_state=42)`
 
 **ความเสี่ยง** กลาง — ขึ้นกับว่า weighted stump ถูกหรือไม่ ซึ่งเป็นของที่ใช้ร่วมกับ `decision_tree`
 
+**ผลจริง (2026-10-11)** parity กับ sklearn 1.9.1 ครบ 6 candidates × 2 variants: stump ตรงทุกตัว,
+`estimator_weights_`/`estimator_errors_`/`decision_function` ต่าง **0** พอดี, `predict_proba` ต่าง ≤ 1.1e-16.
+`algorithm` ถูกถอดจาก constructor แล้ว จึงตัดออกจาก reference. fit 100 stumps บน Train ใช้ ≈ 2.8 วินาที.
+ผู้ชนะ `lr=0.5, n=100` ทั้งคู่ — AP 0.2363 / AUC 0.6768 (`with_spike`) · AP 0.2407 / AUC 0.6409 (`non_spike`).
+**สมมติฐานข้างบนไม่ได้รับการสนับสนุน:** AP ขยับ +0.0044, AUC ลด 0.0359 และ `random_forest` ฟื้นตัวมากกว่า (AP +0.0462).
+**ความต่างจาก config:** section `adaboost` ระบุ `alpha_factor: 0.5` และ zero-vote → คลาส 1 แต่ implementation
+ตาม sklearn (α เต็ม, zero-vote → คลาส 0) เพื่อ strict parity. รายละเอียด: [`MODEL_PROGRESS.md`](../models/adaboost/MODEL_PROGRESS.md)
+
 ---
 
 ### 16. `stacking` — Stacking Classifier
