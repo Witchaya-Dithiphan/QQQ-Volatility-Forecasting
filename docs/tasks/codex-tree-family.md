@@ -291,6 +291,8 @@ leaderboard คือตารางเปรียบเทียบ metric ข
 
 ผลเต็มอยู่ใน [`MODEL_PROGRESS.md`](../models/random_forest/MODEL_PROGRESS.md) และ `outputs/modeling/<variant>/classification/random_forest/`. **DoD ค้าง leaderboard ข้อ 5** เพราะ `src.ml.run report` ยังไม่ implement; ยังไม่แตะ Test set.
 
+**บทเรียน T2:** ทางเดิน `max_features="sqrt"` ของ sklearn อาจแยก node ที่ gain เป็นศูนย์ และ near-tie ระดับ floating point อาจเปลี่ยนฟีเจอร์ที่เลือกจน probability/label ต่าง. มี regression tests ปิดทั้งสองกรณี; ทางเดิน T1 ที่ `max_features=None` ยังคงเดิม.
+
 **บทเรียนสำหรับ T6/PCA:** ถ้า `PCA(k)` ขอ component เกิน numerical rank ให้บันทึก candidate นั้นเป็น `invalid` พร้อม AP/AUC เป็น `null` และเหตุผล แล้วเลือกจาก candidates ที่เหลือ. Error อื่นจาก PCA ต้อง raise ตามเดิม. การพิสูจน์ reload ต้องอ่าน `preprocessor.npz` กลับมาและ transform Validation ดิบด้วย mean/scale, constant mask และ components ที่บันทึกไว้ ก่อนเปรียบเทียบ prediction.
 
 ### T3 — `adaboost` ★ (card #15) · ~3 ชม.

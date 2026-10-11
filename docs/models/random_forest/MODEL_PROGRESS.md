@@ -28,6 +28,8 @@
 
 ## ปัญหาที่เจอและแก้แล้ว
 
+เมื่อเปิด `max_features="sqrt"` ใน Decision Tree การสุ่มบาง node ของ sklearn ยอมรับ split ที่ Gini gain เป็นศูนย์ และความต่างจากการปัดเศษระดับ `1e-17` เคยทำให้เลือกฟีเจอร์คนละตัวจน label ต่าง 3 แถวบนข้อมูลสังเคราะห์. เพิ่ม regression tests สำหรับทั้งสองกรณีและปรับเฉพาะทางเดินสุ่มฟีเจอร์ โดยคงพฤติกรรม T1 เมื่อ `max_features=None`; รีวิวตรวจ bootstrap tree เพิ่ม 400 ชุดแล้ว probability ตรง reference ทั้งหมด.
+
 trainer เดิมใช้ preprocessing ชุดเดียวกับทุก grid candidate จึงรันได้เพียง 4 raw rows และถ้า PCA ชนะ จะ reload ด้วย validation matrix ผิดมิติ. เพิ่ม PCA อีกสาม candidate หลังหา best raw และเก็บ matrix/standardizer/components ประจำ candidate; test บังคับให้ PCA(4) ชนะตรวจทั้ง 7 rows, params ที่ reuse, metadata, และ reload. การทดสอบก่อนแก้ fail ที่ 4 rows; หลังแก้ผ่าน.
 
 เมื่อ `PCA(6)` เกิน numerical rank เดิม trainer หยุดทั้ง grid. ตอนนี้บันทึกแถวที่ 7 เป็น `invalid` พร้อม AP/AUC เป็น `null` และเหตุผล; error ประเภทอื่นยัง raise. เดิม reload ตรวจเฉพาะ model บน validation matrix ในหน่วยความจำ ทำให้ไม่ตรวจ preprocessor ที่ save. ตอนนี้อ่าน `preprocessor.npz` กลับมาแล้ว transform Validation ดิบด้วย mean/scale, constant mask และ PCA components; test ปรับ components ที่อ่านกลับให้ผิดแล้วตรวจว่า verification fail. อีก test ใช้ feature คงที่บน Train แต่ต่างบน Validation เพื่อยืนยันว่าการ reload ยัง zero feature นั้นตาม Standardizer. Focused tests ของ trainer, preprocess, tree, forest ผ่าน 108 tests.
