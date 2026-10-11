@@ -19,7 +19,7 @@ import numpy as np
 from config import PROJECT_ROOT
 
 from .core import figures
-from .core.artifacts import HASHED_FILES, load_model, read_run, run_directory, sha256_file
+from .core.artifacts import HASHED_FILES, artifact_digest, load_model, read_run, run_directory
 from .core.bootstrap import REPLICATES, block_indices
 from .core.contracts import VARIANTS
 from .core.data import load
@@ -54,7 +54,7 @@ def build_lock(artifact_root: Path) -> dict:
             verification = json.loads((directory / "load_verification.json").read_text(encoding="utf-8"))
             if verification["passed"] is not True:
                 raise ValueError(f"{variant}/{name}: reload verification did not pass")
-            runs[f"{variant}/{name}"] = {file: sha256_file(directory / file) for file in HASHED_FILES}
+            runs[f"{variant}/{name}"] = {file: artifact_digest(directory / file) for file in HASHED_FILES}
         for task, (field, higher) in PRIMARY.items():
             candidates = [read_run(artifact_root, variant, name) for name in model_names()
                           if MODELS[name].task == task]
@@ -214,7 +214,7 @@ def evaluate_holdout(holdout, segment_dates, segments, *, artifact_root=None, re
         "holdout_sha256": holdout.sha256,
         "holdout_rows": int(len(holdout.X)),
         "segment_rows": {segment: int((segments == segment).sum()) for segment in SEGMENTS},
-        "lock_sha256": sha256_file(artifact_root / LOCK_NAME),
+        "lock_sha256": artifact_digest(artifact_root / LOCK_NAME),
         "headline": lock["headline"],
         "run_count": lock["run_count"],
         "replicates": replicates,

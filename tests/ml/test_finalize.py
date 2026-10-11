@@ -183,3 +183,21 @@ def test_an_unserialisable_metric_is_caught_before_anything_is_written(root, sta
     assert list(root.rglob("test_metrics.json")) == []
     assert list(root.rglob("test_predictions.csv")) == []
     assert not (root / RECEIPT_NAME).exists() and not (root / "final").exists()
+
+
+def test_the_lock_does_not_depend_on_the_line_endings_of_a_checkout(root):
+    # Git stores the JSON artifacts with LF, but the machine that trained them wrote
+    # CRLF. A lock built from raw bytes would not verify on a fresh clone.
+    before = build_lock(root)["runs"]
+    for path in root.rglob("*.json"):
+        data = path.read_bytes()
+        flipped = data.replace(b"\r\n", b"\n") if b"\r\n" in data else data.replace(b"\n", b"\r\n")
+        path.write_bytes(flipped)
+    assert build_lock(root)["runs"] == before
+
+
+def test_a_changed_binary_artifact_still_changes_the_lock(root):
+    before = build_lock(root)["runs"]
+    target = root / "with_spike" / "classification" / "knn" / "model.npz"
+    target.write_bytes(target.read_bytes() + b"\r\n")
+    assert build_lock(root)["runs"]["with_spike/knn"]["model.npz"] != before["with_spike/knn"]["model.npz"]

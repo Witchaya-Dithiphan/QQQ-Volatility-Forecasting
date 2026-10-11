@@ -58,3 +58,14 @@ def test_sha256_is_the_hex_digest_of_the_file_bytes(tmp_path):
     path = tmp_path / "x.bin"
     path.write_bytes(b"abc")
     assert sha256_file(path) == "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+
+
+def test_artifact_digest_ignores_line_endings_of_json_only(tmp_path):
+    from src.ml.core.artifacts import artifact_digest
+
+    (tmp_path / "a.json").write_bytes(b'{\n "x": 1\n}\n')
+    (tmp_path / "b.json").write_bytes(b'{\r\n "x": 1\r\n}\r\n')
+    assert artifact_digest(tmp_path / "a.json") == artifact_digest(tmp_path / "b.json") == sha256_file(tmp_path / "a.json")
+    (tmp_path / "a.npz").write_bytes(b"1\n2")
+    (tmp_path / "b.npz").write_bytes(b"1\r\n2")
+    assert artifact_digest(tmp_path / "a.npz") != artifact_digest(tmp_path / "b.npz")

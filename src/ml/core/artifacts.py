@@ -92,3 +92,16 @@ def load_model(directory: Path):
 
 def sha256_file(path: Path) -> str:
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def artifact_digest(path: Path) -> str:
+    """SHA-256 of an artifact that is the same on every checkout.
+
+    Git stores the JSON artifacts with LF, while the Windows machine that wrote them
+    used CRLF. Hashing raw bytes would make a lock built here fail to verify on a fresh
+    clone, so line endings of JSON are normalised first. Binary files are hashed as is.
+    """
+    data = Path(path).read_bytes()
+    if Path(path).suffix == ".json":
+        data = data.replace(b"\r\n", b"\n")
+    return hashlib.sha256(data).hexdigest()
