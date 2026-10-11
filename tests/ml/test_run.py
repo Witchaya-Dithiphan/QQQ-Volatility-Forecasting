@@ -136,7 +136,9 @@ def copied_runs(tmp_path):
     from src.ml.core.trainer import OUTPUT_ROOT
 
     for variant in VARIANTS:
-        shutil.copytree(OUTPUT_ROOT / variant, tmp_path / variant)
+        # As the runs were before finalize: the real one-shot outputs are left out.
+        shutil.copytree(OUTPUT_ROOT / variant, tmp_path / variant,
+                        ignore=shutil.ignore_patterns("test_metrics.json", "test_predictions.csv"))
     return tmp_path
 
 

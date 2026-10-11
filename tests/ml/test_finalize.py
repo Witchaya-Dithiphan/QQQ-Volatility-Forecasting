@@ -24,8 +24,10 @@ from src.ml.finalize import (
 
 @pytest.fixture()
 def root(tmp_path):
+    """The trained runs as they were before finalize: the real one-shot outputs are left out."""
     for variant in VARIANTS:
-        shutil.copytree(OUTPUT_ROOT / variant, tmp_path / variant)
+        shutil.copytree(OUTPUT_ROOT / variant, tmp_path / variant,
+                        ignore=shutil.ignore_patterns("test_metrics.json", "test_predictions.csv"))
     return tmp_path
 
 
