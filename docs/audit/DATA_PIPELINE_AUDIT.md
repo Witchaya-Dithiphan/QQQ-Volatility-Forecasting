@@ -40,7 +40,7 @@
 | A10 | 🟠 | `write_csv_atomically` กันแค่ `RAW_DATA_PATH`; `--output <manifest> --overwrite` เขียนทับ manifest ได้ | เพิ่ม guard ครอบ manifest | ✅ `tests/test_snapshot_write_guards.py` |
 | A11 | 🟠 | `write_json_atomically` ไม่มี guard; `--report` ชี้ snapshot/manifest ได้ | guard ทั้งสอง path | ✅ |
 | A12 | 🟡 | `clean_data.py:205,223` กันแค่ raw (runner กันครบอยู่แล้ว) | รวม helper เดียว | ⏳ ไม่แตะโค้ด clean |
-| A13 | 🟠 | `.gitignore:41` ตัด `data/raw/*`; Nasdaq เป็น rolling 10 ปี ไฟล์หายแล้วโหลดชุดเดิมไม่ได้ | commit CSV 124 KB หรือแนบกับงานส่ง | ⏳ เจ้าของตัดสิน |
+| A13 | 🟠 | `.gitignore:41` ตัด `data/raw/*`; Nasdaq เป็น rolling 10 ปี ไฟล์หายแล้วโหลดชุดเดิมไม่ได้ | commit CSV 124 KB แบบ `-text` (commit `7690862`; blob ตรง SHA ใน manifest) | ✅ แก้แล้วตัดสิน |
 | A14–A15 | 🟡 | refresh เขียนไฟล์ข้าง snapshot; `verify_snapshot` ไม่อ่าน `byte_length` | cosmetic | — |
 
 ### Track B — Clean

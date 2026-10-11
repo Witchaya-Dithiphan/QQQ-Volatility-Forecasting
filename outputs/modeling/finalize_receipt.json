@@ -1,0 +1,23 @@
+{
+  "command": "D:\\Users\\Chern\\OneDrive\\Desktop\\gitWorkSpace\\IMLDL\\QQQ-Volatility-Forecasting\\src\\ml\\run.py finalize --allow-test",
+  "finalized_at_utc": "2026-10-11T14:02:01+00:00",
+  "git_dirty": false,
+  "git_revision": "cb12d2251e41919f4883cc106ab23479f6b126d7",
+  "headline": {
+    "non_spike/classification": "random_forest",
+    "non_spike/regression": "elastic_net",
+    "with_spike/classification": "mlp",
+    "with_spike/regression": "elastic_net"
+  },
+  "holdout_rows": 373,
+  "holdout_sha256": "5e8ac488cb895a8899abd9b3ae9193b4dc6ebda2e77b79982cef4f5ea9bf7295",
+  "lock_sha256": "adf79116ae5c3c25b2501278a11a3c99743cf0043dcacd0baf06220f7b409f3e",
+  "previous_receipts": [],
+  "replicates": 2000,
+  "rerun_reason": null,
+  "run_count": 38,
+  "segment_rows": {
+    "non_spike": 319,
+    "spike_affected": 54
+  }
+}

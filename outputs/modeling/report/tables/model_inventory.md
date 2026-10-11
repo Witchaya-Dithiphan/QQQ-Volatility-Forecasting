@@ -1,0 +1,23 @@
+### Model inventory and selected settings
+
+| model | task | candidates | reference | preprocess | params_with_spike | params_non_spike | pca_with_spike | pca_non_spike |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| adaboost | classification | 6 | AdaBoostClassifier | none | {"learning_rate": 0.5, "n_estimators": 100, "random_state": 42} | {"learning_rate": 0.5, "n_estimators": 100, "random_state": 42} | n/a | n/a |
+| agglomerative | clustering | 10 | AgglomerativeClustering | standardize | {"k": 2, "linkage": "ward"} | {"k": 2, "linkage": "average"} | n/a | n/a |
+| decision_tree | classification | 6 | DecisionTreeClassifier | none | {"max_depth": 2, "max_features": null, "min_samples_leaf": 5, "random_state": 42} | {"max_depth": 5, "max_features": null, "min_samples_leaf": 5, "random_state": 42} | n/a | n/a |
+| elastic_net | regression | 12 | ElasticNet | standardize | {"alpha": 0.1, "l1_ratio": 0.25, "max_iter": 5000, "tol": 1e-06} | {"alpha": 0.1, "l1_ratio": 0.25, "max_iter": 5000, "tol": 1e-06} | n/a | n/a |
+| gaussian_nb | classification | 3 | GaussianNB | none | {"var_smoothing": 1e-07} | {"var_smoothing": 1e-08} | n/a | n/a |
+| gradient_boosting | classification | 8 | GradientBoostingClassifier | none | {"learning_rate": 0.1, "max_depth": 1, "min_samples_leaf": 5, "n_estimators": 50, "random_state": 42} | {"learning_rate": 0.03, "max_depth": 2, "min_samples_leaf": 5, "n_estimators": 50, "random_state": 42} | n/a | n/a |
+| kmeans | clustering | 5 | KMeans | standardize | {"k": 2, "max_iter": 300, "n_init": 10, "random_state": 42, "tol": 1e-06} | {"k": 2, "max_iter": 300, "n_init": 10, "random_state": 42, "tol": 1e-06} | n/a | n/a |
+| knn | classification | 8 | KNeighborsClassifier | standardize | {"k": 15, "weights": "distance"} | {"k": 9, "weights": "distance"} | n/a | n/a |
+| logistic | classification | 6 | LogisticRegression | standardize | {"class_weight": null, "l2": 0.01, "learning_rate": 0.05, "max_iter": 5000, "tol": 1e-06} | {"class_weight": null, "l2": 0, "learning_rate": 0.05, "max_iter": 5000, "tol": 1e-06} | n/a | n/a |
+| mlp | classification | 12 | MLPClassifier | standardize | {"activation": "relu", "batch": 32, "hidden_layers": [16], "l2": 0, "learning_rate": 0.001, "max_epochs": 1000, "min_delta": 1e-06, "momentum": 0.9, "patience": 50, "random_state": 42} | {"activation": "relu", "batch": 32, "hidden_layers": [16, 8], "l2": 0, "learning_rate": 0.01, "max_epochs": 1000, "min_delta": 1e-06, "momentum": 0.9, "patience": 50, "random_state": 42} | n/a | n/a |
+| multiple_linear | regression | 1 | LinearRegression | standardize | {"fit_intercept": true} | {"fit_intercept": true} | n/a | n/a |
+| perceptron | classification | 3 | Perceptron | standardize | {"learning_rate": 0.001, "max_epochs": 1000} | {"learning_rate": 0.001, "max_epochs": 1000} | n/a | n/a |
+| polynomial | regression | 16 | Pipeline | standardize | {"degree": 3, "feature": "historical_volatility_20d", "standardize_before_powers": true} | {"degree": 2, "feature": "return_5d", "standardize_before_powers": true} | n/a | n/a |
+| random_forest | classification | 7 | RandomForestClassifier | none | {"bootstrap": true, "max_depth": 3, "max_features": "sqrt", "min_samples_leaf": 5, "n_estimators": 100, "random_state": 42} | {"bootstrap": true, "max_depth": 5, "max_features": "sqrt", "min_samples_leaf": 5, "n_estimators": 50, "random_state": 42} | n/a | n/a |
+| simple_linear | regression | 8 | LinearRegression | none | {"feature": "historical_volatility_20d"} | {"feature": "return_1d"} | n/a | n/a |
+| slp | classification | 8 | LogisticRegression | standardize | {"batch": 32, "l2": 0, "learning_rate": 0.001, "max_epochs": 1000, "min_delta": 1e-06, "patience": 50, "random_state": 42} | {"batch": "full", "l2": 0, "learning_rate": 0.01, "max_epochs": 1000, "min_delta": 1e-06, "patience": 50, "random_state": 42} | n/a | n/a |
+| stacking | classification | 1 | StackingClassifier | base_specific | {"folds": 4, "initial_fraction": 0.4, "purge": 5, "random_state": 42} | {"folds": 4, "initial_fraction": 0.4, "purge": 5, "random_state": 42} | n/a | n/a |
+| svm | classification | 12 | SVC | standardize | {"C": 0.1, "fit_intercept": true, "max_iter": 20000, "random_state": 42} | {"C": 10, "fit_intercept": true, "max_iter": 20000, "random_state": 42} | 4 | 4 |
+| xgboost | classification | 8 | XGBClassifier | none | {"gamma": 0, "learning_rate": 0.03, "max_depth": 1, "n_estimators": 100, "random_state": 42, "reg_lambda": 1} | {"gamma": 0.1, "learning_rate": 0.03, "max_depth": 2, "n_estimators": 100, "random_state": 42, "reg_lambda": 10} | n/a | n/a |

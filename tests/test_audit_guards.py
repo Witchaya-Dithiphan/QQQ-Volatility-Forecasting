@@ -295,18 +295,34 @@ def test_only_the_data_module_and_finalize_reference_the_test_split() -> None:
     assert offenders == []
 
 
+FINALIZE_RECEIPT = PROJECT_ROOT / "outputs" / "modeling" / "finalize_receipt.json"
+FINALIZE_ONLY_CSV = "test_predictions.csv"
+
+
 @needs_data
-def test_modeling_artifacts_contain_no_test_period_dates(
+def test_only_finalize_outputs_contain_test_period_dates(
     splits: dict[str, pd.DataFrame],
 ) -> None:
+    """Test-period rows may appear in one file name only, and only once finalize left a receipt."""
     first_test_date = splits["test"]["Date"].iloc[0].strftime("%Y-%m-%d")
     date_pattern = re.compile(r"^(\d{4}-\d{2}-\d{2}),", re.MULTILINE)
+    finalized = FINALIZE_RECEIPT.is_file()
     offenders = [
         path.relative_to(PROJECT_ROOT).as_posix()
         for path in sorted((PROJECT_ROOT / "outputs" / "modeling").rglob("*.csv"))
+        if not (finalized and path.name == FINALIZE_ONLY_CSV)
         if any(
             date >= first_test_date
             for date in date_pattern.findall(path.read_text(encoding="utf-8"))
         )
     ]
     assert offenders == []
+
+
+def test_finalize_outputs_exist_only_with_a_receipt() -> None:
+    produced = sorted(
+        path.relative_to(PROJECT_ROOT).as_posix()
+        for name in ("test_metrics.json", FINALIZE_ONLY_CSV)
+        for path in (PROJECT_ROOT / "outputs" / "modeling").rglob(name)
+    )
+    assert FINALIZE_RECEIPT.is_file() or produced == []

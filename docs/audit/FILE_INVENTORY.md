@@ -13,7 +13,7 @@
 | `pytest.ini` | ใช้งาน · `--basetemp=.pytest_tmp` แก้ปัญหา cross-drive |
 | `requirements.in` / `.txt` / `-lock.txt` | ใช้งาน · 69 pin ตรง `.venv` |
 | `.gitattributes` | แก้ใน audit นี้ (เพิ่ม csv/npz/png) |
-| `.gitignore` | ใช้งาน · ตัด `data/raw/*` (A13) |
+| `.gitignore` | ใช้งาน · ตัด `data/raw/*` ยกเว้น snapshot ที่ track แล้ว (A13) |
 
 ## Data pipeline (`src/*.py`)
 
@@ -63,15 +63,15 @@
 
 | ที่อยู่ | เนื้อหา | git |
 | --- | --- | --- |
-| `data/raw/qqq_daily.csv` | 2,512 แถว, 124,154 bytes | ignore (A13) |
+| `data/raw/qqq_daily.csv` | 2,512 แถว, 124,154 bytes | track แบบ `-text` (A13 แก้แล้ว) |
 | `data/manifests/qqq_daily_snapshot.json` | SHA และ metadata ของ snapshot | track |
 | `data/interim/` | `qqq_clean.csv`, `qqq_features.csv`, `qqq_regression_target.csv` | ignore |
 | `data/processed/` | `train/validation/test.csv` + `_labeled` | ignore |
 | `data/processed/experiments/` | `with_spikes/train.csv`, `non_spike/train.csv`, `diagnostics/*_flagged.csv` | ignore |
 | `outputs/reports/` | report 10 ไฟล์ (hash 26 รายการตรงไฟล์จริง) | track |
-| `outputs/figures/` | 4 ไฟล์ · ยังไม่มี `data_preparation/` | track |
+| `outputs/figures/` | 16 ไฟล์ · รวม `data_preparation/` 13 รูปจาก notebook 01/02 | track |
 | `outputs/modeling/` | 38 ชุด, 370 ไฟล์ | track |
-| `outputs/models/`, `outputs/metrics/` | `.gitkeep` เท่านั้น | ตาย |
+| `outputs/models/`, `outputs/metrics/` | `.gitkeep` เท่านั้น | ตาย — ลบออกแล้วเมื่อ 2026-10-11 |
 | `tmp/phase1-reproduction/` | 14 ไฟล์ เหมือนชุดตรวจรับ · **ห้ามลบ** | ignore |
 | `tmp/audit-repro/` | ผลรันซ้ำของ audit นี้ · ลบได้ | ignore |
 
@@ -79,8 +79,8 @@
 
 | ไฟล์ | cells | คำตัดสิน |
 | --- | --- | --- |
-| `01_data_cleaning.ipynb` | 21 | ตัวเลขและ SHA ตรงของจริง · metadata เป็น Python 3.11.5 |
-| `02_eda_and_features.ipynb` | 32 | ตัวเลขตรง · hash ของ report 2 ตัวล้าสมัย · อ่าน Test เชิงพรรณนา |
+| `01_data_cleaning.ipynb` | 21 | ตัวเลขและ SHA ตรงของจริง · รันใหม่บน Python 3.14.8 เมื่อ 2026-10-11 |
+| `02_eda_and_features.ipynb` | 34 | รันใหม่ 2026-10-11 · hash ตรงแล้ว · เพิ่ม §11b Data Summary · อ่าน Test เชิงพรรณนา |
 | `03_regression.ipynb`, `04_classification.ipynb` | 0 | ว่างเปล่า ส่งแบบนี้ไม่ได้ |
 
 ## เอกสาร

@@ -1,7 +1,7 @@
 # ARCHITECTURE — ชั้น modeling ของ QQQ Volatility Forecasting
 
 > ขอบเขตของเอกสารนี้คือ **ชั้น modeling เท่านั้น** ชั้นข้อมูล (Phase 1/2) เสร็จและ freeze แล้ว
-> สถานะจริงที่เอกสารนี้ตั้งอยู่บน: `docs/audit/REALITY_AUDIT.md`
+> สถานะจริงที่เอกสารนี้ตั้งอยู่บน: `docs/archive/REALITY_AUDIT.md`
 > contract ที่ต้องทำตามตอนเขียนโค้ด: `AGENTS.md`
 
 ---
@@ -57,7 +57,21 @@ hyperparameter, วัดผล, เซฟ, วาดรูป) เป็นห�
 | `figures.py` | ROC curve, confusion matrix, performance curve, leaderboard + รูปเปรียบเทียบ A↔B | เขียนใหม่ |
 | `registry.py` | ทะเบียนชื่อโมเดล → คลาส เพื่อให้ CLI เรียกด้วยชื่อได้ | เขียนใหม่ |
 
-`src/ml/run.py` คือ CLI เดียวของชั้นนี้ (`train` / `report` / `finalize`)
+โมดูลที่เพิ่มใน Phase C (2026-10-11) ทุกตัว **อ่าน artifact แล้วคำนวณต่อ ไม่เทรนผู้ชนะใหม่**:
+
+| ไฟล์ | หน้าที่ |
+| --- | --- |
+| `core/artifacts.py` | อ่าน run กลับจากดิสก์ (ตัวเลข, คำทำนาย, โมเดล + preprocessing) และ hash ที่ไม่ขึ้นกับ line ending |
+| `core/bootstrap.py` | moving-block bootstrap (ก้อน 20 วัน, 2,000 รอบ) สำหรับช่วงความเชื่อมั่นและผลต่างแบบ paired |
+| `core/report.py` | leaderboard บน Validation, baseline ที่ไม่ต้องเทรน, รูป ROC / PR / confusion / performance |
+| `core/comparison.py` | เทียบ `with_spike` กับ `non_spike` แบบ paired บน Validation |
+| `core/importance.py` | block-permutation importance และ coefficient ของโมเดลเชิงเส้น |
+| `core/walk_forward.py` | expanding-window ภายใน Train ด้วยการตั้งค่าที่ชนะ (ตาราง robustness ไม่ใช้เลือกโมเดล) |
+| `finalize.py` | selection lock, receipt และการประเมินบน holdout ที่ `run.py` ส่งมา (ไม่เปิดไฟล์ Test เอง) |
+| `report_tables.py` | ตารางเฉพาะของรายงาน สร้างจากไฟล์ผลที่มีอยู่ |
+| `docs_sync.py` | เติมตารางที่ generate ลงในเอกสาร และมี test ตรวจว่าเอกสารตรงกับไฟล์ผล |
+
+`src/ml/run.py` คือ CLI ของชั้นนี้ (`train` / `report` / `compare` / `analyze` / `finalize`)
 
 ---
 
@@ -163,6 +177,23 @@ artifact 8–12 ไฟล์ + manifest 25 ฟิลด์ต่อ run × 38 ru
 พิสูจน์แล้วว่าทำให้ผลเป็น **459 passed, 3 skipped, 0 failed** ณ วันนั้น
 (⚠️ แก้ไข 2026-10-11: ปัจจุบัน 1,002 passed)
 
+### ADR-007 — ล็อกก่อนเปิด Test และออกใบรับรองหลังเปิด (เพิ่ม 2026-10-11)
+
+**มติ:** `finalize` ทำงานสองขั้น ขั้นแรก `--dry-run` เขียน `selection_lock.json` (hash ของไฟล์ที่กำหนดคำทำนาย
+ของทั้ง 38 run และชื่อ headline model ต่อ task/variant) ซึ่งต้อง commit ก่อน ขั้นที่สอง `--allow-test`
+ตรวจว่า artifact ยังตรงกับ lock แล้วประเมินบน Test หนึ่งครั้ง และเขียน `finalize_receipt.json`
+(hash ของ Test, hash ของ lock, git revision) เมื่อมี receipt แล้วคำสั่งจะปฏิเสธทั้งการประเมินซ้ำและการเขียน lock ใหม่
+เว้นแต่ระบุ `--rerun-reason` ซึ่งจะถูกบันทึกและต้องเปิดเผยในรายงาน
+
+**เหตุผล:** ADR-005 กัน Test รั่วเข้า loop เลือกโมเดล แต่ไม่ได้กันการ "เลือกโมเดลเด่นย้อนหลัง" หรือการประเมินซ้ำ
+หลังแก้โค้ด ซึ่งทำให้ตัวเลข Test ไม่ใช่ค่าประมาณที่ไม่ลำเอียงอีกต่อไป lock + receipt ทำให้ตรวจย้อนได้จากไฟล์ใน git
+ว่าอะไรถูกตัดสินใจก่อนเห็นผล
+
+**รายละเอียดที่ทำให้ใช้ได้จริง:** (1) ไม่มีไฟล์ใดถูกเขียนจนกว่าทุกโมเดลจะถูกประเมินและตรวจว่า serialize ได้
+เพื่อไม่ให้การล้มกลางทางทิ้งผล Test ครึ่งเดียวไว้โดยไม่มี receipt (2) hash ของไฟล์ JSON ถูก normalize line ending
+ก่อน เพราะเครื่องที่เทรนเขียน CRLF แต่ git เก็บ LF (3) `finalize.py` รับ array จาก `run.py` จึงไม่ต้องเพิ่มข้อยกเว้น
+ใน static guard ที่จำกัดไฟล์ที่อ้างถึง Test
+
 ---
 
 ## 4. การไหลของงานหนึ่งรอบ (trainer)
@@ -180,7 +211,7 @@ artifact 8–12 ไฟล์ + manifest 25 ฟิลด์ต่อ run × 38 ru
                svm ไขว้ทุก C กับทุกขนาด PCA (3 x 4 = 12)
    โมเดลที่ fit รับ `positions` (stacking) จะได้ index วันทำการบน timeline เดิมของ with_spike
    preprocess `base_specific` (stacking) = trainer ไม่ scale ให้ โมเดล standardize เองราย base
-4. select_candidate()                 → ผู้ชนะ 1 ตัว (เกณฑ์: regression=rmse, classification=AP→AUC)
+4. select_candidate()                 → ผู้ชนะ 1 ตัว (เกณฑ์: regression=RMSE หลัง clip แล้ว MAE, classification=AP แล้ว AUC)
 5. [classification] ใช้ threshold คงที่: 0.5 สำหรับ probability, 0 สำหรับ decision score
    (`metrics.select_threshold()` มีอยู่และมี test แต่ trainer **ไม่ได้เรียก** — ผลทุกตัวในโปรเจกต์
    รายงานที่ threshold คงที่ ไม่มีการจูน threshold บน Validation)
@@ -195,7 +226,7 @@ Test ไม่ปรากฏในลูปนี้เลย — เข้า�
 
 ## 5. สิ่งที่ตั้งใจ **ไม่** ทำ (YAGNI)
 
-ไม่ทำ cross-validation (ข้อมูลเป็น time series ใช้ chronological split ตามที่ตรวจรับไว้แล้ว) ·
+ไม่ใช้ cross-validation **เลือก** โมเดล (ข้อมูลเป็น time series ใช้ chronological split ตามที่ตรวจรับไว้แล้ว · ตาราง walk-forward ภายใน Train มีไว้ดูความเสถียรของอันดับเท่านั้น) ·
 ไม่ทำ hyperparameter search อัตโนมัติแบบ Bayesian (ใช้ grid เล็กที่กำหนดไว้ล่วงหน้า) ·
 ไม่ทำ model registry/versioning ·
 ไม่ทำ experiment tracking server ·

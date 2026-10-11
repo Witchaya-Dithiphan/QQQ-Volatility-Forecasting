@@ -3,17 +3,17 @@
 > เอกสารนี้คือ **แหล่งความจริงเดียว** สำหรับวิธีเขียนโค้ดในโปรเจกต์นี้
 > Codex CLI อ่านไฟล์นี้โดยอัตโนมัติ · `CLAUDE.md` ชี้มาที่ไฟล์นี้ · ห้ามสร้างเอกสารคู่ขนานที่อาจขัดกันเอง
 >
-> ทีมมี 2 คนทำงานคนละ branch ด้วย agent คนละตัว **คุณจะไม่เห็นงานของอีกฝั่งจนกว่าจะ merge**
-> ทุกอย่างในไฟล์นี้จึงเป็นข้อผูกพัน ไม่ใช่คำแนะนำ
+> ⚠️ **แก้ไข 2026-10-11:** ช่วงเขียนโมเดล ทีม 2 คนทำงานคนละ branch ด้วย agent คนละตัว
+> (Claude Code และ Codex CLI) ไฟล์นี้จึงถูกเขียนเป็นข้อผูกพัน ไม่ใช่คำแนะนำ ตั้งแต่ Phase C
+> (สรุปผล, notebook, รายงาน) ทีมทำงานร่วมกันบน branch เดียว **ไม่มีการแบ่งเขตเจ้าของไฟล์แล้ว**
+> แต่กฎข้อ 1–7 ยังใช้ทุกข้อ
 >
 > ---
 >
-> ## อ่านจบแล้วไปที่ task ของตัวเอง
+> ## งานปัจจุบัน
 >
-> | คุณใช้ | งานของคุณ |
-> | --- | --- |
-> | **Codex CLI** | [`docs/tasks/codex-tree-family.md`](docs/tasks/codex-tree-family.md) — 8 โมเดล tree/ensemble/margin |
-> | **Claude Code** | [`docs/tasks/claude-linear-family.md`](docs/tasks/claude-linear-family.md) — core framework + 11 โมเดล |
+> แผน Phase C: [`docs/superpowers/plans/2026-10-11-phase-c-report-and-finalize.md`](docs/superpowers/plans/2026-10-11-phase-c-report-and-finalize.md)
+> · ใบงานช่วงเขียนโมเดล (ประวัติ) อยู่ใน [`docs/archive/`](docs/archive/)
 >
 > สเปกคณิตศาสตร์รายโมเดลอยู่ที่ [`docs/plan/MODEL_CARDS.md`](docs/plan/MODEL_CARDS.md)
 > · ดัชนีเอกสารทั้งหมด [`docs/README.md`](docs/README.md)
@@ -137,7 +137,7 @@ class BaseModel:
 **ทำไมต้องมี progress ต่อโมเดล:** ทั้งสอง agent ทำงานคนละ session และ context หายเมื่อเริ่มรอบใหม่
 ไฟล์นี้คือสิ่งที่ทำให้หยิบงานต่อได้โดยไม่ต้องอ่านเอกสารทั้งโปรเจกต์ซ้ำ — ส่วนที่มีค่าที่สุดคือ
 **"ปัญหาที่เจอและแก้แล้ว"** ถ้า pitfall นั้นจะเกิดกับโมเดลอื่นด้วย ให้ยกขึ้นไปไว้ส่วนกลาง
-(Codex → `docs/tasks/codex-tree-family.md` §5) ไม่ใช่ปล่อยไว้ในไฟล์เดียว
+(Codex → `docs/archive/codex-tree-family.md` §5) ไม่ใช่ปล่อยไว้ในไฟล์เดียว
 
 ---
 
@@ -195,6 +195,17 @@ outputs/modeling/<variant>/<task>/<model>/
 
 ตอน finalize จึงเพิ่ม `test_metrics.json`, `test_predictions.csv`
 
+ไฟล์ที่สร้างจาก run ทั้งหมด (Phase C) อยู่นอกโฟลเดอร์ของโมเดล:
+
+| ที่อยู่ | สร้างโดย | เนื้อหา |
+| --- | --- | --- |
+| `outputs/modeling/report/<variant>/` | `report`, `analyze` | leaderboard (CSV + Markdown), feature importance, coefficient, walk-forward |
+| `outputs/modeling/report/comparison_a_vs_b.*` | `compare` | เทียบ `with_spike` กับ `non_spike` แบบ paired |
+| `outputs/figures/modeling/` | `report`, `compare`, `analyze` | รูป ROC, PR, confusion matrix, performance curve ฯลฯ |
+| `outputs/modeling/selection_lock.json` | `finalize --dry-run` | hash ของ 38 run + ชื่อ headline ที่ล็อกก่อนเปิด Test |
+| `outputs/modeling/finalize_receipt.json` | `finalize --allow-test` | ใบรับรองว่า Test ถูกอ่านแล้ว (มีไฟล์นี้ = ห้ามรันซ้ำ) |
+| `outputs/modeling/final/` | `finalize --allow-test` | leaderboard บน Test และ metric แยกช่วง spike/สงบ |
+
 ---
 
 ## 8. Git workflow
@@ -213,7 +224,11 @@ main
 - **ห้าม commit:** `.venv/`, `tmp/`, ไฟล์ข้อมูลที่ generate ได้ใน `data/`
   (⚠️ แก้ไข 2026-10-11: `outputs/modeling/**` **ต้อง commit** — `.gitignore` ตั้งใจ track ไว้เป็นหลักฐาน 38 ชุด)
 
-**การแบ่งงาน** (ห้ามข้ามเขต)
+> ⚠️ **แก้ไข 2026-10-11:** ตั้งแต่ Phase C ทีมทำงานร่วมกันบน branch เดียว
+> (`feat/report-and-finalize`) **ไม่มีการแบ่งเขตเจ้าของไฟล์แล้ว** branch สามสายด้านบนถูก merge
+> เข้า `main` และลบไปแล้ว ตารางด้านล่างเก็บไว้เป็นประวัติว่าโมเดลแต่ละตัวเขียนขึ้นในสายงานไหน
+
+**การแบ่งงานช่วงเขียนโมเดล (ประวัติ)**
 
 **ชื่อโมเดลต้องตรงกับ key ใน `configs/modeling.json` เป๊ะ** (ชื่อไฟล์ = ชื่อ key = `BaseModel.name`)
 
@@ -248,11 +263,19 @@ rem เทรนโมเดลเดียว
 rem เทรนทั้งชุด
 .\.venv\Scripts\python.exe -m src.ml.run train --all --variant with_spike
 
-rem ⚠️ แก้ไข 2026-10-11: report และ finalize ยังไม่ implement (exit 1) — เป็นงาน Phase C
-rem ตาราง leaderboard + รูปทั้งหมด
+rem ตาราง leaderboard + รูปทั้งหมดบน Validation (รันทั้งสอง variant)
 .\.venv\Scripts\python.exe -m src.ml.run report --variant with_spike
 
-rem finalize (แตะ Test ครั้งเดียวตอนจบ)
+rem เทียบ with_spike กับ non_spike แบบ paired
+.\.venv\Scripts\python.exe -m src.ml.run compare
+
+rem feature importance + walk-forward robustness (ราว 4 นาทีต่อ variant)
+.\.venv\Scripts\python.exe -m src.ml.run analyze --variant with_spike
+
+rem ล็อก 38 run และ headline ก่อนเปิด Test (ไม่อ่าน Test)
+.\.venv\Scripts\python.exe -m src.ml.run finalize --dry-run
+
+rem อ่าน Test ครั้งเดียว — ต้องได้รับอนุมัติจากเจ้าของโปรเจกต์ก่อน และรันซ้ำไม่ได้
 .\.venv\Scripts\python.exe -m src.ml.run finalize --allow-test
 ```
 

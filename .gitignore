@@ -52,13 +52,6 @@ data/processed/*
 # ผลโมเดล รายงาน และรูป = หลักฐานที่รายงานต้องอ้างอิง และทั้งสอง agent ต้องเห็นเพื่อทำ
 # leaderboard กับ paired comparison A/B จึง commit ทั้งหมด — วัดแล้ว 38 runs รวม 1.08 MB
 # (text 1.04 + binary .npz 0.04) ซึ่งเล็กเกินกว่าจะมีเหตุผลให้ซ่อน
-#
-# ที่ยังซ่อน: outputs/models/ กับ outputs/metrics/ เป็นโฟลเดอร์ร้างจากสถาปัตยกรรมเดิม
-# ที่เลิกใช้แล้ว (ADR-001) ของจริงอยู่ใต้ outputs/modeling/
-outputs/metrics/*
-outputs/models/*
-!outputs/metrics/.gitkeep
-!outputs/models/.gitkeep
 
 # Serialized models and large data artifacts
 *.pkl
@@ -96,3 +89,7 @@ Desktop.ini
 .python-version
 site/
 .pytest_tmp/
+
+# Node packages installed for the report build tool
+node_modules/
+package-lock.json

@@ -59,6 +59,21 @@ stress test นอก grid (240 รัน: 40 seeds × {ข้อมูลต่
 
 ## ค้างอยู่
 
-- leaderboard: `src.ml.run report` ยังไม่ implement เช่นเดียวกับ T1–T3
+- leaderboard: มีแล้ว (อัปเดต 2026-10-11) — `python -m src.ml.run report --variant <variant>` เขียน `outputs/modeling/report/<variant>/leaderboard_classification.{csv,md}` ซึ่งมีแถวของโมเดลนี้ทั้งสอง variant
 - การ sort ของ sklearn เป็น introsort (ไม่ stable) ส่วนเราใช้ stable sort; ลำดับของค่าที่ซ้ำกันจึงอาจต่าง และกระทบ roundoff ได้ในทางทฤษฎี. stress test 120 รันบนข้อมูลที่มีค่าซ้ำยังไม่เจอ แต่ไม่ได้พิสูจน์ว่าเป็นไปไม่ได้
 - ยังไม่แตะ Test set
+
+## ผลจริงจากไฟล์ผล (สร้างอัตโนมัติ ห้ามแก้ด้วยมือ)
+
+ตารางนี้ถูกเติมโดย `python -m src.ml.docs_sync` จาก `validation_metrics.json` และ `test_metrics.json` ของโมเดลนี้ ตารางด้านบนของไฟล์เป็นบันทึกระหว่างพัฒนาและเก็บไว้ตามเดิม
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/gradient_boosting.md -->
+### ผลจริงของ `gradient_boosting`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"learning_rate": 0.1, "max_depth": 1, "min_samples_leaf": 5, "n_estimators": 50, "random_state": 42} | 0.2531 | 0.6754 | 0.2449 | 0.1765 | 0.4000 | 0.9733 | 0.9003 |
+| with_spike | test (one-shot) | {"learning_rate": 0.1, "max_depth": 1, "min_samples_leaf": 5, "n_estimators": 50, "random_state": 42} | 0.5332 | 0.7665 | 0.4390 | 0.3699 | 0.5400 | 0.9233 | 0.8150 |
+| non_spike | validation (selection score) | {"learning_rate": 0.03, "max_depth": 2, "min_samples_leaf": 5, "n_estimators": 50, "random_state": 42} | 0.2525 | 0.6732 | 0.2667 | 0.1765 | 0.5455 | 0.9852 | 0.9111 |
+| non_spike | test (one-shot) | {"learning_rate": 0.03, "max_depth": 2, "min_samples_leaf": 5, "n_estimators": 50, "random_state": 42} | 0.5653 | 0.7861 | 0.3762 | 0.2603 | 0.6786 | 0.9700 | 0.8311 |
+<!-- END GENERATED -->

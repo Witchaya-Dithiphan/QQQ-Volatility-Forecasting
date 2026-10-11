@@ -1,0 +1,14 @@
+{
+  "cluster_sizes": {
+    "0": 233,
+    "1": 140
+  },
+  "inertia": {
+    "reason": null,
+    "value": 3276.049108489039
+  },
+  "silhouette": {
+    "reason": null,
+    "value": 0.29938304967377743
+  }
+}

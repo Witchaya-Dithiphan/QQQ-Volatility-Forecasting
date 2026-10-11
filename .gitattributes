@@ -12,3 +12,9 @@ data/raw/qqq_daily.csv -text
 *.png binary
 .gitattributes text eol=lf
 .gitignore text eol=lf
+# Office and PDF deliverables are binary; never normalise or diff them as text.
+*.docx binary
+*.pptx binary
+*.pdf binary
+*.js text eol=lf
+*.ps1 text eol=lf

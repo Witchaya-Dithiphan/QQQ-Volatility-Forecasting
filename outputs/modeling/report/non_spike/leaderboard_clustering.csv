@@ -1,0 +1,3 @@
+model,variant,k,silhouette,inertia,cluster_sizes
+agglomerative,non_spike,2,0.46423609126651705,1844.8884228488487,"{""0"": 359, ""1"": 12}"
+kmeans,non_spike,2,0.329818892864481,1448.925912687895,"{""0"": 267, ""1"": 104}"

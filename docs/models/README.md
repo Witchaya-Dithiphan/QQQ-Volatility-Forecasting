@@ -55,6 +55,6 @@ source + test
 - อัปเดต **หลังจบทุกตัว** ทั้งไฟล์นี้และตารางในดัชนี — ไม่ใช่รอจบทั้งหมดแล้วเขียนทีเดียว
 - ตัวเลขต้องมาจากการรันจริง ชี้กลับไปไฟล์ใน `outputs/modeling/` ได้
 - ถ้าเจอ pitfall ที่จะเกิดซ้ำกับโมเดลอื่นด้วย ให้ยกขึ้นไปไว้ที่ส่วนกลาง
-  (ฝั่ง Claude = skill `qqq-model` · ฝั่ง Codex = `docs/tasks/codex-tree-family.md` §5)
+  (ฝั่ง Claude = skill `qqq-model` · ฝั่ง Codex = `docs/archive/codex-tree-family.md` §5)
   ไม่ใช่ปล่อยไว้ในไฟล์ของโมเดลเดียว
 - แก้เฉพาะโมเดลที่ตัวเองรับผิดชอบ ([`AGENTS.md`](../../AGENTS.md) §8)

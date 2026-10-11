@@ -70,6 +70,21 @@ sklearn 1.9.1: `AdaBoostClassifier` ไม่มีพารามิเตอ�
 
 ## ค้างอยู่
 
-- leaderboard: `src.ml.run report` ยังไม่ implement เช่นเดียวกับ T1/T2
+- leaderboard: มีแล้ว (อัปเดต 2026-10-11) — `python -m src.ml.run report --variant <variant>` เขียน `outputs/modeling/report/<variant>/leaderboard_classification.{csv,md}` ซึ่งมีแถวของโมเดลนี้ทั้งสอง variant
 - เคส `completed_early` (`err ≥ 0.5` หลังรอบแรก) ยังไม่มี test เพราะสร้างข้อมูลที่ทำให้เกิดไม่ได้ง่าย ๆ ด้วย Gini stump; มีแต่ test ของ perfect และ first-failed
 - ยังไม่ได้ทำ paired test ของสมมติฐาน outlier · ยังไม่แตะ Test set
+
+## ผลจริงจากไฟล์ผล (สร้างอัตโนมัติ ห้ามแก้ด้วยมือ)
+
+ตารางนี้ถูกเติมโดย `python -m src.ml.docs_sync` จาก `validation_metrics.json` และ `test_metrics.json` ของโมเดลนี้ ตารางด้านบนของไฟล์เป็นบันทึกระหว่างพัฒนาและเก็บไว้ตามเดิม
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/adaboost.md -->
+### ผลจริงของ `adaboost`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"learning_rate": 0.5, "n_estimators": 100, "random_state": 42} | 0.2363 | 0.6768 | 0.2222 | 0.1765 | 0.3000 | 0.9585 | 0.8868 |
+| with_spike | test (one-shot) | {"learning_rate": 0.5, "n_estimators": 100, "random_state": 42} | 0.4858 | 0.7614 | 0.4853 | 0.4521 | 0.5238 | 0.9000 | 0.8123 |
+| non_spike | validation (selection score) | {"learning_rate": 0.5, "n_estimators": 100, "random_state": 42} | 0.2407 | 0.6409 | 0.2353 | 0.1765 | 0.3529 | 0.9674 | 0.8949 |
+| non_spike | test (one-shot) | {"learning_rate": 0.5, "n_estimators": 100, "random_state": 42} | 0.5443 | 0.7735 | 0.5000 | 0.4110 | 0.6383 | 0.9433 | 0.8391 |
+<!-- END GENERATED -->

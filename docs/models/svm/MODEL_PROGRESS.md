@@ -51,7 +51,7 @@ synthetic 3 seeds × 3 ค่า C ผ่านเกณฑ์เดียวก
 - **center feature ภายใน solver** (เพิ่ม 2026-10-11) แล้วเลื่อน intercept กลับตอนจบ. intercept ไม่ถูก penalize
   ดังนั้น `w·(x − mean) + b` กับ `w·x + b'` เป็นโมเดลเดียวกันและมี optimum เดียวกัน — ต่างแค่ความเร็วลู่เข้า.
   ทำเฉพาะเมื่อ `fit_intercept=True`.
-- **12 candidates ต้องแก้ trainer** (ดูหมายเหตุ core ใน [`codex-tree-family.md`](../../tasks/codex-tree-family.md)): svm ไขว้ทุก C กับทุกขนาด PCA ต่างจาก random_forest ที่ลอง PCA เฉพาะค่าที่ชนะ.
+- **12 candidates ต้องแก้ trainer** (ดูหมายเหตุ core ใน [`codex-tree-family.md`](../../archive/codex-tree-family.md)): svm ไขว้ทุก C กับทุกขนาด PCA ต่างจาก random_forest ที่ลอง PCA เฉพาะค่าที่ชนะ.
 
 ## ไฟล์
 
@@ -72,6 +72,21 @@ synthetic 3 seeds × 3 ค่า C ผ่านเกณฑ์เดียวก
 
 ## ค้างอยู่
 
-- leaderboard: `src.ml.run report` ยังไม่ implement
+- leaderboard: มีแล้ว (อัปเดต 2026-10-11) — `python -m src.ml.run report --variant <variant>` เขียน `outputs/modeling/report/<variant>/leaderboard_classification.{csv,md}` ซึ่งมีแถวของโมเดลนี้ทั้งสอง variant
 - kernel SVM ไม่ได้ทำ (config กำหนด `kernel: linear`); รายงานอธิบาย kernel trick ได้โดยไม่ implement ตามแผนสำรองของ card
 - ยังไม่แตะ Test set
+
+## ผลจริงจากไฟล์ผล (สร้างอัตโนมัติ ห้ามแก้ด้วยมือ)
+
+ตารางนี้ถูกเติมโดย `python -m src.ml.docs_sync` จาก `validation_metrics.json` และ `test_metrics.json` ของโมเดลนี้ ตารางด้านบนของไฟล์เป็นบันทึกระหว่างพัฒนาและเก็บไว้ตามเดิม
+
+<!-- BEGIN GENERATED: outputs/modeling/report/cards/svm.md -->
+### ผลจริงของ `svm`
+
+| variant | split | params | average_precision | roc_auc | f1 | recall | precision | specificity | accuracy |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| with_spike | validation (selection score) | {"C": 0.1, "fit_intercept": true, "max_iter": 20000, "random_state": 42} | 0.2514 | 0.6786 | 0.2553 | 0.1765 | 0.4615 | 0.9792 | 0.9057 |
+| with_spike | test (one-shot) | {"C": 0.1, "fit_intercept": true, "max_iter": 20000, "random_state": 42} | 0.5716 | 0.7835 | 0.4874 | 0.3973 | 0.6304 | 0.9433 | 0.8365 |
+| non_spike | validation (selection score) | {"C": 10, "fit_intercept": true, "max_iter": 20000, "random_state": 42} | 0.2501 | 0.6804 | 0.2727 | 0.1765 | 0.6000 | 0.9881 | 0.9137 |
+| non_spike | test (one-shot) | {"C": 10, "fit_intercept": true, "max_iter": 20000, "random_state": 42} | 0.5805 | 0.7853 | 0.4587 | 0.3425 | 0.6944 | 0.9633 | 0.8418 |
+<!-- END GENERATED -->

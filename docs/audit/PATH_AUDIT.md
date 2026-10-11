@@ -16,7 +16,7 @@ path constant ทั้ง 39 ตัวใน `config.py` เป็น absolute 
 | `src/modeling/**/*.py`, `src/models/**/*.py` | `configs/modeling.json:695-696` | ไม่มี | ไม่พบผู้อ่าน | 🟠 glob ล้าสมัย |
 | `outputs/modeling/<variant>/<task>/<model>/<implementation>/<run_id>/` | `configs/modeling.json:700` | ไม่มี | ไม่มี | 🟡 layout จริงคือ `<variant>/<task>/<model>/` |
 | `../../tmp/phase1-reproduction` | `outputs/reports/spike_input_contract.json:177` | มี (14 ไฟล์ เหมือนชุดตรวจรับ) | preflight ของ Phase 2 | 🟠 report ที่ track พึ่งโฟลเดอร์ที่ ignore |
-| `outputs/models/`, `outputs/metrics/` | `.gitignore` | มีแค่ `.gitkeep` | ไม่มี | 🟡 ตาย |
+| `outputs/models/`, `outputs/metrics/` | `.gitignore` | มีแค่ `.gitkeep` | ไม่มี | 🟡 ตาย — ลบออกแล้วเมื่อ 2026-10-11 |
 | `--basetemp=.pytest_tmp` | `pytest.ini:4` | มี (ignore) | pytest | OK อยู่ไดรฟ์เดียวกับโปรเจกต์ |
 | `C:\old-machine\...` | `tests/test_experiment_datasets.py:87-115` | — | fixture path ที่ไม่ portable โดยตั้งใจ | OK |
 | `C:\Users\ADMIN\AppData\...` | output ของ notebook 01, 02 | — | ข้อความ stderr | 🟡 path ของเครื่องอื่นค้างใน output |
@@ -29,7 +29,7 @@ path constant ทั้ง 39 ตัวใน `config.py` เป็น absolute 
 - **ยังเป็นข้อจำกัด (X2):** CSV ของ Phase 1 เขียนด้วย `to_csv()` ที่ไม่ระบุ `lineterminator` จึงเป็น CRLF บน Windows
   hash ใน report และใน `config.json` ของโมเดล 38 ชุดจึง **ใช้ได้บน Windows เท่านั้น** การแก้ต้อง regenerate
   ข้อมูลและ artifact ทั้งหมด จึงไม่ทำ
-- Raw snapshot ไม่อยู่ใน git (CRLF, 124,154 bytes, ตรง manifest) git จึงเปลี่ยนมันไม่ได้
+- Raw snapshot อยู่ใน git แล้วตั้งแต่ `7690862` ด้วย attribute `-text` (CRLF, 124,154 bytes, ตรง manifest) git จึงไม่แปลง line ending ของมัน
 
 ## Requirements
 

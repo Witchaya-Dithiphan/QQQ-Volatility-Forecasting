@@ -77,3 +77,34 @@ def test_test_set_is_denied_for_truthy_non_true_values():
 def test_test_set_loads_only_with_explicit_opt_in():
     split = load_test(allow_test=True)
     assert split.X.shape == (373, 8)
+
+
+from src.ml.core.data import load_segments
+
+
+def test_validation_segments_align_with_the_validation_split():
+    dates, segments = load_segments("validation")
+    np.testing.assert_array_equal(dates, load("with_spike").validation.dates)
+    assert segments.shape == (371,)
+    assert set(segments) == {"non_spike"}
+    assert not segments.flags.writeable
+
+
+def test_test_segments_are_denied_by_default():
+    with pytest.raises(PermissionError, match="finalize"):
+        load_segments("test")
+    with pytest.raises(PermissionError):
+        load_segments("test", allow_test=1)
+
+
+def test_unknown_segment_split_is_rejected():
+    with pytest.raises(ValueError, match="Unknown split"):
+        load_segments("train")
+
+
+def test_a_missing_accepted_checksum_is_an_error_not_a_skipped_check(monkeypatch):
+    # Audit F11: digests.get(key) returned None for an unknown key, which silently
+    # switched the SHA-256 comparison off instead of failing.
+    monkeypatch.setattr("src.ml.core.data._expected_sha256", lambda: {})
+    with pytest.raises(KeyError, match="with_spikes_train"):
+        load("with_spike")

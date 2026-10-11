@@ -8,16 +8,16 @@ Python หรือ packages คนละ environment
 เอกสารที่เกี่ยวข้อง:
 
 - [README.md](../../README.md) — ภาพรวมโปรเจกต์และ Quick Start
-- [HANDOFF.md](../status/HANDOFF.md) — รายละเอียดการส่งต่องานและ data contracts
+- [HANDOFF.md](../archive/HANDOFF.md) — รายละเอียดการส่งต่องานและ data contracts
 - [PHASE2_SPIKE_READINESS.md](../archive/PHASE2_SPIKE_READINESS.md) — หลักฐานการตรวจรับ Phase 2
-- [PROJECT_STATUS.md](../status/PROJECT_STATUS.md) — สถานะ implementation
+- [PROJECT_STATUS.md](../archive/PROJECT_STATUS.md) — สถานะ implementation
 - [MODEL_TRAINING_PLAN.md](../archive/MODEL_TRAINING_PLAN.md) — modeling requirements,
   inventory 19 รายการ และ implementation milestones; คำสั่ง modeling ในแผนยังไม่พร้อมใช้
 
 > ⚠️ **แก้ไข 2026-10-11:** บันทึกด้านล่างเป็นประวัติ `src/modeling/config_schema.py`,
 > `tests/modeling/test_dependencies.py` และ `python -m src.modeling.config_sync` ถูกลบไปแล้ว
 > (คำสั่งนั้นจะ fail ด้วย `ModuleNotFoundError`) และคำสั่ง `src.ml.run train` **ใช้งานได้แล้ว** ตามข้อ 10
-> ส่วน `report` กับ `finalize` ยังไม่ implement · hash ที่เก็บใน report ใช้ได้บน Windows เท่านั้น
+> คำสั่ง `report`, `compare`, `analyze` และ `finalize` ใช้งานได้แล้ว (ข้อ 10) · hash ที่เก็บใน report ใช้ได้บน Windows เท่านั้น
 > (ดู [PATH_AUDIT.md](../audit/PATH_AUDIT.md))
 >
 > หลักฐานตรวจรับเดิมใช้ Python 3.11.9 (recorded 2026-10-07); audit วันที่ 2026-10-08
@@ -39,10 +39,10 @@ Python หรือ packages คนละ environment
 - Windows และ Command Prompt หรือ VS Code Terminal
 - Python 3.14.8
 - Repository นี้
-- Raw Snapshot `data/raw/qqq_daily.csv` ที่ได้รับแยกจาก Git
+- Raw Snapshot `data/raw/qqq_daily.csv` (⚠️ แก้ไข 2026-10-11: อยู่ใน Git แล้ว ได้มาพร้อม clone)
 
-`.venv`, Raw Snapshot และ generated artifacts ไม่ถูก track ใน Git ผู้รับงานจึงต้อง
-สร้าง environment และรับ Snapshot แยกหลัง clone
+`.venv` และ generated artifacts ใน `data/interim`, `data/processed` ไม่ถูก track ใน Git ผู้รับงานจึงต้อง
+สร้าง environment แล้วรัน data pipeline เองหลัง clone (Raw Snapshot มากับ clone แล้ว)
 
 ## 2. สร้าง virtual environment
 
@@ -85,7 +85,7 @@ Python 3.14.8
 
 ## 4. เตรียมและตรวจ Raw Snapshot
 
-นำ `qqq_daily.csv` ที่ได้รับจากชุดส่งมอบไปวางที่:
+ไฟล์ `qqq_daily.csv` มากับ clone แล้ว (track แบบ `-text` เพื่อคง byte เดิม) และต้องอยู่ที่:
 
 ```text
 data\raw\qqq_daily.csv
@@ -271,11 +271,42 @@ Artifact จะอยู่ที่ `outputs/modeling/<variant>/<task>/<model>/
 **`load_verification.json` ต้องมี `"passed": true`** — เป็นหลักฐานว่า save → load → ทำนายซ้ำ
 ได้ผลเท่าเดิม ซึ่งเป็นข้อบังคับของโจทย์
 
-คำสั่ง `report` และ `finalize` ยังไม่ implement (คืน exit 1 พร้อมบอกเหตุผล) เพราะต้องรอให้มี
-โมเดลครบก่อน ดู [`docs/tasks/claude-linear-family.md`](../tasks/claude-linear-family.md) Phase C
+### 10.1 สรุปผลจาก run ที่เทรนแล้ว (ไม่เทรนใหม่ ไม่แตะ Test)
 
-> `finalize` เป็นจุดเดียวที่อ่าน Test set และต้องส่ง `--allow-test` อย่างชัดแจ้ง
-> ห้ามรันก่อนเลือก hyperparameter ของทุกโมเดลจาก Validation เสร็จ
+```bat
+rem leaderboard + รูปบน Validation — รันทั้งสอง variant (ราว 15 วินาทีต่อ variant)
+.\.venv\Scripts\python.exe -m src.ml.run report --variant with_spike
+.\.venv\Scripts\python.exe -m src.ml.run report --variant non_spike
+
+rem เทียบ with_spike กับ non_spike แบบ paired (ราว 15 วินาที)
+.\.venv\Scripts\python.exe -m src.ml.run compare
+
+rem feature importance + walk-forward robustness (ราว 3–4 นาทีต่อ variant)
+.\.venv\Scripts\python.exe -m src.ml.run analyze --variant with_spike
+.\.venv\Scripts\python.exe -m src.ml.run analyze --variant non_spike
+```
+
+| คำสั่ง | เขียนไฟล์ที่ | สิ่งที่ควรเห็น |
+| --- | --- | --- |
+| `report` | `outputs/modeling/report/<variant>/leaderboard_*.{csv,md}` และ `outputs/figures/modeling/<variant>/*.png` | พิมพ์ path 12 บรรทัด · ตาราง classification มี 15 แถว (13 โมเดล + 2 baseline) |
+| `compare` | `outputs/modeling/report/comparison_a_vs_b.{csv,md}` และรูป `comparison_delta_*.png` | พิมพ์ path 4 บรรทัด · ตาราง 19 แถว |
+| `analyze` | `feature_importance.csv`, `linear_coefficients.csv`, `walk_forward.csv` ใต้ `outputs/modeling/report/<variant>/` | พิมพ์ path 4 บรรทัด |
+
+ช่วงความเชื่อมั่นทุกตัวมาจาก moving-block bootstrap (ก้อน 20 วัน, 2,000 รอบ, seed คงที่) จึงได้ค่าเดิมทุกครั้งที่รัน
+
+### 10.2 finalize — อ่าน Test ครั้งเดียว
+
+```bat
+rem ขั้นที่ 1: ล็อก hash ของ 38 run และชื่อ headline (ไม่เปิดไฟล์ Test)
+.\.venv\Scripts\python.exe -m src.ml.run finalize --dry-run
+
+rem ขั้นที่ 2: อ่าน Test หนึ่งครั้ง — ต้องได้รับอนุมัติจากเจ้าของโปรเจกต์ก่อน
+.\.venv\Scripts\python.exe -m src.ml.run finalize --allow-test
+```
+
+> `finalize --allow-test` เป็นจุดเดียวที่อ่าน Test set มันจะปฏิเสธถ้ายังไม่มี `selection_lock.json`,
+> ถ้า artifact ใดเปลี่ยนไปจากที่ล็อกไว้ หรือถ้ามี `outputs/modeling/finalize_receipt.json` อยู่แล้ว
+> (แปลว่าเคยรันไปแล้ว) การรันซ้ำต้องใส่ `--rerun-reason "<เหตุผล>"` และรายงานต้องเปิดเผยทุกรอบ
 
 ## 11. ครั้งแรกหลัง clone — Phase 1 reproduction
 
@@ -289,3 +320,34 @@ Phase 2 test ต้องการโฟลเดอร์ reproduction ที�
 ใช้ชื่อ `tmp/phase1-reproduction` เท่านั้นและห้ามลบทิ้ง หากเคยรันด้วยชื่ออื่นแล้วลบโฟลเดอร์นั้นไป
 ให้รันคำสั่งข้างบนแล้วตามด้วย `run_spike_analysis --reproduced-root "tmp/phase1-reproduction" --overwrite-generated`
 เพื่อเขียน provenance ใหม่
+
+## 12. จาก clone เปล่าถึงผลครบ
+
+ลำดับนี้ถูกทดสอบจริงเมื่อ 2026-10-11 โดย clone repo ไปโฟลเดอร์ใหม่แล้วรันตามทีละคำสั่ง
+(ใช้ Python ของ environment เดิม จึงไม่ได้ทดสอบขั้นติดตั้ง library ในข้อ 2–3 ซ้ำ)
+
+| ขั้น | คำสั่ง | เวลาโดยประมาณ | สิ่งที่ควรเห็น |
+| --- | --- | --- | --- |
+| 1 | สร้าง environment และติดตั้ง library ตามข้อ 2–3 | หลายนาที | `pip check` ไม่มีข้อผิดพลาด |
+| 2 | `.\.venv\Scripts\python.exe src\download_qqq_data.py verify-snapshot` | ไม่กี่วินาที | SHA-256 ขึ้นต้นด้วย `649e1db1` |
+| 3 | `.\.venv\Scripts\python.exe -m src.run_data_pipeline --overwrite-generated` | ไม่กี่วินาที | พิมพ์ path ของไฟล์ที่สร้าง |
+| 4 | `.\.venv\Scripts\python.exe -m src.run_data_pipeline --output-root "tmp\phase1-reproduction" --overwrite-generated` | ไม่กี่วินาที | เหมือนขั้น 3 แต่อยู่ใต้ `tmp\` |
+| 5 | `.\.venv\Scripts\python.exe -m src.run_spike_analysis --reproduced-root "tmp\phase1-reproduction" --overwrite-generated` | ไม่กี่วินาที | พิมพ์ path พร้อม SHA-256 ของรูป |
+| 6 | `.\.venv\Scripts\python.exe -m pytest -q` | ราว 10 นาที | ทุกข้อ passed |
+| 7 | `.\.venv\Scripts\python.exe -m src.ml.run report --variant with_spike` (และ `non_spike`) | ราว 15 วินาทีต่อครั้ง | พิมพ์ path 12 บรรทัด |
+| 8 | `.\.venv\Scripts\python.exe -m src.ml.run compare` | ราว 15 วินาที | พิมพ์ path 4 บรรทัด |
+| 9 | `.\.venv\Scripts\python.exe -m src.ml.run analyze --variant with_spike` (และ `non_spike`) | 3–4 นาทีต่อครั้ง | พิมพ์ path 4 บรรทัด |
+| 10 | `.\.venv\Scripts\python.exe -m src.ml.docs_sync` | ราว 30 วินาที | ไม่พิมพ์อะไร (เอกสารตรงกับไฟล์ผลอยู่แล้ว) |
+| 11 | เปิด `notebooks\03_regression.ipynb`, `04_classification.ipynb`, `05_results_comparison.ipynb` | — | ผลถูกบันทึกไว้ในไฟล์แล้ว รันซ้ำได้ |
+
+**ไม่ต้องเทรนโมเดลใหม่** ผลของทั้ง 38 ชุดมากับ repo ใต้ `outputs\modeling\` ขั้น 7–10 สร้างตารางและรูปซ้ำจากไฟล์เหล่านั้น
+และได้ผลเท่าเดิมทุกครั้งเพราะใช้ seed คงที่
+
+**สิ่งที่อาจทำให้สงสัย**
+
+- หลังขั้น 3–5 คำสั่ง `git status` อาจแสดงไฟล์ใต้ `outputs\reports\` ว่าถูกแก้ สาเหตุคือรูปแบบการขึ้นบรรทัดใหม่
+  (Windows เขียน CRLF ส่วน git เก็บ LF) เนื้อหาไม่ต่าง ตรวจได้ด้วย `git diff` ซึ่งจะไม่แสดงอะไร
+- `finalize --allow-test` จะจบด้วยข้อความ `The held-out split was already evaluated` และ exit code 1 ซึ่ง **ถูกต้อง**
+  เพราะ Test ถูกอ่านไปแล้วหนึ่งครั้ง (ข้อ 10.2)
+- ถ้าเทรนโมเดลใหม่ด้วย `train` ไฟล์โมเดลจะไม่ตรงกับ `outputs\modeling\selection_lock.json` อีกต่อไป
+  ใช้ `git checkout -- outputs/modeling` เพื่อกลับไปใช้ไฟล์ที่ล็อกไว้

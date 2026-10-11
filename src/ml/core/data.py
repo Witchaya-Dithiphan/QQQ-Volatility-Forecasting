@@ -22,6 +22,8 @@ from .contracts import (
     DATE_COLUMN,
     FEATURE_COLUMNS,
     REGRESSION_TARGET,
+    SEGMENT_COLUMN,
+    SEGMENT_PATHS,
     TEST_PATH,
     VALIDATION_PATH,
     VARIANT_TRAIN_PATHS,
@@ -109,10 +111,10 @@ def load(variant: str = "with_spike") -> Dataset:
     train_key = "with_spikes_train" if variant == "with_spike" else "non_spike_train"
 
     train = _read_split(
-        VARIANT_TRAIN_PATHS[variant], "train", threshold=threshold, expected_sha256=digests.get(train_key)
+        VARIANT_TRAIN_PATHS[variant], "train", threshold=threshold, expected_sha256=digests[train_key]
     )
     validation = _read_split(
-        VALIDATION_PATH, "validation", threshold=threshold, expected_sha256=digests.get("validation_labeled")
+        VALIDATION_PATH, "validation", threshold=threshold, expected_sha256=digests["validation_labeled"]
     )
     if train.dates[-1] >= validation.dates[0]:
         raise ValueError("Train and Validation overlap in time")
@@ -129,5 +131,22 @@ def load_test(*, allow_test: bool = False) -> Split:
         )
     digests = _expected_sha256()
     return _read_split(
-        TEST_PATH, "test", threshold=_accepted_threshold(), expected_sha256=digests.get("test_labeled")
+        TEST_PATH, "test", threshold=_accepted_threshold(), expected_sha256=digests["test_labeled"]
     )
+
+
+def load_segments(split: str, *, allow_test: bool = False) -> tuple[np.ndarray, np.ndarray]:
+    """(dates, diagnostic_segment) of an evaluation split; Test stays default-deny."""
+    if split not in SEGMENT_PATHS:
+        raise ValueError(f"Unknown split: {split!r}; expected one of {sorted(SEGMENT_PATHS)}")
+    if split == "test" and allow_test is not True:
+        raise PermissionError(
+            "Test segments are only available during finalize; "
+            "pass allow_test=True from `src.ml.run finalize --allow-test`"
+        )
+    path = Path(SEGMENT_PATHS[split])
+    if hashlib.sha256(path.read_bytes()).hexdigest() != _expected_sha256()[f"{split}_flagged"]:
+        raise ValueError(f"Accepted input changed on disk: {path}")
+    frame = pd.read_csv(path, usecols=[DATE_COLUMN, SEGMENT_COLUMN])
+    dates = pd.to_datetime(frame[DATE_COLUMN], format="%Y-%m-%d", errors="raise")
+    return _readonly(dates.to_numpy()), _readonly(frame[SEGMENT_COLUMN].to_numpy(dtype=str))
