@@ -927,14 +927,21 @@ Get-Content outputs\modeling\with_spike\regression\elastic_net\load_verification
 
 สิ่งที่ควรเช็ค: `load_verification.json` ต้องมี `"passed": true` และใน `validation_metrics.json` ของงาน regression ให้ดูที่ `clipped_metrics` → `rmse` → `value`
 
-### 9.7 คำสั่งที่ **ยังใช้ไม่ได้**
+### 9.7 คำสั่งสรุปผล (เพิ่ม 2026-10-11)
 
 ```bat
 .\.venv\Scripts\python.exe -m src.ml.run report --variant with_spike
-.\.venv\Scripts\python.exe -m src.ml.run finalize --allow-test
+.\.venv\Scripts\python.exe -m src.ml.run compare
+.\.venv\Scripts\python.exe -m src.ml.run analyze --variant with_spike
+.\.venv\Scripts\python.exe -m src.ml.run finalize --dry-run
 ```
 
-ทั้งสองคำสั่งมีอยู่ในโปรแกรม แต่ **ยังไม่ได้ implement**: รันแล้วจะพิมพ์ข้อความว่า `... is not implemented yet` และจบด้วยสถานะล้มเหลว (exit code 1) โดยไม่สร้างไฟล์อะไร `finalize` เป็นคำสั่งเดียวที่จะอ่าน Test และต้องใส่ `--allow-test` อย่างชัดแจ้ง
+- `report` สร้างตาราง leaderboard และรูปของ Validation ลง `outputs/modeling/report/<variant>/` และ `outputs/figures/modeling/<variant>/`
+- `compare` เทียบ `with_spike` กับ `non_spike` ลง `outputs/modeling/report/comparison_a_vs_b.md`
+- `analyze` คำนวณ feature importance และตาราง walk-forward (ใช้เวลาราว 3–4 นาทีต่อ variant)
+- `finalize --dry-run` ล็อกโมเดลทั้ง 38 run ก่อนเปิด Test โดยไม่อ่าน Test
+
+คำสั่ง `finalize --allow-test` เป็นคำสั่งเดียวที่อ่าน Test และรันได้ **ครั้งเดียว** ห้ามรันเองโดยไม่ได้รับอนุมัติจากเจ้าของโปรเจกต์ รายละเอียดอยู่ใน [`RUNBOOK.md`](RUNBOOK.md) ข้อ 10
 
 ---
 

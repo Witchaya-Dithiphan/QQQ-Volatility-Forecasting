@@ -8,16 +8,16 @@ Python หรือ packages คนละ environment
 เอกสารที่เกี่ยวข้อง:
 
 - [README.md](../../README.md) — ภาพรวมโปรเจกต์และ Quick Start
-- [HANDOFF.md](../status/HANDOFF.md) — รายละเอียดการส่งต่องานและ data contracts
+- [HANDOFF.md](../archive/HANDOFF.md) — รายละเอียดการส่งต่องานและ data contracts
 - [PHASE2_SPIKE_READINESS.md](../archive/PHASE2_SPIKE_READINESS.md) — หลักฐานการตรวจรับ Phase 2
-- [PROJECT_STATUS.md](../status/PROJECT_STATUS.md) — สถานะ implementation
+- [PROJECT_STATUS.md](../archive/PROJECT_STATUS.md) — สถานะ implementation
 - [MODEL_TRAINING_PLAN.md](../archive/MODEL_TRAINING_PLAN.md) — modeling requirements,
   inventory 19 รายการ และ implementation milestones; คำสั่ง modeling ในแผนยังไม่พร้อมใช้
 
 > ⚠️ **แก้ไข 2026-10-11:** บันทึกด้านล่างเป็นประวัติ `src/modeling/config_schema.py`,
 > `tests/modeling/test_dependencies.py` และ `python -m src.modeling.config_sync` ถูกลบไปแล้ว
 > (คำสั่งนั้นจะ fail ด้วย `ModuleNotFoundError`) และคำสั่ง `src.ml.run train` **ใช้งานได้แล้ว** ตามข้อ 10
-> ส่วน `report` กับ `finalize` ยังไม่ implement · hash ที่เก็บใน report ใช้ได้บน Windows เท่านั้น
+> คำสั่ง `report`, `compare`, `analyze` และ `finalize` ใช้งานได้แล้ว (ข้อ 10) · hash ที่เก็บใน report ใช้ได้บน Windows เท่านั้น
 > (ดู [PATH_AUDIT.md](../audit/PATH_AUDIT.md))
 >
 > หลักฐานตรวจรับเดิมใช้ Python 3.11.9 (recorded 2026-10-07); audit วันที่ 2026-10-08
@@ -271,11 +271,42 @@ Artifact จะอยู่ที่ `outputs/modeling/<variant>/<task>/<model>/
 **`load_verification.json` ต้องมี `"passed": true`** — เป็นหลักฐานว่า save → load → ทำนายซ้ำ
 ได้ผลเท่าเดิม ซึ่งเป็นข้อบังคับของโจทย์
 
-คำสั่ง `report` และ `finalize` ยังไม่ implement (คืน exit 1 พร้อมบอกเหตุผล) เพราะต้องรอให้มี
-โมเดลครบก่อน ดู [`docs/tasks/claude-linear-family.md`](../tasks/claude-linear-family.md) Phase C
+### 10.1 สรุปผลจาก run ที่เทรนแล้ว (ไม่เทรนใหม่ ไม่แตะ Test)
 
-> `finalize` เป็นจุดเดียวที่อ่าน Test set และต้องส่ง `--allow-test` อย่างชัดแจ้ง
-> ห้ามรันก่อนเลือก hyperparameter ของทุกโมเดลจาก Validation เสร็จ
+```bat
+rem leaderboard + รูปบน Validation — รันทั้งสอง variant (ราว 15 วินาทีต่อ variant)
+.\.venv\Scripts\python.exe -m src.ml.run report --variant with_spike
+.\.venv\Scripts\python.exe -m src.ml.run report --variant non_spike
+
+rem เทียบ with_spike กับ non_spike แบบ paired (ราว 15 วินาที)
+.\.venv\Scripts\python.exe -m src.ml.run compare
+
+rem feature importance + walk-forward robustness (ราว 3–4 นาทีต่อ variant)
+.\.venv\Scripts\python.exe -m src.ml.run analyze --variant with_spike
+.\.venv\Scripts\python.exe -m src.ml.run analyze --variant non_spike
+```
+
+| คำสั่ง | เขียนไฟล์ที่ | สิ่งที่ควรเห็น |
+| --- | --- | --- |
+| `report` | `outputs/modeling/report/<variant>/leaderboard_*.{csv,md}` และ `outputs/figures/modeling/<variant>/*.png` | พิมพ์ path 12 บรรทัด · ตาราง classification มี 15 แถว (13 โมเดล + 2 baseline) |
+| `compare` | `outputs/modeling/report/comparison_a_vs_b.{csv,md}` และรูป `comparison_delta_*.png` | พิมพ์ path 4 บรรทัด · ตาราง 19 แถว |
+| `analyze` | `feature_importance.csv`, `linear_coefficients.csv`, `walk_forward.csv` ใต้ `outputs/modeling/report/<variant>/` | พิมพ์ path 4 บรรทัด |
+
+ช่วงความเชื่อมั่นทุกตัวมาจาก moving-block bootstrap (ก้อน 20 วัน, 2,000 รอบ, seed คงที่) จึงได้ค่าเดิมทุกครั้งที่รัน
+
+### 10.2 finalize — อ่าน Test ครั้งเดียว
+
+```bat
+rem ขั้นที่ 1: ล็อก hash ของ 38 run และชื่อ headline (ไม่เปิดไฟล์ Test)
+.\.venv\Scripts\python.exe -m src.ml.run finalize --dry-run
+
+rem ขั้นที่ 2: อ่าน Test หนึ่งครั้ง — ต้องได้รับอนุมัติจากเจ้าของโปรเจกต์ก่อน
+.\.venv\Scripts\python.exe -m src.ml.run finalize --allow-test
+```
+
+> `finalize --allow-test` เป็นจุดเดียวที่อ่าน Test set มันจะปฏิเสธถ้ายังไม่มี `selection_lock.json`,
+> ถ้า artifact ใดเปลี่ยนไปจากที่ล็อกไว้ หรือถ้ามี `outputs/modeling/finalize_receipt.json` อยู่แล้ว
+> (แปลว่าเคยรันไปแล้ว) การรันซ้ำต้องใส่ `--rerun-reason "<เหตุผล>"` และรายงานต้องเปิดเผยทุกรอบ
 
 ## 11. ครั้งแรกหลัง clone — Phase 1 reproduction
 

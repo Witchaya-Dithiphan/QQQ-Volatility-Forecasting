@@ -51,7 +51,7 @@ synthetic 3 seeds × 3 ค่า C ผ่านเกณฑ์เดียวก
 - **center feature ภายใน solver** (เพิ่ม 2026-10-11) แล้วเลื่อน intercept กลับตอนจบ. intercept ไม่ถูก penalize
   ดังนั้น `w·(x − mean) + b` กับ `w·x + b'` เป็นโมเดลเดียวกันและมี optimum เดียวกัน — ต่างแค่ความเร็วลู่เข้า.
   ทำเฉพาะเมื่อ `fit_intercept=True`.
-- **12 candidates ต้องแก้ trainer** (ดูหมายเหตุ core ใน [`codex-tree-family.md`](../../tasks/codex-tree-family.md)): svm ไขว้ทุก C กับทุกขนาด PCA ต่างจาก random_forest ที่ลอง PCA เฉพาะค่าที่ชนะ.
+- **12 candidates ต้องแก้ trainer** (ดูหมายเหตุ core ใน [`codex-tree-family.md`](../../archive/codex-tree-family.md)): svm ไขว้ทุก C กับทุกขนาด PCA ต่างจาก random_forest ที่ลอง PCA เฉพาะค่าที่ชนะ.
 
 ## ไฟล์
 
@@ -72,6 +72,6 @@ synthetic 3 seeds × 3 ค่า C ผ่านเกณฑ์เดียวก
 
 ## ค้างอยู่
 
-- leaderboard: `src.ml.run report` ยังไม่ implement
+- leaderboard: มีแล้ว (อัปเดต 2026-10-11) — `python -m src.ml.run report --variant <variant>` เขียน `outputs/modeling/report/<variant>/leaderboard_classification.{csv,md}` ซึ่งมีแถวของโมเดลนี้ทั้งสอง variant
 - kernel SVM ไม่ได้ทำ (config กำหนด `kernel: linear`); รายงานอธิบาย kernel trick ได้โดยไม่ implement ตามแผนสำรองของ card
 - ยังไม่แตะ Test set

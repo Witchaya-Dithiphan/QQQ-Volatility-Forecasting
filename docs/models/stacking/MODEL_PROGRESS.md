@@ -74,6 +74,6 @@ fold จริง (ตำแหน่งบน timeline เดิม 1,733 ว�
 
 ## ค้างอยู่
 
-- leaderboard: `src.ml.run report` ยังไม่ implement
+- leaderboard: มีแล้ว (อัปเดต 2026-10-11) — `python -m src.ml.run report --variant <variant>` เขียน `outputs/modeling/report/<variant>/leaderboard_classification.{csv,md}` ซึ่งมีแถวของโมเดลนี้ทั้งสอง variant
 - (ทางเลือก) เพิ่มหมายเหตุในเอกสารของ `logistic` ว่าค่า production หยุดที่ 5,000 รอบบนข้อมูลจริง — ไม่จำเป็นต้องแก้โมเดล
 - ยังไม่แตะ Test set

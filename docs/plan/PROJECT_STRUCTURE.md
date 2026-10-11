@@ -22,7 +22,7 @@ QQQ-Volatility-Forecasting/
 │   │                              ROADMAP · RISKS_AND_DOD · REPORT_AND_SLIDES_OUTLINE
 │   ├── guides/RUNBOOK.md        ติดตั้งและรัน pipeline
 │   ├── status/                  PROJECT_STATUS · HANDOFF
-│   ├── audit/REALITY_AUDIT.md   ★ สถานะจริง 2026-10-10
+│   ├── archive/REALITY_AUDIT.md   ★ สถานะจริง 2026-10-10
 │   ├── superpowers/             spec + implementation plan จาก workflow skill
 │   └── archive/                 MODEL_TRAINING_PLAN · PHASE2_SPIKE_READINESS
 │                                spike-analysis-plan (เก็บเป็นหลักฐาน ห้ามใช้สั่งงาน)

@@ -1,5 +1,7 @@
 # QQQ Volatility Forecasting - เอกสารส่งต่องาน
 
+> ⚠️ **เลิกใช้ 2026-10-11** — เก็บไว้เป็นประวัติ ห้ามใช้เป็นคำสั่งงาน สถานะปัจจุบันดูที่ [`README.md`](../../README.md) และ [`docs/README.md`](../README.md) · ลิงก์ภายในไฟล์นี้อาจใช้ไม่ได้แล้วเพราะไฟล์ถูกย้าย
+
 > ⚠️ **แก้ไข 2026-10-11:** ส่วน data contract ของเอกสารนี้ยังถูกต้อง แต่ส่วน modeling ล้าสมัย:
 > `src/models/` ไม่มีอยู่ (โมเดลอยู่ที่ `src/ml/`, test ที่ `tests/ml/`, ผลที่ `outputs/modeling/`),
 > คำสั่ง `src.ml.run train` มีแล้ว, โมเดลครบ 19/19 พร้อม validation metrics 38 ชุด, inventory คือ 4/13/2,

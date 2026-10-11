@@ -74,6 +74,6 @@
 
 ## ค้างอยู่
 
-- leaderboard: `src.ml.run report` ยังไม่ implement
+- leaderboard: มีแล้ว (อัปเดต 2026-10-11) — `python -m src.ml.run report --variant <variant>` เขียน `outputs/modeling/report/<variant>/leaderboard_classification.{csv,md}` ซึ่งมีแถวของโมเดลนี้ทั้งสอง variant
 - `scaler_fit: subtrain` ตาม config ยังไม่ได้ทำ (ดูหัวข้อการตัดสินใจ) — เหมือน `slp`
 - ยังไม่แตะ Test set

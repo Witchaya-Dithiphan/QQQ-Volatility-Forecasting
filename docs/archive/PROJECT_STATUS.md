@@ -1,5 +1,7 @@
 # QQQ Volatility Forecasting — Project Status
 
+> ⚠️ **เลิกใช้ 2026-10-11** — เก็บไว้เป็นประวัติ ห้ามใช้เป็นคำสั่งงาน สถานะปัจจุบันดูที่ [`README.md`](../../README.md) และ [`docs/README.md`](../README.md) · ลิงก์ภายในไฟล์นี้อาจใช้ไม่ได้แล้วเพราะไฟล์ถูกย้าย
+
 > **วิธีรันปัจจุบัน:** ดู [RUNBOOK.md](../guides/RUNBOOK.md) สำหรับการติดตั้ง environment และ
 > การรัน Data/Spike pipelines เอกสารนี้ใช้สรุปสถานะ implementation
 

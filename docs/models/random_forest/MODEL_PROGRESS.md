@@ -36,5 +36,5 @@ trainer เดิมใช้ preprocessing ชุดเดียวกับท
 
 ## ค้างอยู่
 
-- `src.ml.run report` / leaderboard ยังไม่ implement (Phase C1 ของอีก branch). เมื่อพร้อม ให้ตรวจแถว `random_forest` ทั้งสอง variants แล้วเปลี่ยนสถานะเป็น ✅.
+- leaderboard: มีแล้ว (อัปเดต 2026-10-11) — `python -m src.ml.run report --variant <variant>` เขียน `outputs/modeling/report/<variant>/leaderboard_classification.{csv,md}` ซึ่งมีแถวของโมเดลนี้ทั้งสอง variant
 - ยังไม่ถึงขั้น finalize จึงยังไม่ใช้ Test set.

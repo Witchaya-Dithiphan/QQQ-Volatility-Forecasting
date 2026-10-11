@@ -1,5 +1,7 @@
 # TASKS — Core Framework + Linear / Probabilistic / Clustering Family (11 โมเดล)
 
+> ⚠️ **เลิกใช้ 2026-10-11** — เก็บไว้เป็นประวัติ ห้ามใช้เป็นคำสั่งงาน สถานะปัจจุบันดูที่ [`README.md`](../../README.md) และ [`docs/README.md`](../README.md) · ลิงก์ภายในไฟล์นี้อาจใช้ไม่ได้แล้วเพราะไฟล์ถูกย้าย
+
 > **เอกสารนี้สำหรับผู้พัฒนาที่ใช้ Claude Code** · branch `feat/ml-core` → `feat/models-linear-family`
 >
 > ฝั่งนี้รับผิดชอบ **core framework ด้วย** ซึ่งเป็นคอขวดของทั้งทีม **Phase A สำคัญกว่าโมเดลตัวใดก็ตาม**

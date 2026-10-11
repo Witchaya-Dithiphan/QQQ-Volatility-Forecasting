@@ -52,7 +52,7 @@
 | --- | --- |
 | Environment ไม่ตรง / รัน pipeline ไม่ได้ | ปิด — Python 3.14.8 + 69 distributions ติดตั้งครบ `pip check` สะอาด |
 | 6 tests fail | ปิด — 5 ข้อคือ cross-drive quirk (แก้ด้วย ADR-006), 1 ข้อคือ provenance ที่ซ่อมแล้ว ตอนนั้น 459 passed, 3 skipped · ⚠️ แก้ไข 2026-10-11: ปัจจุบัน **1,002 passed, 0 failed** |
-| ไม่รู้ว่าเอกสารเชื่อได้แค่ไหน | ปิด — `docs/audit/REALITY_AUDIT.md` |
+| ไม่รู้ว่าเอกสารเชื่อได้แค่ไหน | ปิด — `docs/archive/REALITY_AUDIT.md` |
 | Deadline คลาดเคลื่อน 6 วัน | ปิด — ยืนยัน 18 ต.ค. |
 | Governance layer บล็อกการเพิ่มโมเดล | ปิด — ADR-001 เลิกใช้ทั้ง package |
 

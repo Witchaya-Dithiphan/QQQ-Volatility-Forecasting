@@ -1,5 +1,7 @@
 # TASKS — Tree / Ensemble / Margin Family (8 โมเดล)
 
+> ⚠️ **เลิกใช้ 2026-10-11** — เก็บไว้เป็นประวัติ ห้ามใช้เป็นคำสั่งงาน สถานะปัจจุบันดูที่ [`README.md`](../../README.md) และ [`docs/README.md`](../README.md) · ลิงก์ภายในไฟล์นี้อาจใช้ไม่ได้แล้วเพราะไฟล์ถูกย้าย
+
 > **เอกสารนี้สำหรับผู้พัฒนาที่ใช้ Codex CLI** · branch `feat/models-tree-family`
 > อ่านจบแล้วลงมือได้เลยโดยไม่ต้องถามใคร — ทุกอย่างที่ต้องรู้อยู่ในนี้หรือในลิงก์ที่ชี้ไว้
 >
@@ -267,7 +269,7 @@ label, probability, feature และ threshold ตรง reference ทุกค
 ผลเต็มอยู่ใน [`MODEL_PROGRESS.md`](../models/decision_tree/MODEL_PROGRESS.md) และ
 `outputs/modeling/<variant>/classification/decision_tree/`. **สถานะ DoD: ค้างข้อ 5 เท่านั้น** —
 leaderboard คือตารางเปรียบเทียบ metric ของทุกโมเดลจาก `validation_metrics.json`;
-`src.ml.run report` ยังไม่ implement (Phase C1 ของอีกฝั่ง) จึงยังไม่มีแถว `decision_tree`
+(อัปเดต 2026-10-11: `src.ml.run report` ใช้งานได้แล้ว และมีแถว `decision_tree` ครบ) ตอนที่เขียนบันทึกนี้ยังไม่มีแถว `decision_tree`
 ใน `leaderboard.csv` ของทั้งสอง variant. เมื่อตัว report พร้อม ให้รันทั้งสอง variant
 และตรวจแถวนี้ก่อนเปลี่ยนสถานะเป็น ✅; ไม่ต้องแตะ Test set ในขั้นนี้
 
@@ -289,7 +291,7 @@ leaderboard คือตารางเปรียบเทียบ metric ข
 | `with_spike` | depth 3, 100 trees | none | 0.254788 | 0.686202 | 0.291667 | ผ่าน |
 | `non_spike` | depth 5, 50 trees | none | 0.301006 | 0.676645 | 0.291667 | ผ่าน |
 
-ผลเต็มอยู่ใน [`MODEL_PROGRESS.md`](../models/random_forest/MODEL_PROGRESS.md) และ `outputs/modeling/<variant>/classification/random_forest/`. **DoD ค้าง leaderboard ข้อ 5** เพราะ `src.ml.run report` ยังไม่ implement; ยังไม่แตะ Test set.
+ผลเต็มอยู่ใน [`MODEL_PROGRESS.md`](../models/random_forest/MODEL_PROGRESS.md) และ `outputs/modeling/<variant>/classification/random_forest/`. DoD ข้อ 5 (leaderboard) ปิดแล้วเมื่อ 2026-10-11 เมื่อ `src.ml.run report` ใช้งานได้; ยังไม่แตะ Test set.
 
 **บทเรียน T2:** ทางเดิน `max_features="sqrt"` ของ sklearn อาจแยก node ที่ gain เป็นศูนย์ และ near-tie ระดับ floating point อาจเปลี่ยนฟีเจอร์ที่เลือกจน probability/label ต่าง. มี regression tests ปิดทั้งสองกรณี; ทางเดิน T1 ที่ `max_features=None` ยังคงเดิม.
 

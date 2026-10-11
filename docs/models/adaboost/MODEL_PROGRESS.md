@@ -70,6 +70,6 @@ sklearn 1.9.1: `AdaBoostClassifier` ไม่มีพารามิเตอ�
 
 ## ค้างอยู่
 
-- leaderboard: `src.ml.run report` ยังไม่ implement เช่นเดียวกับ T1/T2
+- leaderboard: มีแล้ว (อัปเดต 2026-10-11) — `python -m src.ml.run report --variant <variant>` เขียน `outputs/modeling/report/<variant>/leaderboard_classification.{csv,md}` ซึ่งมีแถวของโมเดลนี้ทั้งสอง variant
 - เคส `completed_early` (`err ≥ 0.5` หลังรอบแรก) ยังไม่มี test เพราะสร้างข้อมูลที่ทำให้เกิดไม่ได้ง่าย ๆ ด้วย Gini stump; มีแต่ test ของ perfect และ first-failed
 - ยังไม่ได้ทำ paired test ของสมมติฐาน outlier · ยังไม่แตะ Test set

@@ -1,7 +1,7 @@
 # ARCHITECTURE — ชั้น modeling ของ QQQ Volatility Forecasting
 
 > ขอบเขตของเอกสารนี้คือ **ชั้น modeling เท่านั้น** ชั้นข้อมูล (Phase 1/2) เสร็จและ freeze แล้ว
-> สถานะจริงที่เอกสารนี้ตั้งอยู่บน: `docs/audit/REALITY_AUDIT.md`
+> สถานะจริงที่เอกสารนี้ตั้งอยู่บน: `docs/archive/REALITY_AUDIT.md`
 > contract ที่ต้องทำตามตอนเขียนโค้ด: `AGENTS.md`
 
 ---

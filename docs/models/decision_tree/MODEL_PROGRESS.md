@@ -38,5 +38,4 @@ Weighted stump ผ่าน parity กับ `DecisionTreeClassifier.fit(..., sa
 
 ## ค้างอยู่
 
-- `run.py report` / leaderboard ยังไม่ implement ใน Phase C ของอีกฝั่ง จึงยังไม่ครบ DoD ข้อ 5
-- เมื่อตัว report พร้อม ให้ตรวจว่ามีแถว `decision_tree` ทั้งสอง variants และอัปเดตสถานะเป็น ✅
+- leaderboard: มีแล้ว (อัปเดต 2026-10-11) — `python -m src.ml.run report --variant <variant>` เขียน `outputs/modeling/report/<variant>/leaderboard_classification.{csv,md}` ซึ่งมีแถวของโมเดลนี้ทั้งสอง variant

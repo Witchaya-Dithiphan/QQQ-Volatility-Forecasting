@@ -59,6 +59,6 @@ stress test นอก grid (240 รัน: 40 seeds × {ข้อมูลต่
 
 ## ค้างอยู่
 
-- leaderboard: `src.ml.run report` ยังไม่ implement เช่นเดียวกับ T1–T3
+- leaderboard: มีแล้ว (อัปเดต 2026-10-11) — `python -m src.ml.run report --variant <variant>` เขียน `outputs/modeling/report/<variant>/leaderboard_classification.{csv,md}` ซึ่งมีแถวของโมเดลนี้ทั้งสอง variant
 - การ sort ของ sklearn เป็น introsort (ไม่ stable) ส่วนเราใช้ stable sort; ลำดับของค่าที่ซ้ำกันจึงอาจต่าง และกระทบ roundoff ได้ในทางทฤษฎี. stress test 120 รันบนข้อมูลที่มีค่าซ้ำยังไม่เจอ แต่ไม่ได้พิสูจน์ว่าเป็นไปไม่ได้
 - ยังไม่แตะ Test set

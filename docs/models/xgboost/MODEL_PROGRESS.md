@@ -63,6 +63,6 @@ stress test นอก grid (240 รัน: depth ถึง 4, λ ∈ {0, 1, 10},
 
 ## ค้างอยู่
 
-- leaderboard: `src.ml.run report` ยังไม่ implement เช่นเดียวกับ T1–T4
+- leaderboard: มีแล้ว (อัปเดต 2026-10-11) — `python -m src.ml.run report --variant <variant>` เขียน `outputs/modeling/report/<variant>/leaderboard_classification.{csv,md}` ซึ่งมีแถวของโมเดลนี้ทั้งสอง variant
 - ค่าใบต่าง 1 ulp ใน ~1.4% ของต้นไม้จาก `expf` ของระบบ — อธิบายได้และอยู่ในเกณฑ์ strict แต่ไม่ใช่ bit-exact; บนเครื่อง/OS อื่นสัดส่วนอาจต่าง
 - ยังไม่แตะ Test set
