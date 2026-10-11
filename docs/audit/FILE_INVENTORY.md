@@ -71,7 +71,7 @@
 | `outputs/reports/` | report 10 ไฟล์ (hash 26 รายการตรงไฟล์จริง) | track |
 | `outputs/figures/` | 16 ไฟล์ · รวม `data_preparation/` 13 รูปจาก notebook 01/02 | track |
 | `outputs/modeling/` | 38 ชุด, 370 ไฟล์ | track |
-| `outputs/models/`, `outputs/metrics/` | `.gitkeep` เท่านั้น | ตาย |
+| `outputs/models/`, `outputs/metrics/` | `.gitkeep` เท่านั้น | ตาย — ลบออกแล้วเมื่อ 2026-10-11 |
 | `tmp/phase1-reproduction/` | 14 ไฟล์ เหมือนชุดตรวจรับ · **ห้ามลบ** | ignore |
 | `tmp/audit-repro/` | ผลรันซ้ำของ audit นี้ · ลบได้ | ignore |
 

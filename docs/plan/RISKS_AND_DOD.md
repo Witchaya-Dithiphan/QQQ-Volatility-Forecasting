@@ -17,15 +17,17 @@
 
 ### 1.2 ระดับโปรเจกต์
 
-- [ ] 19 โมเดล × 2 variants = 38 runs ครบ
-- [ ] `pytest -q` เขียวทั้งหมด
-- [ ] metric ครบตามโจทย์: Loss · Confusion matrix · Accuracy · Precision · Sensitivity · Specificity · TNR · F1 · ROC+AUC · Performance curve · R²
-- [ ] save → load → re-test พิสูจน์ได้ทุกโมเดล (`load_verification.json` ทุกตัว `passed: true`)
-- [ ] paired comparison A↔B พร้อมบทวิเคราะห์
-- [ ] notebooks 03/04/05 รันจบตั้งแต่ต้นจนจบโดยไม่ error
-- [ ] report + slides เสร็จ มีตัวเลขจริงทุกช่อง
-- [ ] Test ถูกแตะครั้งเดียวตอน finalize
-- [ ] เอกสารทุกฉบับตรงกับโค้ด
+ตรวจเมื่อ 2026-10-11 แต่ละข้อมีหลักฐานที่ตรวจซ้ำได้
+
+- [x] 19 โมเดล × 2 variants = 38 runs ครบ — `outputs/modeling/selection_lock.json` (`run_count: 38`)
+- [x] `pytest -q` เขียวทั้งหมด — 1,267 passed บน clone เปล่าของ commit `d188376`
+- [x] metric ครบตามโจทย์ — `outputs/modeling/report/tables/classification_metrics_with_spike.md` (Loss, confusion matrix, Accuracy, Precision, Sensitivity, Specificity, TNR, F1, ROC-AUC), `leaderboard_regression.md` (R²), รูป ROC และ performance curve ใต้ `outputs/figures/modeling/`
+- [x] save → load → re-test พิสูจน์ได้ทุกโมเดล — `tests/ml/core/test_artifacts.py` โหลดทั้ง 38 ชุดแล้วทำนายซ้ำได้ค่าเดิม
+- [x] paired comparison A↔B พร้อมบทวิเคราะห์ — `outputs/modeling/report/comparison_a_vs_b.md`, รายงานหัวข้อ 8.2
+- [x] notebooks 03/04/05 รันจบโดยไม่ error — `tests/test_notebooks.py`
+- [x] report + slides เสร็จ มีตัวเลขจริงทุกช่อง — `deliverables/` (ยังต้องกรอกชื่อสมาชิกในหน้าปก)
+- [x] Test ถูกแตะครั้งเดียวตอน finalize — `outputs/modeling/finalize_receipt.json` (`previous_receipts: []`)
+- [x] เอกสารตรงกับโค้ด — `tests/test_docs_sync.py`, `tests/test_docs_links.py`
 
 ---
 

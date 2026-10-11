@@ -320,3 +320,34 @@ Phase 2 test ต้องการโฟลเดอร์ reproduction ที�
 ใช้ชื่อ `tmp/phase1-reproduction` เท่านั้นและห้ามลบทิ้ง หากเคยรันด้วยชื่ออื่นแล้วลบโฟลเดอร์นั้นไป
 ให้รันคำสั่งข้างบนแล้วตามด้วย `run_spike_analysis --reproduced-root "tmp/phase1-reproduction" --overwrite-generated`
 เพื่อเขียน provenance ใหม่
+
+## 12. จาก clone เปล่าถึงผลครบ
+
+ลำดับนี้ถูกทดสอบจริงเมื่อ 2026-10-11 โดย clone repo ไปโฟลเดอร์ใหม่แล้วรันตามทีละคำสั่ง
+(ใช้ Python ของ environment เดิม จึงไม่ได้ทดสอบขั้นติดตั้ง library ในข้อ 2–3 ซ้ำ)
+
+| ขั้น | คำสั่ง | เวลาโดยประมาณ | สิ่งที่ควรเห็น |
+| --- | --- | --- | --- |
+| 1 | สร้าง environment และติดตั้ง library ตามข้อ 2–3 | หลายนาที | `pip check` ไม่มีข้อผิดพลาด |
+| 2 | `.\.venv\Scripts\python.exe src\download_qqq_data.py verify-snapshot` | ไม่กี่วินาที | SHA-256 ขึ้นต้นด้วย `649e1db1` |
+| 3 | `.\.venv\Scripts\python.exe -m src.run_data_pipeline --overwrite-generated` | ไม่กี่วินาที | พิมพ์ path ของไฟล์ที่สร้าง |
+| 4 | `.\.venv\Scripts\python.exe -m src.run_data_pipeline --output-root "tmp\phase1-reproduction" --overwrite-generated` | ไม่กี่วินาที | เหมือนขั้น 3 แต่อยู่ใต้ `tmp\` |
+| 5 | `.\.venv\Scripts\python.exe -m src.run_spike_analysis --reproduced-root "tmp\phase1-reproduction" --overwrite-generated` | ไม่กี่วินาที | พิมพ์ path พร้อม SHA-256 ของรูป |
+| 6 | `.\.venv\Scripts\python.exe -m pytest -q` | ราว 10 นาที | ทุกข้อ passed |
+| 7 | `.\.venv\Scripts\python.exe -m src.ml.run report --variant with_spike` (และ `non_spike`) | ราว 15 วินาทีต่อครั้ง | พิมพ์ path 12 บรรทัด |
+| 8 | `.\.venv\Scripts\python.exe -m src.ml.run compare` | ราว 15 วินาที | พิมพ์ path 4 บรรทัด |
+| 9 | `.\.venv\Scripts\python.exe -m src.ml.run analyze --variant with_spike` (และ `non_spike`) | 3–4 นาทีต่อครั้ง | พิมพ์ path 4 บรรทัด |
+| 10 | `.\.venv\Scripts\python.exe -m src.ml.docs_sync` | ราว 30 วินาที | ไม่พิมพ์อะไร (เอกสารตรงกับไฟล์ผลอยู่แล้ว) |
+| 11 | เปิด `notebooks\03_regression.ipynb`, `04_classification.ipynb`, `05_results_comparison.ipynb` | — | ผลถูกบันทึกไว้ในไฟล์แล้ว รันซ้ำได้ |
+
+**ไม่ต้องเทรนโมเดลใหม่** ผลของทั้ง 38 ชุดมากับ repo ใต้ `outputs\modeling\` ขั้น 7–10 สร้างตารางและรูปซ้ำจากไฟล์เหล่านั้น
+และได้ผลเท่าเดิมทุกครั้งเพราะใช้ seed คงที่
+
+**สิ่งที่อาจทำให้สงสัย**
+
+- หลังขั้น 3–5 คำสั่ง `git status` อาจแสดงไฟล์ใต้ `outputs\reports\` ว่าถูกแก้ สาเหตุคือรูปแบบการขึ้นบรรทัดใหม่
+  (Windows เขียน CRLF ส่วน git เก็บ LF) เนื้อหาไม่ต่าง ตรวจได้ด้วย `git diff` ซึ่งจะไม่แสดงอะไร
+- `finalize --allow-test` จะจบด้วยข้อความ `The held-out split was already evaluated` และ exit code 1 ซึ่ง **ถูกต้อง**
+  เพราะ Test ถูกอ่านไปแล้วหนึ่งครั้ง (ข้อ 10.2)
+- ถ้าเทรนโมเดลใหม่ด้วย `train` ไฟล์โมเดลจะไม่ตรงกับ `outputs\modeling\selection_lock.json` อีกต่อไป
+  ใช้ `git checkout -- outputs/modeling` เพื่อกลับไปใช้ไฟล์ที่ล็อกไว้

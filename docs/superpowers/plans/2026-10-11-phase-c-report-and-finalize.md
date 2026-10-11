@@ -2,6 +2,24 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> ## สถานะการทำตามแผน (บันทึก 2026-10-11)
+>
+> แผนนี้ถูกทำครบทุก Phase แล้วในวันเดียว ก่อนกำหนดในตารางรายวันด้านล่าง ตารางเวลาเดิมจึงเป็นประวัติ
+> แผนจากนี้ถึงวันส่งอยู่ที่ [`docs/plan/ROADMAP.md`](../../plan/ROADMAP.md)
+>
+> | Phase | สถานะ | หมายเหตุ |
+> | --- | --- | --- |
+> | C1 `report` | เสร็จ | เพิ่มคอลัมน์ `beats_best_baseline`, `loss_name` และลายเส้น 13 แบบในรูป ROC/PR |
+> | C2 `compare` | เสร็จ | |
+> | C3 `analyze` | เสร็จ | walk-forward บันทึก fold ที่โมเดลเทรนไม่ได้พร้อมเหตุผล (`stacking` fold 0) |
+> | C4 `finalize` | เสร็จ — **Test ถูกอ่านครั้งเดียวที่ commit `cb12d22`** | เพิ่ม: เขียนไฟล์หลังประเมินครบเท่านั้น, ห้ามเขียน lock ทับหลังมี receipt, hash ไม่ขึ้นกับ line ending |
+> | C5 notebooks | เสร็จ | notebook 05 เพิ่มตาราง paired บน Test และบันทึกรูป 2 รูป |
+> | C6 เอกสาร | เสร็จ | ทดสอบจาก clone เปล่า: 1,267 passed |
+> | C7 รายงานและสไลด์ | เสร็จ (ร่างพร้อมแก้) | `deliverables/` · เพิ่ม `src/ml/report_tables.py` สร้างตารางของรายงาน |
+>
+> **ห้ามทำซ้ำ:** Task C4.3 Step 8 (`finalize --allow-test`) และคำสั่ง `finalize` ใน Task C7.4 Step 1 มีไว้ยืนยันว่าคำสั่งปฏิเสธการรันซ้ำเท่านั้น
+> ความเสี่ยง P10 (Google Sheet) ยังเปิดอยู่จนกว่าเจ้าของโปรเจกต์จะยืนยัน
+
 **Goal:** เปลี่ยน artifact 38 ชุดที่เทรนเสร็จแล้วให้เป็นผลงานที่ส่งได้ — leaderboard พร้อมช่วงความเชื่อมั่น, การเทียบ `with_spike` ↔ `non_spike`, feature importance, ตาราง walk-forward, ผล Test ครั้งเดียว, notebook 03/04/05, เอกสารที่คนนอกใช้ตามได้, รายงานภาษาไทยและสไลด์ 22 แผ่น
 
 **Architecture:** ทุกอย่างใน Phase C **อ่าน artifact แล้วคำนวณต่อ ไม่เทรนผู้ชนะใหม่** โมดูลใหม่ใน `src/ml/core/` แยกตามหน้าที่เดียว (`artifacts` อ่าน run กลับมา · `bootstrap` สุ่มซ้ำแบบ block · `report` ทำ leaderboard · `comparison` เทียบ A↔B · `importance` · `walk_forward`) ส่วน `src/ml/finalize.py` รับ array ของ Test จาก `run.py` เท่านั้น จึงไม่ต้องเพิ่มข้อยกเว้นใน static guard ตัวเลขทุกตัวในรายงานถูก generate ลงไฟล์ใต้ `outputs/` แล้วเอกสารดึงจากไฟล์นั้น ไม่พิมพ์มือ
