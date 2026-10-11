@@ -1,0 +1,9 @@
+{
+  "params": {
+    "folds": 4,
+    "initial_fraction": 0.4,
+    "purge": 5,
+    "random_state": 42
+  },
+  "seed": 42
+}

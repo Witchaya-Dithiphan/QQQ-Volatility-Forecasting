@@ -6,6 +6,7 @@ after every model's hyperparameters are locked.
 from __future__ import annotations
 
 import csv
+import inspect
 import itertools
 import json
 from pathlib import Path
@@ -20,6 +21,25 @@ from .persist import load_npz, save_npz, verify_reload
 from .preprocess import PCA, Standardizer
 
 OUTPUT_ROOT = PROJECT_ROOT / "outputs" / "modeling"
+# configs/modeling.json -> preprocessing.pca.models
+PCA_SEARCH_MODELS = ("random_forest", "svm")
+# Modes where the trainer scales nothing itself: "base_specific" models (stacking)
+# standardise inside, separately for each learner that needs it.
+UNSCALED_MODES = ("none", "base_specific")
+
+
+def trading_day_positions(variant: str, dates) -> tuple[np.ndarray, int]:
+    """Index of each training row on the original timeline, and that timeline's length.
+
+    non_spike drops rows, so consecutive rows there can be many trading days apart.
+    Anything that reasons about elapsed days (a purge gap, say) needs these indices
+    rather than row numbers.
+    """
+    timeline = load("with_spike").train.dates
+    positions = np.searchsorted(timeline, dates)
+    if positions.max() >= len(timeline) or not np.array_equal(timeline[positions], dates):
+        raise ValueError(f"{variant} train dates are not a subset of the original timeline")
+    return positions, len(timeline)
 
 
 def config_preprocess(name: str) -> str:
@@ -118,7 +138,7 @@ def train_model(
 
     mode = preprocess or config_preprocess(model_class.name)
     # PCA needs centered input, so it implies standardising whatever the model asked for.
-    scaled = mode != "none" or bool(pca_components)
+    scaled = mode not in UNSCALED_MODES or bool(pca_components)
 
     if scaled:
         standardizer = Standardizer().fit(data.train.X)
@@ -139,10 +159,13 @@ def train_model(
         preprocessor_arrays["components"] = pca.components_
 
     y_train = data.train.y_regression if task == "regression" else data.train.y_classification
+    fit_extras = {}
+    if "positions" in inspect.signature(model_class.fit).parameters:
+        fit_extras["positions"], fit_extras["n_positions"] = trading_day_positions(variant, data.train.dates)
     search_results = []
     def add_candidate(params, candidate_train_X, candidate_validation_X, arrays, components):
         candidate = model_class(**params).fit(
-            candidate_train_X, None if task == "clustering" else y_train
+            candidate_train_X, None if task == "clustering" else y_train, **fit_extras
         )
         candidate_metrics, prediction, scores = evaluate(
             candidate, candidate_validation_X,
@@ -166,11 +189,16 @@ def train_model(
     for params in expand_grid(grid):
         add_candidate(params, train_X, validation_X, preprocessor_arrays, pca_components)
 
-    if model_class.name == "random_forest" and pca_components is None:
-        raw_best = metrics_module.select_candidate(
-            [{"id": c["id"], "metrics": c["metrics"]} for c in search_results], task=task
-        )
-        raw_params = next(c["params"] for c in search_results if c["id"] == raw_best["id"])
+    if model_class.name in PCA_SEARCH_MODELS and pca_components is None:
+        if model_class.name == "svm":
+            # svm crosses every C with every PCA size (3 x 4 = 12 in the config).
+            pca_params = expand_grid(grid)
+        else:
+            # The forest only re-tries the setting that won without PCA.
+            raw_best = metrics_module.select_candidate(
+                [{"id": c["id"], "metrics": c["metrics"]} for c in search_results], task=task
+            )
+            pca_params = [next(c["params"] for c in search_results if c["id"] == raw_best["id"])]
         standardizer = Standardizer().fit(data.train.X)
         standardized_train = standardizer.transform(data.train.X)
         standardized_validation = standardizer.transform(data.validation.X)
@@ -180,19 +208,21 @@ def train_model(
             except ValueError as exc:
                 if str(exc) != "PCA component count exceeds numerical rank":
                     raise
-                search_results.append({
-                    "id": f"{model_class.name}-{len(search_results):02d}",
-                    "params": raw_params,
-                    "metrics": {name: metrics_module.measure(reason=str(exc))
-                                for name in ("average_precision", "roc_auc")},
-                    "pca_components": components,
-                    "status": "invalid",
-                })
+                for params in pca_params:
+                    search_results.append({
+                        "id": f"{model_class.name}-{len(search_results):02d}",
+                        "params": params,
+                        "metrics": {name: metrics_module.measure(reason=str(exc))
+                                    for name in ("average_precision", "roc_auc")},
+                        "pca_components": components,
+                        "status": "invalid",
+                    })
                 continue
             arrays = {"mean": standardizer.mean_, "scale": standardizer.scale_,
                       "constant": standardizer.constant_, "components": pca.components_}
-            add_candidate(raw_params, pca.transform(standardized_train),
-                          pca.transform(standardized_validation), arrays, components)
+            for params in pca_params:
+                add_candidate(params, pca.transform(standardized_train),
+                              pca.transform(standardized_validation), arrays, components)
 
     best = metrics_module.select_candidate(
         [{"id": c["id"], "metrics": c["metrics"]} for c in search_results], task=task
@@ -202,7 +232,7 @@ def train_model(
     validation_X = winner["validation_X"]
     preprocessor_arrays = winner["preprocessor_arrays"]
     pca_components = winner["pca_components"]
-    scaled = mode != "none" or bool(pca_components)
+    scaled = mode not in UNSCALED_MODES or bool(pca_components)
 
     save_npz(directory / "model.npz", model.state_dict(), {"params": model.get_params(), "seed": seed})
     save_npz(
@@ -242,7 +272,7 @@ def train_model(
         },
     )
     search_fields = ("id", "params", "metrics")
-    if model_class.name == "random_forest":
+    if model_class.name in PCA_SEARCH_MODELS:
         search_fields += ("pca_components", "status")
     write_json(directory / "search_results.json",
                [{k: c[k] for k in search_fields} for c in search_results])

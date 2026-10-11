@@ -502,6 +502,14 @@ alpha=..., max_iter=<epoch ที่เลือกได้>, n_iter_no_change=
 **ความเสี่ยง** สูง — เป็นตัวที่ยากที่สุดคู่กับ XGBoost แผนสำรอง: เทียบที่ learning curve และ final metric
 แล้วบันทึกว่า weight init ต่างกัน
 
+**ผลจริง (2026-10-11)** ไม่ต้องใช้แผนสำรอง. parity ครบ 12 candidates × 2 variants: น้ำหนักทุกชั้นต่างสูงสุด 2.2e-16,
+probability ต่างสูงสุด 3.3e-16, label ต่าง 0.
+ผู้ชนะ: `[16], l2=0, lr=0.001` (17 epochs) AP 0.2668 / AUC 0.6757 (`with_spike`) ·
+`[32], l2=0, lr=0.001` (9 epochs) AP 0.2740 / AUC 0.6610 (`non_spike`). early stopping หยุดที่ 1–17 epochs ใน 22 จาก 24 การรัน.
+**แก้ข้อความข้างบน:** sklearn 1.9.1 หาร L2 ด้วยขนาด **batch** (`sw_sum` ของ batch) ไม่ใช่จำนวนตัวอย่างทั้งหมด.
+**เพิ่มจาก card:** Nesterov momentum 0.9 (default ของ reference ที่ card ระบุ). ไม่มี purge ระหว่าง subtrain กับ tail — เหมือน `slp`.
+รายละเอียด: [`MODEL_PROGRESS.md`](../models/mlp/MODEL_PROGRESS.md)
+
 ---
 
 ### 11. `decision_tree` — Decision Tree
@@ -813,6 +821,15 @@ cv=TimeSeriesSplit(4), passthrough=False)` เป็น behavioral reference เ
 
 **ความเสี่ยง** สูง — ความซับซ้อนอยู่ที่ fold/purge ไม่ใช่ที่อัลกอริทึม
 
+**ผลจริง (2026-10-11)** AP 0.2262 / AUC 0.6641 (`with_spike`, meta 1,040 แถว) · AP 0.2311 / AUC 0.6650 (`non_spike`, meta 852 แถว).
+ตรวจด้วย rebuild fold ต่อ fold จาก sklearn reference ของ base แต่ละตัว: meta features ของ tree/k-NN ต่าง 0,
+ของ logistic ≤ 3.9e-07, probability สุดท้าย ≤ 6.2e-07, label ต่าง 0. leakage probe ผ่าน 8 กรณี.
+**reference ข้างบนรันไม่ได้:** `StackingClassifier` ปฏิเสธ `TimeSeriesSplit` (ต้องการ fold ที่แบ่งครบทุกแถว)
+จึงใช้ `KFold(4, shuffle=False)` เป็น behavioural reference เท่านั้น.
+**แก้ข้อความเรื่อง purge:** นับแถวบน `non_spike` ไม่ได้ทำให้รั่ว (purge มากกว่า 5 วันเสมอ) แต่ทำให้ขอบ block เลื่อน —
+166 แถวอยู่คนละ fold. base ใช้ค่า default; base logistic รันจนลู่เข้าเพราะค่าตาม config ไม่ลู่เข้า.
+รายละเอียด: [`MODEL_PROGRESS.md`](../models/stacking/MODEL_PROGRESS.md)
+
 ---
 
 ### 17. `svm` — Support Vector Machine
@@ -867,6 +884,14 @@ C=1.0   obj_scratch=34.825849  obj_sklearn=34.985936   rel_gap=4.6e-03   max|dw|
 `fit_intercept=False, C=0.1` → น้ำหนักต้องตรง sklearn ที่ 1e-5 (กรณีนี้ตรงจริงตามตารางข้างบน)
 
 **ความเสี่ยง** สูง (R3) **แผนสำรอง:** คง linear SVM ไว้แล้วอธิบาย kernel trick ในรายงานโดยไม่ implement
+
+**ผลจริง (2026-10-11)** objective parity ครบ 24 candidates จริง: relative gap สูงสุด 5.6e-06, label ตรงต่ำสุด 99.94%.
+ผู้ชนะ: `C=0.1, PCA 4` AP 0.2514 / AUC 0.6786 (`with_spike`) · `C=10, PCA 4` AP 0.2501 / AUC 0.6804 (`non_spike`).
+PCA ช่วยทุกขนาด (AP ~0.21 → ~0.25) ส่วน C แทบไม่มีผล.
+**reference ข้างบนใช้ไม่ได้:** `LinearSVC(intercept_scaling=1000)` ไม่ลู่เข้าบนข้อมูลจริง (ชน 2,000,000 รอบ, objective แย่กว่า scratch
+ถึง 149% ที่ C=10) จึงใช้ `SVC(kernel="linear", tol=1e-8)` ซึ่งแก้ objective เดียวกันและไม่ penalize intercept.
+"objective ลด monotone" ไม่จริงสำหรับ subgradient — โมเดลคืนจุดที่ดีที่สุดที่เคยผ่าน. `max_iter=20000`.
+รายละเอียด: [`MODEL_PROGRESS.md`](../models/svm/MODEL_PROGRESS.md)
 
 ---
 

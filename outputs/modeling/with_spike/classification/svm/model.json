@@ -1,0 +1,9 @@
+{
+  "params": {
+    "C": 0.1,
+    "fit_intercept": true,
+    "max_iter": 20000,
+    "random_state": 42
+  },
+  "seed": 42
+}

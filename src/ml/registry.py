@@ -11,9 +11,12 @@ from .classification.gaussian_nb import GaussianNB
 from .classification.gradient_boosting import GradientBoosting
 from .classification.knn import KNN
 from .classification.logistic import Logistic
+from .classification.mlp import MLP
 from .classification.perceptron import Perceptron
 from .classification.random_forest import RandomForest
 from .classification.slp import SLP
+from .classification.stacking import Stacking
+from .classification.svm import SVM
 from .classification.xgboost import XGBoost
 from .clustering.agglomerative import Agglomerative
 from .clustering.kmeans import KMeans
@@ -33,12 +36,15 @@ MODELS: dict[str, type[BaseModel]] = {
     "kmeans": KMeans,
     "knn": KNN,
     "logistic": Logistic,
+    "mlp": MLP,
     "perceptron": Perceptron,
     "random_forest": RandomForest,
     "slp": SLP,
     "multiple_linear": MultipleLinear,
     "polynomial": Polynomial,
     "simple_linear": SimpleLinear,
+    "stacking": Stacking,
+    "svm": SVM,
     "xgboost": XGBoost,
 }
 

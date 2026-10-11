@@ -1,0 +1,18 @@
+{
+  "model": "svm",
+  "params": {
+    "C": 0.1,
+    "fit_intercept": true,
+    "max_iter": 20000,
+    "random_state": 42
+  },
+  "pca_components": 4,
+  "preprocess": "standardize",
+  "seed": 42,
+  "selected_candidate": "svm-06",
+  "task": "classification",
+  "train_rows": 1733,
+  "train_sha256": "424f1bda5c4211ac58546da992408d373d874a0f65a509965b06d8224194e64c",
+  "validation_sha256": "b84a5fa31fe1afc6841528f8e5f0c8532b07e2bda8b80bd2ca1de664cf42f6ec",
+  "variant": "with_spike"
+}

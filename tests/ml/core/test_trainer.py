@@ -325,3 +325,105 @@ def test_reload_preprocessor_zeros_constant_feature(tmp_path, monkeypatch):
     arrays, _ = load_npz(result["directory"] / "preprocessor.npz")
     assert arrays["constant"][0]
     assert result["load_verification"]["passed"] is True
+
+
+def test_svm_search_crosses_every_c_with_every_pca_size(tmp_path):
+    """Unlike the forest, svm tries PCA with every C: 3 x (none, 2, 4, 6) = 12 in the config."""
+    from src.ml.classification.svm import SVM
+
+    original = SVM.__init__
+
+    def quick(self, C=1.0, max_iter=300, fit_intercept=True, random_state=42):
+        original(self, C=C, max_iter=max_iter, fit_intercept=fit_intercept, random_state=random_state)
+
+    SVM.__init__ = quick
+    try:
+        result = train_model(SVM, grid={"C": [0.1, 1]}, variant="with_spike", output_root=tmp_path)
+    finally:
+        SVM.__init__ = original
+    directory = tmp_path / "with_spike" / "classification" / "svm"
+    rows = json.loads((directory / "search_results.json").read_text(encoding="utf-8"))
+    assert [(row["params"]["C"], row["pca_components"]) for row in rows] == [
+        (0.1, None), (1, None), (0.1, 2), (1, 2), (0.1, 4), (1, 4), (0.1, 6), (1, 6),
+    ]
+    assert all(row["status"] == "valid" for row in rows)
+    config = json.loads((directory / "config.json").read_text(encoding="utf-8"))
+    winner = next(row for row in rows if row["id"] == result["selected"])
+    assert config["pca_components"] == winner["pca_components"]
+    assert config["preprocess"] == "standardize"
+    assert result["load_verification"]["passed"]
+
+
+def test_svm_reload_uses_the_pca_basis_of_the_winner(tmp_path, monkeypatch):
+    from src.ml.classification.svm import SVM
+    from src.ml.core import trainer
+    from src.ml.core.persist import load_npz
+
+    def pick_pca_four(candidates, task):
+        return next(c for c in candidates if c["id"] == "svm-02")
+
+    monkeypatch.setattr(trainer.metrics_module, "select_candidate", pick_pca_four)
+    result = train_model(SVM, grid={"C": [1]}, variant="non_spike", output_root=tmp_path)
+    directory = tmp_path / "non_spike" / "classification" / "svm"
+    arrays, metadata = load_npz(directory / "preprocessor.npz")
+    assert result["selected"] == "svm-02"
+    assert metadata["pca_components"] == 4
+    assert arrays["components"].shape == (4, 8)
+    assert result["model"].coef_.shape == (4,)
+    assert result["load_verification"]["passed"]
+
+
+@pytest.mark.parametrize("variant,rows", [("with_spike", 1733), ("non_spike", 1520)])
+def test_models_that_ask_for_positions_get_trading_day_indices(tmp_path, monkeypatch, variant, rows):
+    """non_spike has rows removed, so a row index is not a trading-day index there."""
+    from src.ml.classification.stacking import Stacking
+
+    seen = {}
+    original = Stacking.fit
+
+    def capture(self, X, y=None, positions=None, n_positions=None):
+        seen.update(positions=np.array(positions), n_positions=n_positions, X=np.array(X))
+        return original(self, X, y, positions=positions, n_positions=n_positions)
+
+    monkeypatch.setattr(Stacking, "fit", capture)
+    result = train_model(Stacking, variant=variant, output_root=tmp_path)
+    assert seen["n_positions"] == 1733
+    assert len(seen["positions"]) == rows
+    assert (np.diff(seen["positions"]) > 0).all()
+    assert np.array_equal(seen["positions"], np.arange(1733)) == (variant == "with_spike")
+    assert result["load_verification"]["passed"]
+
+
+def test_base_specific_preprocessing_hands_the_model_raw_features(tmp_path, monkeypatch):
+    from src.ml.classification.stacking import Stacking
+    from src.ml.core.data import load
+    from src.ml.core.persist import load_npz
+
+    seen = {}
+    original = Stacking.fit
+
+    def capture(self, X, y=None, positions=None, n_positions=None):
+        seen["X"] = np.array(X)
+        return original(self, X, y, positions=positions, n_positions=n_positions)
+
+    monkeypatch.setattr(Stacking, "fit", capture)
+    train_model(Stacking, variant="with_spike", output_root=tmp_path)
+    # Each base standardises for itself; a second scaler in front would be invisible to
+    # the tree but would change what "raw" means in the saved artifact.
+    assert np.array_equal(seen["X"], load("with_spike").train.X)
+    _, metadata = load_npz(tmp_path / "with_spike" / "classification" / "stacking" / "preprocessor.npz")
+    assert metadata["preprocess"] == "base_specific"
+    assert metadata["standardized"] is False
+
+
+def test_models_without_a_positions_argument_are_fitted_as_before(tmp_path, monkeypatch):
+    seen = {}
+    original = MultipleLinear.fit
+
+    def capture(self, X, y=None, **extra):
+        seen["extra"] = extra
+        return original(self, X, y)
+
+    monkeypatch.setattr(MultipleLinear, "fit", capture)
+    train_model(MultipleLinear, variant="non_spike", output_root=tmp_path)
+    assert seen["extra"] == {}

@@ -1,0 +1,15 @@
+{
+  "feature_names": [
+    "return_1d",
+    "return_5d",
+    "historical_volatility_5d",
+    "historical_volatility_20d",
+    "intraday_range",
+    "sma_ratio_5_20",
+    "rsi_14",
+    "volume_zscore_20"
+  ],
+  "pca_components": 4,
+  "preprocess": "standardize",
+  "standardized": true
+}

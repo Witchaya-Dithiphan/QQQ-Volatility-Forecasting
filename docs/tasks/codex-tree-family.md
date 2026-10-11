@@ -384,31 +384,75 @@ leaderboard คือตารางเปรียบเทียบ metric ข
 
 ### T6 — `svm` (card #17) · ~3.5 ชม.
 
-- [ ] **เกณฑ์ parity ของตัวนี้ต่างจากตัวอื่น** — เทียบที่ objective ไม่ใช่น้ำหนัก (hinge ไม่เรียบ)
+- [x] **เกณฑ์ parity ของตัวนี้ต่างจากตัวอื่น** — เทียบที่ objective ไม่ใช่น้ำหนัก (hinge ไม่เรียบ)
       `rel_gap < 1e-3` และ `J_scratch <= J_ref·(1+1e-3)` และ label agreement ≥ 0.99
-- [ ] step size ของ subgradient ต้องเป็น `1/t` ไม่ใช่ค่าคงที่
-- [ ] `loss="hinge"` ไม่ใช่ `squared_hinge` ซึ่งเป็น default ของ sklearn
-- [ ] unit test หลักใช้ `fit_intercept=False` เพื่อตัดปัญหา liblinear penalize intercept
-- [ ] **แผนสำรอง:** ถ้า kernel SVM ไม่ทัน ให้เหลือ linear แล้วอธิบาย kernel trick ในรายงาน
+- [x] step size ของ subgradient ต้องเป็น `1/t` ไม่ใช่ค่าคงที่
+- [x] `loss="hinge"` ไม่ใช่ `squared_hinge` ซึ่งเป็น default ของ sklearn
+- [x] unit test หลักใช้ `fit_intercept=False` เพื่อตัดปัญหา liblinear penalize intercept
+- [x] **แผนสำรอง:** ถ้า kernel SVM ไม่ทัน ให้เหลือ linear แล้วอธิบาย kernel trick ในรายงาน
+
+**ผลรัน T6 (2026-10-11):** 12 candidates ต่อ variant (C 3 ค่า × ไม่มี PCA / PCA 2, 4, 6). เทียบ objective กับ `SVC(kernel="linear")` ครบ 24 ชุดจริง: relative gap สูงสุด 5.6e-06, scratch ไม่เคยแย่กว่าเกิน 5.6e-06, label ตรงต่ำสุด 99.94%. `test_svm.py` 32 tests ผ่าน.
+
+| variant | candidate ที่เลือก | AP | AUC | F1 | reload |
+| --- | --- | ---: | ---: | ---: | --- |
+| `with_spike` | C 0.1, PCA 4 | 0.251395 | 0.678565 | 0.255319 | ผ่าน |
+| `non_spike` | C 10, PCA 4 | 0.250110 | 0.680398 | 0.272727 | ผ่าน |
+
+**ความต่างจาก checklist:** reference เป็น `SVC(kernel="linear")` ไม่ใช่ `LinearSVC` — `LinearSVC(intercept_scaling=1000)` ตาม card ไม่ลู่เข้าบนข้อมูลจริง (ชน 2,000,000 รอบ, objective แย่กว่าเรา 0.003% ที่ C=0.1, 0.2% ที่ C=1, 149% ที่ C=10). "objective ลด monotone" ไม่จริงสำหรับ subgradient; โมเดลคืนจุดที่ดีที่สุดที่เคยผ่าน. kernel SVM ไม่ได้ทำตาม config (`kernel: linear`). ผลเต็ม: [`MODEL_PROGRESS.md`](../models/svm/MODEL_PROGRESS.md).
 
 ### T7 — `mlp` (card #10) · ~4 ชม.
 
-- [ ] weight init ต้องก๊อปสูตรของ sklearn: uniform ในช่วง `±sqrt(6/(fan_in+fan_out))` ด้วย `RandomState`
-- [ ] อนุพันธ์ ReLU ที่ `z=0` ใช้ 0 (`z > 0` ไม่ใช่ `z >= 0`)
-- [ ] L2 หารด้วยจำนวนตัวอย่าง ไม่ใช่ขนาด batch
-- [ ] unit test: **gradient check** ทุกชั้นเทียบ numerical gradient ที่ 1e-6
-- [ ] unit test: XOR ที่มีชั้นซ่อนต้องแก้ได้ accuracy 1.0 ← พิสูจน์ว่า backprop ถูกจริง
-- [ ] reference ตั้ง `tol=0` และ `n_iter_no_change` ใหญ่กว่า `max_iter` เพื่อปิด early stopping ของ sklearn
+- [x] weight init ต้องก๊อปสูตรของ sklearn: uniform ในช่วง `±sqrt(6/(fan_in+fan_out))` ด้วย `RandomState`
+- [x] อนุพันธ์ ReLU ที่ `z=0` ใช้ 0 (`z > 0` ไม่ใช่ `z >= 0`)
+- [x] L2 หารด้วยจำนวนตัวอย่าง ไม่ใช่ขนาด batch
+- [x] unit test: **gradient check** ทุกชั้นเทียบ numerical gradient ที่ 1e-6
+- [x] unit test: XOR ที่มีชั้นซ่อนต้องแก้ได้ accuracy 1.0 ← พิสูจน์ว่า backprop ถูกจริง
+- [x] reference ตั้ง `tol=0` และ `n_iter_no_change` ใหญ่กว่า `max_iter` เพื่อปิด early stopping ของ sklearn
+
+**ผลรัน T7 (2026-10-11):** 12 candidates ต่อ variant. เทียบ `MLPClassifier` ครบ 24 ชุดบน Train และ Validation: น้ำหนักทุกชั้นต่างสูงสุด 2.2e-16, probability ต่างสูงสุด 3.3e-16, label ต่าง 0. `test_mlp.py` 34 tests ผ่าน รวม gradient check ทุกชั้นและ XOR.
+
+| variant | candidate ที่เลือก | best epoch | AP | AUC | F1 | reload |
+| --- | --- | ---: | ---: | ---: | ---: | --- |
+| `with_spike` | [16], l2 0, lr 0.001 | 17 | 0.266817 | 0.675685 | 0.320000 | ผ่าน |
+| `non_spike` | [32], l2 0, lr 0.001 | 9 | 0.274049 | 0.661023 | 0.260870 | ผ่าน |
+
+**ความต่างจาก checklist:** "L2 หารด้วยจำนวนตัวอย่าง ไม่ใช่ขนาด batch" ตรงข้ามกับ source ของ sklearn 1.9.1 ซึ่งหารด้วยขนาด **batch** — ยึดตาม source. มี Nesterov momentum 0.9 เพราะเป็น default ของ reference ที่ card ระบุ. ใช้ protocol เดียวกับ `slp` (ไม่มี purge ระหว่าง subtrain กับ tail). ผลเต็ม: [`MODEL_PROGRESS.md`](../models/mlp/MODEL_PROGRESS.md).
 
 ### T8 — `stacking` (card #16) · ~3.5 ชม. · **ต้องรออีกฝั่ง**
 
 ต้องรอ `logistic`, `decision_tree`, `knn` พร้อมก่อน (`knn` มาจากอีก branch) — ทำเป็นตัวสุดท้าย
 
-- [ ] **purge นับตาม original trading day ไม่ใช่ row gap** — variant `non_spike` มีแถวหายไป
+- [x] **purge นับตาม original trading day ไม่ใช่ row gap** — variant `non_spike` มีแถวหายไป
       การนับ 5 แถวจะข้ามเวลาจริงเกิน 5 วัน → เกิด leakage
-- [ ] meta ห้ามเห็น in-sample probability เด็ดขาด
-- [ ] unit test: ตรวจว่าไม่มี index ของ validation โผล่ใน training ของ fold ใด ๆ
-- [ ] sklearn `StackingClassifier` ไม่มี purge → ตัวเลขจะต่าง **และนั่นถูกต้องแล้ว** ให้บันทึกเหตุผล
+- [x] meta ห้ามเห็น in-sample probability เด็ดขาด
+- [x] unit test: ตรวจว่าไม่มี index ของ validation โผล่ใน training ของ fold ใด ๆ
+- [x] sklearn `StackingClassifier` ไม่มี purge → ตัวเลขจะต่าง **และนั่นถูกต้องแล้ว** ให้บันทึกเหตุผล
+
+**ผลรัน T8 (2026-10-11):** 1 candidate ต่อ variant. ตรวจด้วย rebuild fold ต่อ fold จาก sklearn reference ของ base แต่ละตัว: meta features ของ tree และ k-NN ต่าง 0, ของ logistic ต่างสูงสุด 3.9e-07, probability สุดท้ายต่างสูงสุด 6.2e-07, label ต่าง 0 ทั้งสอง variant. leakage probe ผ่านทั้ง 8 กรณี. `test_stacking.py` 25 tests ผ่าน.
+
+| variant | AP | AUC | F1 | แถวที่ meta ใช้ | reload |
+| --- | ---: | ---: | ---: | ---: | --- |
+| `with_spike` | 0.226248 | 0.664078 | 0.235294 | 1,040 | ผ่าน |
+| `non_spike` | 0.231130 | 0.665038 | 0.196078 | 852 | ผ่าน |
+
+**ความต่างจาก checklist:** `StackingClassifier(cv=TimeSeriesSplit(4))` ตาม card **รันไม่ได้** (sklearn ต้องการ fold ที่แบ่งครบทุกแถว) จึงใช้ `KFold` เป็น behavioural reference และย้ายการตรวจจริงไปที่ rebuild. เรื่อง purge: บน `non_spike` การนับวันกับการนับแถวต่างกันจริง 166 แถว แต่ทิศทางไม่ใช่ leakage อย่างที่ checklist เขียน — นับแถวจะ purge **มากกว่า** ที่ผิดคือขอบ block เลื่อน. ผลเต็ม: [`MODEL_PROGRESS.md`](../models/stacking/MODEL_PROGRESS.md).
+
+**สิ่งที่ T8 เจอเกี่ยวกับ `logistic` — ผลเล็ก ไม่ได้แก้:** ด้วยค่าตาม config (`learning_rate=0.05, max_iter=5000`) โมเดล `logistic` ไม่ลู่เข้าบนข้อมูลจริง. ทั้ง 12 การรัน (6 candidates × 2 variants) หยุดเพราะครบ 5,000 รอบ ไม่ใช่เพราะถึง `tol`. เทียบกับโมเดลที่รันจนลู่เข้า บน Validation: probability ต่างสูงสุด 0.0079, AP ต่างสูงสุด 0.0007, AUC ต่างสูงสุด 0.0012, label ต่างสูงสุด 1 จาก 371 แถว; ผู้ชนะทั้งสอง variant ได้ AP/AUC เท่าเดิมถึงทศนิยม 4 ตำแหน่ง. stacking รัน base logistic จนลู่เข้าเองเพราะ fold ที่เล็กกว่าห่างจาก optimum 0.03–0.07 ซึ่งมากพอจะทำให้การเทียบ meta features ไม่มีความหมาย.
+
+**บทเรียน T6–T8:**
+
+- **reference ก็ผิดได้.** สองใน สาม reference ของ card ใช้ไม่ได้ตามที่เขียน: `LinearSVC` ไม่ลู่เข้า และ `StackingClassifier` + `TimeSeriesSplit` รันไม่ได้. เมื่อ scratch "ชนะ" reference ให้ดู `n_iter_` ของ reference ก่อนฉลอง.
+- **parity ที่รันจนลู่เข้าพิสูจน์อัลกอริทึม ไม่ได้บอกว่า production ลู่เข้า.** ทั้งสองคำถามมีค่า แต่ต้องวัดข้อหลังบนข้อมูลจริงด้วย — `logistic` ชน max_iter ทุกการรันโดยที่ fixture ของ test หยุดที่รอบ 550.
+- **โมเดลประกอบ ตรวจด้วยการประกอบ reference ทีละชิ้นบน fold เดียวกัน** ได้ผลเข้มกว่าเทียบ ensemble สำเร็จรูป และบอกได้ทันทีว่าชิ้นไหนต่าง.
+- **leakage ตรวจได้โดยไม่ต้องมี reference:** เขียนทับปัจจุบันและอนาคตแล้วดูว่า output ของอดีตขยับไหม.
+
+> **หมายเหตุ core รอบ 2 (2026-10-11) — แจ้งทั้งสองฝั่ง:** `src/ml/core/trainer.py` ถูกแก้อีก 2 จุดตามคำสั่งเจ้าของโปรเจกต์:
+> (1) **PCA search ของ `svm`** ไขว้ทุก C กับ PCA 2/4/6 ให้ครบ 12 candidates ตาม config; ทางของ `random_forest` (ลอง PCA เฉพาะค่าที่ชนะ) ไม่เปลี่ยน ·
+> (2) **`positions` และ `base_specific`** โมเดลที่ `fit` รับ `positions` จะได้ index วันทำการบน timeline เดิม (ตอนนี้มีแค่ `stacking`) และ preprocess แบบ `base_specific` ไม่ถูก standardize โดย trainer.
+> **หลักฐานว่าไม่กระทบโมเดลอื่น:** train ทุกโมเดลที่ลงทะเบียน × 2 variants ก่อนและหลังแต่ละจุด แล้วเทียบทีละไฟล์ —
+> หลังจุด (1): 312 จาก 312 ไฟล์ของ 16 โมเดลเดิมเหมือนกันทุก byte (รวม `random_forest` ที่ใช้ทาง PCA เดียวกัน) ·
+> หลังจุด (2): 332 จาก 332 ไฟล์ของ 17 โมเดลเหมือนกันทุก byte · artifact ของ `svm`/`mlp`/`stacking` ใน repo
+> ตรงกับการรันใหม่ทุกไฟล์ (reproducible).
 
 ---
 

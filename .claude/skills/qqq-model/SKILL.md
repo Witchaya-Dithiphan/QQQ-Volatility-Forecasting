@@ -100,6 +100,10 @@ sklearn สร้างบน **legacy MT19937** ใช้ `np.random.RandomStat
 | **ระยะทางของ sklearn** | ใช้สูตรกระจาย `‖a‖²+‖b‖²−2a·b` → ระยะจากจุดถึง**ตัวเอง** ได้ `4.2e-08` ไม่ใช่ 0 (วัดแล้ว) ส่วน `norm(x−x)` ได้ 0 พอดี → **ทดสอบ parity บน held-out points เสมอ** ซึ่งเป็นสิ่งที่ trainer ทำจริง ไม่ใช่ predict ทับ train · กระทบ `knn` และ `kmeans` |
 | **RNG ไม่ตรง sklearn** | วินิจฉัยก่อนแก้: เพิ่ม `n_init`/budget แล้ว gap ปิดไหม — ถ้าปิด = อัลกอริทึมถูก ปัญหาอยู่ที่ init · k-means++ ของ sklearn ใช้ `rng.choice(n, p=w/w.sum())` สำหรับ center แรก (ไม่ใช่ `randint`), `rng.uniform(size=...)` แต่ละรอบ, และ **ลบ column mean ก่อน cluster** — ต่างข้อใดข้อหนึ่ง stream เพี้ยนตั้งแต่ center แรก |
 | **tie ที่ proba = 0.5** | `predict` ต้องใช้ `> 0.5` ไม่ใช่ `>= 0.5` — sklearn ใช้ `argmax` ซึ่งเลือกคลาส index ต่ำกว่าเมื่อเสมอ |
+| **reference ไม่ลู่เข้า** | เมื่อ scratch ได้ objective ดีกว่า reference ให้ดู `n_iter_` ของ reference ก่อน — `LinearSVC(intercept_scaling=1000)` ชน max_iter 2 ล้านรอบบนข้อมูลจริง ใช้ `SVC(kernel="linear")` แทน |
+| **ค่า production ลู่เข้าไหม** | parity ที่รันจนลู่เข้าพิสูจน์อัลกอริทึม ไม่ได้บอกว่าค่า production ไปถึง — วัดบนข้อมูลจริงด้วย · `Logistic()` default ชน 5,000 รอบทุกการรัน (ผลต่าง AP ≤ 0.0007 จึงไม่ได้แก้) แต่บน fold เล็กของ stacking ห่าง 0.03–0.07 |
+| **gradient boosting ของ sklearn** | `predict` ใช้ `>= 0` (ตรงข้ามกฎ `> 0.5`) · `F0` ต้องคำนวณแบบ `scipy.logit` · `np.sum` เป็น pairwise ใช้ `np.cumsum` เมื่อต้องตรง C |
+| **reference float32** (xgboost) | เลียน float32 ทุกจุด · `exp` คิดใน float64 แล้วปัด · อ่าน source ตาม tag ที่ตรงกับเวอร์ชันที่ติดตั้ง |
 | **preprocess** | trainer อ่าน `preprocess` จาก config แล้ว (7 โมเดลเป็น `none`) ส่ง `preprocess=` override ได้ใน test · PCA บังคับ standardize เสมอเพราะต้องการ input ที่ centered |
 
 ## Grid
@@ -110,6 +114,10 @@ CLI อ่านให้อัตโนมัติ ไม่ต้องส่
 grid ปกติเป็นช่วงค่าที่ trainer คูณกันทุกคู่ · ถ้า config ใช้ `tuples` (ตอนนี้มีแค่ `xgboost`)
 trainer จะแปลงแต่ละ tuple เป็น 1 candidate ตาม `parameters.tuple_fields` ให้เอง
 **โมเดลไม่ต้องรับ `tuples` ใน constructor**
+
+trainer ยังทำอีก 3 อย่างให้เฉพาะโมเดล: PCA search (`random_forest` เฉพาะค่าที่ชนะ · `svm` ไขว้ทุก C) ·
+ส่ง `positions`/`n_positions` (index วันทำการบน timeline เดิม) ให้โมเดลที่ `fit` ประกาศรับ ·
+ไม่ standardize เมื่อ config เป็น `base_specific`
 
 ## คำสั่ง
 

@@ -175,6 +175,10 @@ artifact 8–12 ไฟล์ + manifest 25 ฟิลด์ต่อ run × 38 ru
        เก็บลง search_results.json
    grid มี 2 รูปแบบ: ช่วงค่า {a: [...], b: [...]} → ผลคูณทุกคู่ (เรียง key ตามตัวอักษร)
    หรือ {tuples: [...], tuple_fields: [...]} → 1 tuple = 1 candidate ตามลำดับที่เขียน
+   PCA search: random_forest ลอง PCA 2/4/6 เฉพาะ hyperparameter ที่ชนะตอนไม่มี PCA (4 + 3 = 7)
+               svm ไขว้ทุก C กับทุกขนาด PCA (3 x 4 = 12)
+   โมเดลที่ fit รับ `positions` (stacking) จะได้ index วันทำการบน timeline เดิมของ with_spike
+   preprocess `base_specific` (stacking) = trainer ไม่ scale ให้ โมเดล standardize เองราย base
 4. select_candidate()                 → ผู้ชนะ 1 ตัว (เกณฑ์: regression=rmse, classification=AP→AUC)
 5. [classification] select_threshold() บน Validation เท่านั้น
 6. save_npz(model.state_dict())  +  save_npz(preprocessor)

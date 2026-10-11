@@ -1,0 +1,18 @@
+{
+  "model": "stacking",
+  "params": {
+    "folds": 4,
+    "initial_fraction": 0.4,
+    "purge": 5,
+    "random_state": 42
+  },
+  "pca_components": null,
+  "preprocess": "base_specific",
+  "seed": 42,
+  "selected_candidate": "stacking-00",
+  "task": "classification",
+  "train_rows": 1733,
+  "train_sha256": "424f1bda5c4211ac58546da992408d373d874a0f65a509965b06d8224194e64c",
+  "validation_sha256": "b84a5fa31fe1afc6841528f8e5f0c8532b07e2bda8b80bd2ca1de664cf42f6ec",
+  "variant": "with_spike"
+}
