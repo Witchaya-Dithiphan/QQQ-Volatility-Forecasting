@@ -177,3 +177,39 @@ def test_save_load_preserves_scores(tmp_path):
 def test_registry_exposes_svm():
     assert "svm" in model_names()
     assert isinstance(build("svm"), SVM)
+
+
+@pytest.mark.parametrize("shift", [5.0, 50.0])
+@pytest.mark.parametrize("C", [1.0, 10.0])
+def test_uncentred_features_reach_the_same_optimum(shift, C):
+    """The intercept is free, so moving every feature by a constant must not change the fit.
+
+    Without centring inside the solver this failed badly: at a shift of 5 the objective
+    stopped 3% to 120% above the optimum and three million iterations did not close it.
+    """
+    rng = np.random.RandomState(0)
+    X = rng.normal(size=(120, 5))
+    y = (X[:, 0] + rng.normal(size=120) > 0).astype(int)
+    centred = SVM(C=C).fit(X, y)
+    shifted = SVM(C=C).fit(X + shift, y)
+    reference = shifted.reference().fit(X + shift, y)
+    assert_objective_parity(shifted, reference, X + shift, y)
+    # Same hyperplane, expressed in the shifted coordinates.
+    assert np.allclose(shifted.coef_, centred.coef_, atol=1e-8)
+    assert np.allclose(shifted.decision_function(X + shift), centred.decision_function(X), atol=1e-6)
+
+
+def test_constant_column_does_not_stall_the_solver():
+    rng = np.random.RandomState(1)
+    X = rng.normal(size=(150, 4))
+    X[:, 2] = 3.0
+    y = (X[:, 0] - X[:, 1] + rng.normal(size=150) > 0).astype(int)
+    scratch = SVM(C=10.0).fit(X, y)
+    assert_objective_parity(scratch, scratch.reference().fit(X, y), X, y)
+    assert scratch.coef_[2] == 0.0
+
+
+def test_without_intercept_features_are_not_centred():
+    X = np.array([[1.0], [2.0], [3.0], [-1.0]])
+    model = SVM(C=1.0, fit_intercept=False).fit(X, np.array([1, 1, 1, 0]))
+    assert model.decision_function(np.zeros((1, 1)))[0] == 0.0

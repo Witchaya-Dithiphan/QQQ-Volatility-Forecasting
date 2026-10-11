@@ -3,7 +3,9 @@
     J(w, b) = 0.5 * ||w||^2 + C * sum(max(0, 1 - y_i (w.x_i + b)))      y in {-1, +1}
 
 The intercept is not penalised. A point only pulls on the solution while its margin
-is below 1; once it is safely beyond, it contributes nothing.
+is below 1; once it is safely beyond, it contributes nothing. Features are centred
+inside the solver (and the intercept shifted back afterwards), so the fit does not
+depend on where the caller's origin happens to be.
 """
 from __future__ import annotations
 
@@ -49,6 +51,12 @@ class SVM(BaseModel):
             raise ValueError("SVM requires binary labels 0 and 1")
         signed = 2.0 * labels - 1.0
 
+        # The intercept is free, so w.(x - mean) + b is the same model as w.x + b' and has
+        # the same optimum. Solving on centred features matters in practice: an offset of
+        # a few units couples the intercept to every weight, and the 1/t steps then crawl.
+        offset = X.mean(axis=0) if self.fit_intercept else np.zeros(X.shape[1])
+        X = X - offset
+
         weights, intercept = np.zeros(X.shape[1]), 0.0
         best = (np.inf, weights, intercept)
         stride = max(1, self.max_iter // 500)
@@ -76,7 +84,9 @@ class SVM(BaseModel):
         objective = float(0.5 * weights @ weights + self.C * np.maximum(0.0, 1.0 - margin).sum())
         if objective < best[0]:
             best = (objective, weights, intercept)
-        self.objective_, self.coef_, self.intercept_ = best[0], best[1], float(best[2])
+        self.objective_, self.coef_ = best[0], best[1]
+        # Back to the caller's coordinates.
+        self.intercept_ = float(best[2] - best[1] @ offset)
         return self
 
     def decision_function(self, X) -> np.ndarray:

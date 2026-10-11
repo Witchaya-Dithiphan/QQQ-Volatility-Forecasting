@@ -9,5 +9,7 @@
     "rsi_14",
     "volume_zscore_20"
   ],
-  "pca_components": null
+  "pca_components": null,
+  "preprocess": "standardize",
+  "standardized": true
 }

@@ -180,7 +180,9 @@ artifact 8–12 ไฟล์ + manifest 25 ฟิลด์ต่อ run × 38 ru
    โมเดลที่ fit รับ `positions` (stacking) จะได้ index วันทำการบน timeline เดิมของ with_spike
    preprocess `base_specific` (stacking) = trainer ไม่ scale ให้ โมเดล standardize เองราย base
 4. select_candidate()                 → ผู้ชนะ 1 ตัว (เกณฑ์: regression=rmse, classification=AP→AUC)
-5. [classification] select_threshold() บน Validation เท่านั้น
+5. [classification] ใช้ threshold คงที่: 0.5 สำหรับ probability, 0 สำหรับ decision score
+   (`metrics.select_threshold()` มีอยู่และมี test แต่ trainer **ไม่ได้เรียก** — ผลทุกตัวในโปรเจกต์
+   รายงานที่ threshold คงที่ ไม่มีการจูน threshold บน Validation)
 6. save_npz(model.state_dict())  +  save_npz(preprocessor)
 7. load_npz → สร้างโมเดลใหม่ → predict ซ้ำ → verify_reload()  → load_verification.json
 8. เขียน validation_metrics.json, validation_predictions.csv, history.json

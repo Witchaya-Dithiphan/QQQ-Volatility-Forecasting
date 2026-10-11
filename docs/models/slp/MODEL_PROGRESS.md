@@ -59,6 +59,17 @@ reload ✅ · preprocess `standardize`
 ไม่มี parity failure — แต่ต้องคิดเรื่อง reference ก่อนว่าจะเทียบกับอะไร เพราะไม่มี
 sklearn estimator ที่ตรงรูปแบบนี้ สรุปว่าเทียบที่ objective ซึ่งเป็นคำถามที่ถูกต้อง
 
+## ผลขึ้นกับโควตา epoch ไม่ใช่ early stopping (ตรวจ 2026-10-11)
+
+ข้อสังเกตข้างบนที่ว่า "early stopping ทำหน้าที่เป็น regularizer โดยหยุดก่อน overfit" **ไม่ตรงกับสิ่งที่เกิดจริง**:
+ผู้ชนะทั้งสอง variant บันทึก `n_epochs = best_epoch = 1000` คือวิ่งครบ `max_epochs` โดย loss บน tail
+ยังลดอยู่จนรอบสุดท้าย — early stopping ไม่เคยทำงาน. สิ่งที่หยุดการเทรนคือโควตา 1,000 epochs.
+
+ผลคือโมเดลที่บันทึกยังห่างจาก logistic regression ที่ลู่เข้า: probability บน Validation ต่างสูงสุด
+0.069 (`with_spike`) และ 0.287 (`non_spike`), label ต่าง 0.3% และ 4.6%. AUC ที่สูงกว่า `logistic`
+เล็กน้อยจึงเป็นผลของการหยุดที่ 1,000 epochs ซึ่งเป็นค่าที่ config กำหนด ไม่ใช่จุดที่ข้อมูลเลือก.
+ถ้าเพิ่ม `max_epochs` ผลจะเคลื่อนเข้าหา `logistic`. ไม่ใช่บั๊ก แต่รายงานควรเขียนตามนี้.
+
 ## ผลของ purge (2026-10-11)
 
 train ใหม่ทั้งสอง variant หลังเพิ่ม purge: **ผู้ชนะและตัวเลขในตารางข้างบนไม่เปลี่ยนเลย**

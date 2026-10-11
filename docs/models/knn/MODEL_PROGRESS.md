@@ -78,6 +78,13 @@ predict บน training set ตัวเอง
 - `src/ml/classification/knn.py`
 - `tests/ml/classification/test_knn.py` (21 tests)
 
+## หมายเหตุจากการตรวจครั้งสุดท้าย (2026-10-11)
+
+tie-break ด้วย index ทำให้ผล deterministic แต่**ไม่รับประกันว่าตรง sklearn เมื่อระยะทางเท่ากันพอดี** —
+sklearn ใช้ partial sort ที่เลือกในกลุ่ม tie ไม่แน่นอน. สุ่มทดสอบบนข้อมูลที่ปัดทศนิยมให้มีค่าซ้ำ เจอ 2 จาก 60 แถว
+ที่เพื่อนบ้านตัวที่ k เสมอกันและสองฝั่งเลือกต่างกัน. ข้อมูลจริงเป็นค่าต่อเนื่อง ไม่มี tie: ที่ค่า production
+probability ต่างจาก sklearn ≤ 7.8e-16 และ label ต่าง 0. แก้ docstring ที่เคยเขียนว่า "matching sklearn" แล้ว.
+
 ## ค้างอยู่
 
 - card #7 ใน `MODEL_CARDS.md` ยังไม่ได้ใส่ผลจริง
