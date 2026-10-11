@@ -113,12 +113,14 @@ def train_model(
         standardizer = Standardizer().fit(data.train.X)
         train_X = standardizer.transform(data.train.X)
         validation_X = standardizer.transform(data.validation.X)
-        preprocessor_arrays = {"mean": standardizer.mean_, "scale": standardizer.scale_}
+        preprocessor_arrays = {"mean": standardizer.mean_, "scale": standardizer.scale_,
+                               "constant": standardizer.constant_}
     else:
         train_X, validation_X = data.train.X, data.validation.X
         n_features = data.train.X.shape[1]
         # Identity transform, stored so every run has the same artifact shape.
-        preprocessor_arrays = {"mean": np.zeros(n_features), "scale": np.ones(n_features)}
+        preprocessor_arrays = {"mean": np.zeros(n_features), "scale": np.ones(n_features),
+                               "constant": np.zeros(n_features, dtype=bool)}
 
     if pca_components:
         pca = PCA(pca_components).fit(train_X)
@@ -146,6 +148,7 @@ def train_model(
                 "pca_components": components,
                 "validation_X": candidate_validation_X,
                 "preprocessor_arrays": arrays,
+                "status": "valid",
             }
         )
 
@@ -161,9 +164,22 @@ def train_model(
         standardized_train = standardizer.transform(data.train.X)
         standardized_validation = standardizer.transform(data.validation.X)
         for components in (2, 4, 6):
-            pca = PCA(components).fit(standardized_train)
+            try:
+                pca = PCA(components).fit(standardized_train)
+            except ValueError as exc:
+                if str(exc) != "PCA component count exceeds numerical rank":
+                    raise
+                search_results.append({
+                    "id": f"{model_class.name}-{len(search_results):02d}",
+                    "params": raw_params,
+                    "metrics": {name: metrics_module.measure(reason=str(exc))
+                                for name in ("average_precision", "roc_auc")},
+                    "pca_components": components,
+                    "status": "invalid",
+                })
+                continue
             arrays = {"mean": standardizer.mean_, "scale": standardizer.scale_,
-                      "components": pca.components_}
+                      "constant": standardizer.constant_, "components": pca.components_}
             add_candidate(raw_params, pca.transform(standardized_train),
                           pca.transform(standardized_validation), arrays, components)
 
@@ -187,8 +203,15 @@ def train_model(
 
     arrays, metadata = load_npz(directory / "model.npz")
     reloaded = model_class().load_state(arrays, metadata)
+    saved_preprocessor, saved_metadata = load_npz(directory / "preprocessor.npz")
+    reloaded_validation_X = data.validation.X
+    if saved_metadata["standardized"]:
+        reloaded_validation_X = (reloaded_validation_X - saved_preprocessor["mean"]) / saved_preprocessor["scale"]
+        reloaded_validation_X[:, saved_preprocessor["constant"].astype(bool)] = 0.0
+    if saved_metadata["pca_components"]:
+        reloaded_validation_X = reloaded_validation_X @ saved_preprocessor["components"].T
     verification = verify_reload(
-        model.predict(validation_X), reloaded.predict(validation_X), labels=task != "regression"
+        model.predict(validation_X), reloaded.predict(reloaded_validation_X), labels=task != "regression"
     )
 
     write_json(
@@ -209,7 +232,7 @@ def train_model(
     )
     search_fields = ("id", "params", "metrics")
     if model_class.name == "random_forest":
-        search_fields += ("pca_components",)
+        search_fields += ("pca_components", "status")
     write_json(directory / "search_results.json",
                [{k: c[k] for k in search_fields} for c in search_results])
     write_json(directory / "validation_metrics.json", winner["metrics"])

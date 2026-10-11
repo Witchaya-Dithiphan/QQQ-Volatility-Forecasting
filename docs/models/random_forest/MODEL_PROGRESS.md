@@ -1,6 +1,6 @@
 # random_forest — classification · 🟡 รอ leaderboard
 
-**เจ้าของ:** Codex · **สเปก:** [card #12](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**เจ้าของ:** Codex · **สเปก:** [Random Forest card](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 
@@ -18,7 +18,7 @@
 ## การตัดสินใจ
 
 - สุ่ม seed ต่อ tree ด้วย `RandomState(42)` แล้วใช้ seed เดียวกันกับ bootstrap และการเลือก feature ที่แต่ละ node ตาม sklearn.
-- trainer ใช้ AP ก่อน AUC เพื่อเลือก best raw hyperparameters, ทดลอง PCA(2,4,6) ด้วยค่านั้น แล้วเลือก global winner จาก 7 candidates. แต่ละ search row บันทึก `pca_components`; artifacts และ reload ใช้ preprocessing ของผู้ชนะ.
+- trainer ใช้ AP ก่อน AUC เพื่อเลือก best raw hyperparameters, ทดลอง PCA(2,4,6) ด้วยค่านั้น แล้วเลือก global winner จาก 7 candidates. แต่ละ search row บันทึก `pca_components` และ status; artifacts และ reload ใช้ preprocessing ของผู้ชนะ.
 
 ## ไฟล์
 
@@ -29,6 +29,8 @@
 ## ปัญหาที่เจอและแก้แล้ว
 
 trainer เดิมใช้ preprocessing ชุดเดียวกับทุก grid candidate จึงรันได้เพียง 4 raw rows และถ้า PCA ชนะ จะ reload ด้วย validation matrix ผิดมิติ. เพิ่ม PCA อีกสาม candidate หลังหา best raw และเก็บ matrix/standardizer/components ประจำ candidate; test บังคับให้ PCA(4) ชนะตรวจทั้ง 7 rows, params ที่ reuse, metadata, และ reload. การทดสอบก่อนแก้ fail ที่ 4 rows; หลังแก้ผ่าน.
+
+เมื่อ `PCA(6)` เกิน numerical rank เดิม trainer หยุดทั้ง grid. ตอนนี้บันทึกแถวที่ 7 เป็น `invalid` พร้อม AP/AUC เป็น `null` และเหตุผล; error ประเภทอื่นยัง raise. เดิม reload ตรวจเฉพาะ model บน validation matrix ในหน่วยความจำ ทำให้ไม่ตรวจ preprocessor ที่ save. ตอนนี้อ่าน `preprocessor.npz` กลับมาแล้ว transform Validation ดิบด้วย mean/scale, constant mask และ PCA components; test ปรับ components ที่อ่านกลับให้ผิดแล้วตรวจว่า verification fail. อีก test ใช้ feature คงที่บน Train แต่ต่างบน Validation เพื่อยืนยันว่าการ reload ยัง zero feature นั้นตาม Standardizer. Focused tests ของ trainer, preprocess, tree, forest ผ่าน 102 tests.
 
 ## ค้างอยู่
 

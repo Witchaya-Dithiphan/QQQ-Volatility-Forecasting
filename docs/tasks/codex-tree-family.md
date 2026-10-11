@@ -273,7 +273,7 @@ leaderboard คือตารางเปรียบเทียบ metric ข
 
 > ให้เวลากับ T1 มากกว่าที่ประมาณไว้ — อีก 4 โมเดลพึ่งโค้ดนี้ ถ้า T1 ผิด จะไปโผล่เป็นบั๊กลึก ๆ ใน T2–T5
 
-### T2 — `random_forest` (card #12) · ~2.5 ชม.
+### T2 — `random_forest` (Random Forest card) · ~2.5 ชม.
 
 - [x] bootstrap ใช้ `np.random.RandomState(seed_i).randint(0, n, n)` — ตรวจว่าตรงกับ
       `sklearn.ensemble._forest._generate_sample_indices(seed_i, n, n, None)` เป๊ะ
@@ -290,6 +290,8 @@ leaderboard คือตารางเปรียบเทียบ metric ข
 | `non_spike` | depth 5, 50 trees | none | 0.301006 | 0.676645 | 0.291667 | ผ่าน |
 
 ผลเต็มอยู่ใน [`MODEL_PROGRESS.md`](../models/random_forest/MODEL_PROGRESS.md) และ `outputs/modeling/<variant>/classification/random_forest/`. **DoD ค้าง leaderboard ข้อ 5** เพราะ `src.ml.run report` ยังไม่ implement; ยังไม่แตะ Test set.
+
+**บทเรียนสำหรับ T6/PCA:** ถ้า `PCA(k)` ขอ component เกิน numerical rank ให้บันทึก candidate นั้นเป็น `invalid` พร้อม AP/AUC เป็น `null` และเหตุผล แล้วเลือกจาก candidates ที่เหลือ. Error อื่นจาก PCA ต้อง raise ตามเดิม. การพิสูจน์ reload ต้องอ่าน `preprocessor.npz` กลับมาและ transform Validation ดิบด้วย mean/scale, constant mask และ components ที่บันทึกไว้ ก่อนเปรียบเทียบ prediction.
 
 ### T3 — `adaboost` ★ (card #15) · ~3 ชม.
 

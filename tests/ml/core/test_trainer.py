@@ -168,7 +168,7 @@ def test_random_forest_search_persists_the_pca_winner(tmp_path, monkeypatch):
 
         def predict(self, X):
             assert X.shape[1] == self.n_features_
-            return np.zeros(len(X), dtype=int)
+            return X[:, 0].copy()
 
         def state_dict(self):
             return {"n_features": np.array([self.n_features_])}
@@ -201,4 +201,92 @@ def test_random_forest_search_persists_the_pca_winner(tmp_path, monkeypatch):
     assert config["pca_components"] == metadata["pca_components"] == 4
     assert metadata["standardized"] is True
     assert arrays["components"].shape == (4, 8)
+    assert result["load_verification"]["passed"] is True
+
+    original_load = trainer.load_npz
+
+    def altered_preprocessor(path):
+        arrays, metadata = original_load(path)
+        if path.name == "preprocessor.npz":
+            arrays["components"] *= -1
+        return arrays, metadata
+
+    monkeypatch.setattr(trainer, "load_npz", altered_preprocessor)
+    altered = train_model(TinyForest, grid={"max_depth": [3, 5], "n_estimators": [2, 3]},
+                          output_root=tmp_path)
+    assert altered["load_verification"]["passed"] is False
+
+
+def test_random_forest_rank_failure_records_invalid_candidate(tmp_path, monkeypatch):
+    from src.ml.classification.random_forest import RandomForest
+    import src.ml.core.trainer as trainer
+
+    original_fit = trainer.PCA.fit
+
+    def fail_six(self, X):
+        if self.n_components == 6:
+            raise ValueError("PCA component count exceeds numerical rank")
+        return original_fit(self, X)
+
+    monkeypatch.setattr(trainer.PCA, "fit", fail_six)
+    result = train_model(RandomForest, grid={"max_depth": [3, 5], "n_estimators": [2, 3]},
+                         output_root=tmp_path)
+    rows = json.loads((result["directory"] / "search_results.json").read_text(encoding="utf-8"))
+    assert len(rows) == 7
+    assert rows[-1]["pca_components"] == 6
+    assert rows[-1]["status"] == "invalid"
+    assert all(row["status"] == "valid" for row in rows[:-1])
+    for metric in ("average_precision", "roc_auc"):
+        assert rows[-1]["metrics"][metric] == {
+            "value": None, "reason": "PCA component count exceeds numerical rank"
+        }
+    assert result["load_verification"]["passed"] is True
+
+    def fail_unrelated(self, X):
+        if self.n_components == 6:
+            raise ValueError("unexpected covariance failure")
+        return original_fit(self, X)
+
+    monkeypatch.setattr(trainer.PCA, "fit", fail_unrelated)
+    with pytest.raises(ValueError, match="unexpected covariance failure"):
+        train_model(RandomForest, grid={"n_estimators": [2]}, output_root=tmp_path / "unexpected")
+
+
+def test_reload_preprocessor_zeros_constant_feature(tmp_path, monkeypatch):
+    from dataclasses import replace
+    import src.ml.core.trainer as trainer
+
+    original = trainer.load("with_spike")
+    train_X = original.train.X.copy()
+    validation_X = original.validation.X.copy()
+    train_X[:, 0] = 0.0
+    validation_X[:, 0] = 10.0
+    monkeypatch.setattr(trainer, "load", lambda _: replace(
+        original, train=replace(original.train, X=train_X),
+        validation=replace(original.validation, X=validation_X)))
+
+    class ConstantProbe:
+        name = "constant_probe"
+        task = "regression"
+
+        def fit(self, X, y):
+            return self
+
+        def predict(self, X):
+            return X[:, 0]
+
+        def get_params(self):
+            return {}
+
+        def state_dict(self):
+            return {"fitted": np.array([1])}
+
+        def load_state(self, arrays, metadata):
+            return self
+
+    result = train_model(ConstantProbe, output_root=tmp_path, preprocess="standardize")
+    from src.ml.core.persist import load_npz
+
+    arrays, _ = load_npz(result["directory"] / "preprocessor.npz")
+    assert arrays["constant"][0]
     assert result["load_verification"]["passed"] is True
