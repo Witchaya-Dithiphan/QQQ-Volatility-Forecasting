@@ -18,7 +18,7 @@
 | [`PROJECT_STRUCTURE.md`](docs/plan/PROJECT_STRUCTURE.md) | หาที่วางไฟล์ / รู้ว่าอะไรห้ามแตะ |
 | [`ROADMAP.md`](docs/plan/ROADMAP.md) | ลำดับงานและสิ่งที่ตัดได้เมื่อเวลาไม่พอ |
 | [`RISKS_AND_DOD.md`](docs/plan/RISKS_AND_DOD.md) | เช็คก่อนบอกว่าเสร็จ |
-| [`docs/audit/REALITY_AUDIT.md`](docs/audit/REALITY_AUDIT.md) | สถานะจริง ณ 2026-10-10 (เอกสารเก่าหลายฉบับไม่ตรง) |
+| [`docs/audit/DATA_PIPELINE_AUDIT.md`](docs/audit/DATA_PIPELINE_AUDIT.md) | ผลตรวจชั้นข้อมูล ณ 2026-10-11 (`REALITY_AUDIT.md` เป็น snapshot เก่าของ 10 ต.ค.) |
 | [`RUNBOOK.md`](docs/guides/RUNBOOK.md) | คำสั่งติดตั้งและรัน pipeline |
 
 ## เตือนสั้น ๆ

@@ -3,15 +3,19 @@
 > **วิธีรันปัจจุบัน:** ดู [RUNBOOK.md](../guides/RUNBOOK.md) สำหรับการติดตั้ง environment และ
 > การรัน Data/Spike pipelines เอกสารนี้ใช้สรุปสถานะ implementation
 
-> ## สถานะปัจจุบัน — ตรวจด้วยการรันจริงเมื่อ 2026-10-10 (หลัง merge ML core)
+> ## สถานะปัจจุบัน — ⚠️ แก้ไข 2026-10-11 (ตรวจด้วยการรันจริงหลัง data-pipeline audit)
+>
+> ตารางนี้คือสถานะล่าสุด เนื้อหาใต้ตาราง (เช่น "model training ยังไม่เริ่ม", "334 tests", `src/models/`,
+> Phase 3–5 ที่ยังไม่ติ๊ก) เป็นบันทึกของรอบก่อนและไม่ตรงกับปัจจุบัน
 >
 > | รายการ | ค่าจริง |
 > | --- | --- |
-> | Test suite | **456 passed, 0 failed, 0 skipped** (120 ตัวเป็นของ `src/ml/` ที่เพิ่งเขียน) |
+> | Test suite | **1,002 passed, 0 failed, 0 skipped** (634 ของ `tests/ml/` + 368 ของชั้นข้อมูล) |
 > | Environment | Python **3.14.8** · 69 locked distributions · `pip check` สะอาด |
-> | Data pipeline Phase 1 + 2 | ✅ เสร็จ SHA-256 ตรงทุกไฟล์ |
-> | **ML core framework** | ✅ **เสร็จ** — `src/ml/` 1,120 บรรทัด · CLI `src.ml.run train` ใช้งานได้จริง |
-> | **โมเดล** | **1/19** — `multiple_linear` (pilot) ผ่าน strict parity กับ sklearn และ save/load |
+> | Data pipeline Phase 1 + 2 | ✅ เสร็จและผ่าน audit — ดู [DATA_PIPELINE_AUDIT.md](../audit/DATA_PIPELINE_AUDIT.md) |
+> | **ML core framework** | ✅ **เสร็จ** — `src/ml/` 3,540 บรรทัด · CLI `src.ml.run train` ใช้งานได้จริง |
+> | **โมเดล** | **19/19** — train บน Validation ครบทั้งสอง variant (38 ชุด, reload ผ่านทั้งหมด) |
+> | **ยังไม่ทำ** | `run.py report` (leaderboard) · `run.py finalize` (Test) · paired comparison A↔B · รายงานและสไลด์ |
 > | `src/modeling/` (governance layer เดิม) | ลบแล้วตาม ADR-001 (−3,243 บรรทัด) |
 > | Notebook 03/04 | ❌ 0 cells ทั้งคู่ |
 > | Deadline | **18 ต.ค. 2026** (เลื่อนจาก 12 ต.ค. ที่ระบุใน PDF) |

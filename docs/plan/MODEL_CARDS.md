@@ -893,6 +893,8 @@ PCA ช่วยทุกขนาด (AP ~0.21 → ~0.25) ส่วน C แท
 **reference ข้างบนใช้ไม่ได้:** `LinearSVC(intercept_scaling=1000)` ไม่ลู่เข้าบนข้อมูลจริง (ชน 2,000,000 รอบ, objective แย่กว่า scratch
 ถึง 149% ที่ C=10) จึงใช้ `SVC(kernel="linear", tol=1e-8)` ซึ่งแก้ objective เดียวกันและไม่ penalize intercept.
 "objective ลด monotone" ไม่จริงสำหรับ subgradient — โมเดลคืนจุดที่ดีที่สุดที่เคยผ่าน. `max_iter=20000`.
+โมเดล center feature ภายในเอง (intercept ไม่ถูก penalize จึงไม่เปลี่ยน optimum) เพราะข้อมูลที่ไม่ได้ center
+ทำให้ subgradient ลู่เข้าช้าจนได้คำตอบผิด — พบจากการตรวจครั้งสุดท้าย.
 รายละเอียด: [`MODEL_PROGRESS.md`](../models/svm/MODEL_PROGRESS.md)
 
 ---

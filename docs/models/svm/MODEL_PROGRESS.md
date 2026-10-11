@@ -40,7 +40,7 @@
 - scratch ไม่เคยแย่กว่า reference เกิน 5.6e-06 (เกณฑ์ ≤ 1e-3)
 - label ตรงกันต่ำสุด **99.94%** บน Train และ Validation (เกณฑ์ ≥ 99%)
 
-synthetic 3 seeds × 3 ค่า C ผ่านเกณฑ์เดียวกัน. กรณีที่ optimum well-conditioned (C=0.1, 200,000 รอบ) น้ำหนักตรง reference ที่ 1e-4. `test_svm.py` 32 tests ผ่าน.
+synthetic 3 seeds × 3 ค่า C ผ่านเกณฑ์เดียวกัน. กรณีที่ optimum well-conditioned (C=0.1, 200,000 รอบ) น้ำหนักตรง reference ที่ 1e-4. `test_svm.py` 38 tests ผ่าน.
 
 ## การตัดสินใจ
 
@@ -48,6 +48,9 @@ synthetic 3 seeds × 3 ค่า C ผ่านเกณฑ์เดียวก
 - **คืนจุดที่ objective ต่ำสุดที่เคยผ่าน** ไม่ใช่จุดสุดท้าย. subgradient step ไม่ใช่ descent step — objective ขึ้นได้. card เขียนว่า "objective ลดลง monotone" ซึ่งไม่จริงสำหรับวิธีนี้; ที่ monotone คือ best-so-far. คำนวณ objective ของทุกจุดได้ฟรีเพราะ margin ถูกคิดไว้แล้วสำหรับ step ถัดไป.
 - **`max_iter=20000`** default: ที่ 2,000 รอบ C=10 ยังห่าง 17%; ที่ 20,000 รอบ gap ≤ 3e-6 ทุกค่า C (0.6 วินาทีต่อ fit).
 - step size `1/t` ตาม card. objective เป็น 1-strongly convex จากพจน์ norm.
+- **center feature ภายใน solver** (เพิ่ม 2026-10-11) แล้วเลื่อน intercept กลับตอนจบ. intercept ไม่ถูก penalize
+  ดังนั้น `w·(x − mean) + b` กับ `w·x + b'` เป็นโมเดลเดียวกันและมี optimum เดียวกัน — ต่างแค่ความเร็วลู่เข้า.
+  ทำเฉพาะเมื่อ `fit_intercept=True`.
 - **12 candidates ต้องแก้ trainer** (ดูหมายเหตุ core ใน [`codex-tree-family.md`](../../tasks/codex-tree-family.md)): svm ไขว้ทุก C กับทุกขนาด PCA ต่างจาก random_forest ที่ลอง PCA เฉพาะค่าที่ชนะ.
 
 ## ไฟล์
@@ -58,7 +61,14 @@ synthetic 3 seeds × 3 ค่า C ผ่านเกณฑ์เดียวก
 
 ## ปัญหาที่เจอและแก้แล้ว
 
-**reference ใน card ไม่ลู่เข้า.** อาการ: prototype ได้ rel_gap −2e-3 (C=1) และ −60% (C=10) เทียบ `LinearSVC` — เราได้ objective **ต่ำกว่า**. แทนที่จะสรุปว่าเราดีกว่าหรือขยายเกณฑ์ ตรวจ `n_iter_` ของ reference พบว่าชน 2,000,000 ทุกค่า C. ลอง `intercept_scaling` เล็กลง (1, 10) ลู่เข้าแต่แก้โจทย์ที่ต่างเล็กน้อย. เปลี่ยนเป็น `SVC(kernel="linear")` แล้ว gap เหลือ ≤ 6e-6. **บทเรียน: เมื่อ scratch ชนะ reference ให้สงสัย reference ก่อน และดู `n_iter_`.**
+**1. reference ใน card ไม่ลู่เข้า.** อาการ: prototype ได้ rel_gap −2e-3 (C=1) และ −60% (C=10) เทียบ `LinearSVC` — เราได้ objective **ต่ำกว่า**. แทนที่จะสรุปว่าเราดีกว่าหรือขยายเกณฑ์ ตรวจ `n_iter_` ของ reference พบว่าชน 2,000,000 ทุกค่า C. ลอง `intercept_scaling` เล็กลง (1, 10) ลู่เข้าแต่แก้โจทย์ที่ต่างเล็กน้อย. เปลี่ยนเป็น `SVC(kernel="linear")` แล้ว gap เหลือ ≤ 6e-6. **บทเรียน: เมื่อ scratch ชนะ reference ให้สงสัย reference ก่อน และดู `n_iter_`.**
+
+**2. ข้อมูลที่ไม่ได้ center ทำให้ได้คำตอบผิดเงียบ ๆ (พบจากการตรวจครั้งสุดท้าย).** อาการ: สุ่มทดสอบบนข้อมูลที่มี
+คอลัมน์คงที่ค่า 3.0 แล้ว objective ห่างจาก libsvm 4.9% ที่ 60,000 รอบ และยังห่าง 2.3% ที่ 3,000,000 รอบ.
+วัดแยก: เลื่อนค่าเฉลี่ยของทุก feature ไป 5 หน่วย gap เป็น 3.2% (C=1) และ 120% (C=10) ที่ 20,000 รอบ.
+สาเหตุ: offset ทำให้ intercept (ซึ่งไม่มี penalty จึงไม่ strongly convex) ผูกกับน้ำหนักทุกตัว และ step `1/t` เดินช้ามาก.
+**ผล production ไม่เคยกระทบ** เพราะ trainer standardize ให้เสมอและ PCA score มี mean 0 (วัดได้ 4e-06).
+แก้โดย center ภายใน. วัดซ้ำหลังแก้ (shift 0, 1, 5, 50 × C 1, 10): |gap| ≤ 1.3e-05 ที่ shift ≤ 5; ที่ shift 50 gap เป็น −5.5e-05 และ −6.4e-04 คือ scratch ได้ objective **ต่ำกว่า** libsvm เล็กน้อย (libsvm เองเสียความแม่นเมื่อ feature อยู่ไกลจากศูนย์) — ทุกกรณีอยู่ในเกณฑ์ 1e-3.
 
 ## ค้างอยู่
 

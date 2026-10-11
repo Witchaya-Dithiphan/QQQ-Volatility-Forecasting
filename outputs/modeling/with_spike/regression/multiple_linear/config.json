@@ -4,6 +4,7 @@
     "fit_intercept": true
   },
   "pca_components": null,
+  "preprocess": "standardize",
   "seed": 42,
   "selected_candidate": "multiple_linear-00",
   "task": "regression",

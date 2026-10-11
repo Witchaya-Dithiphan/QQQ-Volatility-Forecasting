@@ -303,16 +303,22 @@ def _same_path(first: Path, second: Path) -> bool:
     return first.resolve(strict=False) == second.resolve(strict=False)
 
 
+def _refuse_protected_path(output_path: Path) -> None:
+    """Reject any write aimed at the immutable snapshot or its manifest."""
+    for protected_path in (RAW_DATA_PATH, RAW_DATA_MANIFEST_PATH):
+        if _same_path(output_path, protected_path):
+            raise DataContractError(
+                f"Refusing to write refresh output over the snapshot data: {protected_path}"
+            )
+
+
 def write_csv_atomically(
     rows: list[dict[str, str]],
     output_path: Path,
     overwrite: bool = False,
 ) -> None:
     """Write refresh rows atomically while permanently protecting the snapshot."""
-    if _same_path(output_path, RAW_DATA_PATH):
-        raise DataContractError(
-            f"Refusing to write refresh data over the snapshot: {RAW_DATA_PATH}"
-        )
+    _refuse_protected_path(output_path)
     if output_path.exists() and not overwrite:
         raise FileExistsError(
             f"Output already exists: {output_path}. Use --overwrite to replace it."
@@ -340,7 +346,8 @@ def write_csv_atomically(
 
 
 def write_json_atomically(payload: dict[str, Any], output_path: Path) -> None:
-    """Write a JSON report atomically."""
+    """Write a JSON report atomically, never over the snapshot or its manifest."""
+    _refuse_protected_path(output_path)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     temporary_path: Path | None = None
     try:

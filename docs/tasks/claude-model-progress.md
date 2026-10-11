@@ -4,7 +4,9 @@
 > วิธีทำงาน: invoke skill `qqq-model` (กลั่นจาก `AGENTS.md` + `MODEL_CARDS.md` แล้ว ไม่ต้องอ่านต้นฉบับซ้ำ)
 > อัปเดตตารางนี้ + ไฟล์ของโมเดลนั้น หลังจบทุกตัว · **ห้ามลบผลเก่า**
 
-**สถานะรวม:** ✅ **11/11 ของฝั่ง Claude ครบแล้ว** · test suite `657 passed, 0 failed`
+**สถานะรวม:** ✅ **11/11 ของฝั่ง Claude ครบแล้ว** · ฝั่ง Codex 8 ตัว train ครบ รอ leaderboard ·
+test suite `1002 passed, 0 failed` (⚠️ แก้ไข 2026-10-11 จาก 657) ·
+ชั้นข้อมูลผ่าน audit: [DATA_PIPELINE_AUDIT.md](../audit/DATA_PIPELINE_AUDIT.md)
 
 ## ฝั่ง Claude (11 ตัว — ของเรา)
 
@@ -103,3 +105,46 @@ paired comparison A↔B · notebooks 03/04/05
 
 **Accuracy ใช้ไม่ได้กับชุดนี้** — validation 337 neg / 34 pos (9.2% positive)
 majority baseline = **0.9084** สูงกว่าโมเดลจริงหลายตัว ต้องรายงาน AUC/F1 เป็นหลัก
+
+## ตรวจครั้งสุดท้ายทั้ง 19 โมเดล (2026-10-11)
+
+ตรวจ 4 ชั้นโดยไม่พึ่ง test เดิม: (1) อ่านโค้ดทุกไฟล์เทียบสูตรกับ card · (2) train ใหม่ทั้ง 38 artifact ด้วยค่าที่
+trainer เลือกจริง แล้วเทียบกับ library, ตรวจว่าทำซ้ำได้, และคำนวณ metric ซ้ำด้วย `sklearn.metrics` ·
+(3) สุ่มทดสอบ 255 ครั้งด้วย hyperparameter นอก grid และข้อมูลที่มีค่าซ้ำ/คอลัมน์คงที่/คลาสไม่สมดุล ·
+(4) ตรวจกฎโปรเจกต์ (ไม่แตะ Test, ไม่มี library ใน `fit`/`predict`, ไม่มี `default_rng`, deterministic).
+
+**ไม่พบสูตรหรือ logic ผิดในโมเดลใด.** ทั้ง 38 artifact ทำซ้ำได้พอดี, reload ผ่านทั้งหมด, metric ตรง sklearn ที่ 1e-16.
+
+ห่างจาก library ที่ค่า production (บน Validation):
+
+| โมเดล | ผลต่าง |
+| --- | --- |
+| simple_linear, multiple_linear, polynomial, gaussian_nb, knn, adaboost, mlp | ≤ 1e-15 |
+| perceptron, decision_tree, random_forest, gradient_boosting, xgboost | 0 |
+| kmeans, agglomerative | partition ตรง 100% |
+| elastic_net | ≤ 2e-06 (กฎหยุดต่างจาก sklearn) |
+| svm | objective ≤ 3e-06 |
+| logistic | ≤ 1e-03 (หยุดที่ 5,000 รอบ) |
+| slp | 0.07–0.29 (หยุดที่โควตา 1,000 epochs; reference คือ logistic ที่ลู่เข้า) |
+| stacking | ไม่มี library เทียบ — ตรวจด้วย rebuild fold ต่อ fold และ leakage probe |
+
+สิ่งที่พบและแก้แล้ว:
+
+1. **`svm` ได้คำตอบผิดเงียบ ๆ บนข้อมูลที่ไม่ได้ center** (ไม่กระทบ production เพราะ trainer standardize เสมอ) → center ภายใน solver
+2. **artifact ล้าสมัย:** `preprocessor.npz` ของ 10 โมเดลฝั่ง linear ไม่มี key `constant` และ metadata ของ `multiple_linear`
+   เขียน `preprocess: None` → train ใหม่ให้ตรงกับโค้ดปัจจุบัน (เนื้อหาโมเดลและ metric เท่าเดิม)
+3. **docstring ของ `knn`** อ้างว่า tie-break ตรง sklearn → แก้ข้อความ (ไม่กระทบข้อมูลจริง)
+4. **`ARCHITECTURE.md` ขั้นที่ 5** บอกว่า trainer เลือก threshold แต่โค้ดใช้ค่าคงที่ → แก้เอกสาร
+
+### สามโมเดลที่ผลขึ้นกับโควตาการเทรน — ต้องเขียนในรายงานตามนี้
+
+ทั้งสามจบเพราะหมดโควตา ไม่ใช่เพราะลู่เข้า ตัวเลขของมันจึงเป็นของ "อัลกอริทึม + โควตาที่ config กำหนด" ไม่ใช่ของอัลกอริทึมอย่างเดียว:
+
+| โมเดล | สิ่งที่เกิดจริง | ผลต่อการตีความ |
+| --- | --- | --- |
+| `slp` | ผู้ชนะทั้งสอง variant วิ่งครบ 1,000 epochs; early stopping ไม่เคยทำงาน | AUC ที่สูงกว่า `logistic` เล็กน้อยมาจากการหยุดที่ 1,000 ไม่ใช่จาก regularization ที่ข้อมูลเลือก |
+| `perceptron` | ข้อมูลแยกเชิงเส้นไม่ได้ จึงไม่มีวันหยุด; จบที่น้ำหนักของ update ครั้งสุดท้าย (ผิด 38–42% บน Train) | AUC 0.30 / 0.34 ต่ำกว่าสุ่ม — ตรง sklearn ทุก bit จึงเป็นธรรมชาติของอัลกอริทึม |
+| `logistic` | ทั้ง 12 การรันหยุดที่ 5,000 รอบ | ห่างจาก optimum ไม่เกิน 0.008 ใน probability; ผู้ชนะไม่เปลี่ยน |
+
+ขอบเขตที่การตรวจไม่ครอบคลุม: ชั้นข้อมูลและ feature · ข้อผิดพลาดที่เราและ library ตั้งค่าผิดเหมือนกัน (พึ่ง test คำนวณมือ) ·
+เส้นทาง `completed_early` ของ `adaboost` · `scaler_fit: subtrain` ของ `slp`/`mlp` · นัยสำคัญทางสถิติระหว่างโมเดล (positive 34 แถว)

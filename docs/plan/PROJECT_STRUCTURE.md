@@ -30,7 +30,7 @@ QQQ-Volatility-Forecasting/
 ├── configs/modeling.json        คงไว้ — ใช้เป็น "ข้อมูล" (grid + inventory) ไม่ใช่ schema ที่ต้อง validate
 │
 ├── src/
-│   ├── config.py                คงไว้
+│   ├── config.py                คงไว้ (⚠️ แก้ไข 2026-10-11: ไฟล์จริงอยู่ที่ root `config.py` ไม่ใช่ `src/`)
 │   ├── <data layer 13 ไฟล์>     🔒 ห้ามแตะ
 │   └── ml/                      ★ บ้านใหม่ทั้งหมด
 │       ├── core/

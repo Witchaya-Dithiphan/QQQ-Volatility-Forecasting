@@ -42,6 +42,8 @@ data/raw/*
 data/interim/*
 data/processed/*
 !data/raw/.gitkeep
+# The immutable snapshot cannot be re-downloaded (Nasdaq serves a rolling 10-year window).
+!data/raw/qqq_daily.csv
 !data/interim/.gitkeep
 !data/processed/.gitkeep
 

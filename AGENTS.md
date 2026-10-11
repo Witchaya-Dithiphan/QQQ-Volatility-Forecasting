@@ -210,7 +210,8 @@ main
 - ห้าม force push · ห้าม rewrite history บน `main`
 - `rebase` จาก `main` บ่อย ๆ เพื่อให้ core ล่าสุดอยู่กับตัว
 - เปิด PR เมื่อจบกลุ่มโมเดล ไม่ใช่ทีละตัว
-- **ห้าม commit:** `.venv/`, `tmp/`, `outputs/modeling/**`, ไฟล์ข้อมูลที่ generate ได้
+- **ห้าม commit:** `.venv/`, `tmp/`, ไฟล์ข้อมูลที่ generate ได้ใน `data/`
+  (⚠️ แก้ไข 2026-10-11: `outputs/modeling/**` **ต้อง commit** — `.gitignore` ตั้งใจ track ไว้เป็นหลักฐาน 38 ชุด)
 
 **การแบ่งงาน** (ห้ามข้ามเขต)
 
@@ -247,6 +248,7 @@ rem เทรนโมเดลเดียว
 rem เทรนทั้งชุด
 .\.venv\Scripts\python.exe -m src.ml.run train --all --variant with_spike
 
+rem ⚠️ แก้ไข 2026-10-11: report และ finalize ยังไม่ implement (exit 1) — เป็นงาน Phase C
 rem ตาราง leaderboard + รูปทั้งหมด
 .\.venv\Scripts\python.exe -m src.ml.run report --variant with_spike
 

@@ -12,8 +12,10 @@ class KNN(BaseModel):
         uniform  : vote  = count of each class among the k nearest
         distance : vote  = sum of 1/d, so nearer neighbours count for more
 
-    Ties in distance are broken by original index, matching sklearn, which is why
-    the sort below is stable.
+    Ties in distance are broken by original training index, which is why the sort
+    below is stable. That makes the result deterministic; it is not guaranteed to be
+    the neighbour sklearn keeps, whose partial sort picks among exact ties arbitrarily.
+    On continuous features exact ties do not occur and the two agree.
     """
 
     name = "knn"
@@ -39,7 +41,7 @@ class KNN(BaseModel):
     def _neighbours(self, X) -> tuple[np.ndarray, np.ndarray]:
         X = np.asarray(X, dtype=np.float64)
         distances = np.linalg.norm(X[:, None, :] - self.X_[None, :, :], axis=2)
-        # Stable sort so equidistant neighbours resolve by training index, like sklearn.
+        # Stable sort so equidistant neighbours resolve by training index.
         order = np.argsort(distances, axis=1, kind="stable")[:, : self.k]
         return np.take_along_axis(distances, order, axis=1), self.y_[order]
 
