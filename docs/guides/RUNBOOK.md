@@ -345,8 +345,10 @@ Phase 2 test ต้องการโฟลเดอร์ reproduction ที�
 
 **สิ่งที่อาจทำให้สงสัย**
 
-- หลังขั้น 3–5 คำสั่ง `git status` อาจแสดงไฟล์ใต้ `outputs\reports\` ว่าถูกแก้ สาเหตุคือรูปแบบการขึ้นบรรทัดใหม่
-  (Windows เขียน CRLF ส่วน git เก็บ LF) เนื้อหาไม่ต่าง ตรวจได้ด้วย `git diff` ซึ่งจะไม่แสดงอะไร
+- หลังขั้น 3–5 และขั้น 7–10 คำสั่ง `git status` อาจแสดงไฟล์ใต้ `outputs\reports\` และ `outputs\modeling\report\`
+  ว่าถูกแก้ สาเหตุคือรูปแบบการขึ้นบรรทัดใหม่ (Windows เขียน CRLF ส่วน git เก็บ LF) เนื้อหาไม่ต่าง
+  ตรวจได้ด้วย `git diff` ซึ่งจะไม่แสดงอะไร (ตรวจซ้ำเมื่อ 2026-10-13: `docs_sync` ทำให้ขึ้น 34 ไฟล์
+  และ `report` 6 ไฟล์ โดย `git diff` ว่างทั้งสองกรณี)
 - `finalize --allow-test` จะจบด้วยข้อความ `The held-out split was already evaluated` และ exit code 1 ซึ่ง **ถูกต้อง**
   เพราะ Test ถูกอ่านไปแล้วหนึ่งครั้ง (ข้อ 10.2)
 - ถ้าเทรนโมเดลใหม่ด้วย `train` ไฟล์โมเดลจะไม่ตรงกับ `outputs\modeling\selection_lock.json` อีกต่อไป
