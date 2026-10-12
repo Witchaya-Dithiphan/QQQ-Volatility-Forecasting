@@ -250,10 +250,10 @@ target ของวันติดกันใช้ผลตอบแทนช�
 
 | กลุ่มโมเดล | ผลต่างจาก library บน Validation |
 | --- | --- |
-| `simple_linear`, `multiple_linear`, `polynomial`, `gaussian_nb`, `knn`, `adaboost`, `mlp` | ไม่เกิน 1e-15 (ตรงกันถึงทศนิยมสุดท้ายของ float64) |
+| `simple_linear`, `multiple_linear`, `polynomial`, `gaussian_nb`, `knn`, `adaboost`, `mlp` | ไม่เกิน 2e-15 (ตรงกันถึงทศนิยมสุดท้ายของ float64) |
 | `perceptron`, `decision_tree`, `random_forest`, `gradient_boosting`, `xgboost` | 0 (ตรงกันทุกแถว) |
 | `kmeans`, `agglomerative` | แบ่งกลุ่มตรงกัน 100% |
-| `elastic_net` | ไม่เกิน 2e-06 (ใช้กฎหยุดวนรอบต่างจาก scikit-learn) |
+| `elastic_net` | ไม่เกิน 3e-06 (ใช้กฎหยุดวนรอบต่างจาก scikit-learn) |
 | `svm` | ค่า objective ต่างไม่เกิน 3e-06 |
 | `logistic` | ไม่เกิน 1e-03 (หยุดที่ 5,000 รอบ ก่อนลู่เข้าสมบูรณ์) |
 | `slp` | 0.07 ถึง 0.29 (หยุดที่โควตา 1,000 รอบ ขณะที่โมเดลอ้างอิงลู่เข้าแล้ว) |
@@ -306,7 +306,7 @@ target ของวันติดกันใช้ผลตอบแทนช�
 
 **ทำไมเหมาะกับข้อมูลนี้** ฟีเจอร์ความผันผวนย้อนหลัง 5 วันกับ 20 วันมีสหสัมพันธ์ 0.80 (หัวข้อ 2.2)
 
-**ผลที่ได้** การตั้งค่าที่ถูกเลือกคือ α = 0.1 และ l1_ratio = 0.25 ทั้งสองแบบข้อมูล โมเดลดันน้ำหนักเป็นศูนย์ 3 จาก 8 ฟีเจอร์ (`with_spike`) และ 4 จาก 8 (`non_spike`) ที่มา: `outputs/modeling/report/with_spike/linear_coefficients.csv` และ notebook 03 หัวข้อ 5 เมื่อเทียบกับ `ElasticNet` ของ scikit-learn คำทำนายต่างกันไม่เกิน 9e-07
+**ผลที่ได้** การตั้งค่าที่ถูกเลือกคือ α = 0.1 และ l1_ratio = 0.25 ทั้งสองแบบข้อมูล โมเดลดันน้ำหนักเป็นศูนย์ 3 จาก 8 ฟีเจอร์ (`with_spike`) และ 4 จาก 8 (`non_spike`) ที่มา: `outputs/modeling/report/with_spike/linear_coefficients.csv` และ notebook 03 หัวข้อ 5 เมื่อเทียบกับ `ElasticNet` ของ scikit-learn คำทำนายต่างกันไม่เกิน 9e-07 (`with_spike`) และ 3e-06 (`non_spike`)
 
 <!-- BEGIN GENERATED: outputs/modeling/report/cards/elastic_net.md -->
 ### ผลจริงของ `elastic_net`
@@ -575,7 +575,7 @@ Test ถูกเปิด **ครั้งเดียว** เมื่อ 11
 
 **อ่านผล**
 
-1. **Classification** โมเดลตัวแทนของ `with_spike` คือ `mlp` ได้ AP 0.599 และยังเป็นอันดับหนึ่งบน Test เทียบกับการเดาสุ่ม 0.196 และ `baseline_persistence` 0.537 แต่โมเดลตัวแทนของ `non_spike` คือ `random_forest` ได้ AP 0.524 ต่ำกว่า baseline และตกจากอันดับ 1 บน Validation ไปอยู่อันดับ 10 จาก 13 โมเดล นี่คือตัวอย่างของ selection bias: ผู้นำบน Validation ที่มีวันผันผวนสูงเพียง 34 วัน ไม่จำเป็นต้องเป็นผู้นำบนข้อมูลใหม่
+1. **Classification** โมเดลตัวแทนของ `with_spike` คือ `mlp` ได้ AP 0.599 และยังเป็นอันดับหนึ่งบน Test เทียบกับการเดาสุ่ม 0.196 และ `baseline_persistence` 0.536 แต่โมเดลตัวแทนของ `non_spike` คือ `random_forest` ได้ AP 0.524 ต่ำกว่า baseline และตกจากอันดับ 1 บน Validation ไปอยู่อันดับ 10 จาก 13 โมเดล นี่คือตัวอย่างของ selection bias: ผู้นำบน Validation ที่มีวันผันผวนสูงเพียง 34 วัน ไม่จำเป็นต้องเป็นผู้นำบนข้อมูลใหม่
 2. **Regression** `elastic_net` ได้ RMSE 0.117 และ 0.123 ดีกว่า baseline ที่ทายค่าเฉลี่ย (0.138 และ 0.140) R² อยู่ที่ราว 0.2 ถึง 0.3 สูงกว่าบน Validation เพราะ Test มีช่วงผันผวนแรงให้โมเดลอธิบาย
 3. **AP บน Test สูงกว่า Validation มาก** (0.6 เทียบกับ 0.27) ข้อนี้ไม่ได้แปลว่าโมเดลเก่งขึ้น AP ขึ้นกับสัดส่วนวันผันผวนสูง ซึ่ง Test มี 19.6% ส่วน Validation มี 9.2% จึงต้องเทียบกับ baseline ของชุดเดียวกันเสมอ
 

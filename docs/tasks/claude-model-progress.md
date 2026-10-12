@@ -119,10 +119,10 @@ trainer เลือกจริง แล้วเทียบกับ library
 
 | โมเดล | ผลต่าง |
 | --- | --- |
-| simple_linear, multiple_linear, polynomial, gaussian_nb, knn, adaboost, mlp | ≤ 1e-15 |
+| simple_linear, multiple_linear, polynomial, gaussian_nb, knn, adaboost, mlp | ≤ 2e-15 (⚠️ แก้ไข 2026-10-13: เดิมเขียน ≤ 1e-15 แต่วัดซ้ำได้สูงสุด 1.1e-15 ที่ `gaussian_nb` แบบ `non_spike`) |
 | perceptron, decision_tree, random_forest, gradient_boosting, xgboost | 0 |
 | kmeans, agglomerative | partition ตรง 100% |
-| elastic_net | ≤ 2e-06 (กฎหยุดต่างจาก sklearn) |
+| elastic_net | ≤ 3e-06 (กฎหยุดต่างจาก sklearn · ⚠️ แก้ไข 2026-10-13: เดิมเขียน ≤ 2e-06 แต่วัดซ้ำได้ 8.8e-07 ที่ `with_spike` และ 2.2e-06 ที่ `non_spike`) |
 | svm | objective ≤ 3e-06 |
 | logistic | ≤ 1e-03 (หยุดที่ 5,000 รอบ) |
 | slp | 0.07–0.29 (หยุดที่โควตา 1,000 epochs; reference คือ logistic ที่ลู่เข้า) |
