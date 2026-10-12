@@ -12,6 +12,8 @@ import json
 import sys
 from pathlib import Path
 
+import numpy as np
+
 from config import PROJECT_ROOT
 
 from .core.contracts import VARIANTS
@@ -139,6 +141,34 @@ def _analyze(args) -> int:
     return 0
 
 
+def _calibrate(args) -> int:
+    from .calibrate import run_calibration_experiment
+
+    try:
+        result = run_calibration_experiment(
+            name=args.model,
+            variant=args.variant,
+            artifact_root=Path(args.output_root) if args.output_root else None,
+            output_root=Path(args.experiment_root) if args.experiment_root else None,
+            folds=args.folds,
+            initial_fraction=args.initial_fraction,
+            purge=args.purge,
+            min_recall=args.min_recall,
+            l2=args.l2,
+        )
+    except (FileNotFoundError, ValueError, np.linalg.LinAlgError) as exc:
+        print(str(exc), file=sys.stderr)
+        return 1
+    for path in result["written"]:
+        print(path)
+    winner = result["validation"]["platt_precision_threshold"]
+    print(
+        f"validation precision={winner['metrics']['precision']:.4f} "
+        f"recall={winner['metrics']['recall']:.4f} threshold={winner['threshold']:.6f}; Test not read"
+    )
+    return 0
+
+
 def _finalize(args) -> int:
     from . import finalize as finalize_module
     from .core import data as data_module
@@ -214,6 +244,18 @@ def main(argv: list[str] | None = None) -> int:
     analyze.add_argument("--models", help="comma-separated classifiers for the walk-forward table")
     analyze.add_argument("--skip-walk-forward", action="store_true")
     analyze.set_defaults(handler=_analyze)
+
+    calibrate = sub.add_parser("calibrate", help="Train-only probability and threshold calibration experiment")
+    calibrate.add_argument("--model", default="mlp", help="finished probability classifier (default: mlp)")
+    calibrate.add_argument("--variant", choices=VARIANTS, default="with_spike")
+    calibrate.add_argument("--output-root", help="where the trained runs live")
+    calibrate.add_argument("--experiment-root", help="where calibration artifacts are written")
+    calibrate.add_argument("--folds", type=int, default=4)
+    calibrate.add_argument("--initial-fraction", type=float, default=0.4)
+    calibrate.add_argument("--purge", type=int, default=5)
+    calibrate.add_argument("--min-recall", type=float, default=0.4)
+    calibrate.add_argument("--l2", type=float, default=1e-6)
+    calibrate.set_defaults(handler=_calibrate)
 
     finalize = sub.add_parser("finalize", help="evaluate the locked models on the Test split, once")
     finalize.add_argument("--allow-test", action="store_true")

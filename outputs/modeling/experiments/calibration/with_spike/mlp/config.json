@@ -1,0 +1,18 @@
+{
+  "calibration_method": "platt_logit",
+  "calibration_source": "expanding-window out-of-fold predictions inside Train",
+  "evaluation_split": "Validation",
+  "folds": 4,
+  "initial_fraction": 0.4,
+  "l2": 1e-06,
+  "limitation": "The base model and its hyperparameters were selected previously; this is a diagnostic calibration experiment, not a new untouched Test result.",
+  "min_recall": 0.4,
+  "model": "mlp",
+  "purge_trading_days": 5,
+  "schema_version": 1,
+  "seed": 42,
+  "source_run": "C:\\Users\\user\\Documents\\repository\\QQQ-Volatility-Forecasting\\outputs\\modeling\\with_spike\\classification\\mlp",
+  "source_validation_predictions_sha256": "2d5d1519f79c14e46ae5056eefc6f086cca2a327dd66033449e71e20ef195d42",
+  "test_accessed": false,
+  "variant": "with_spike"
+}
