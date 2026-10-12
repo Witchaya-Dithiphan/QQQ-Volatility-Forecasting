@@ -6,7 +6,7 @@ import shutil
 import numpy as np
 import pytest
 
-from src.ml.core.artifacts import run_directory
+from src.ml.core.artifacts import load_model, run_directory
 from src.ml.core.bootstrap import block_indices
 from src.ml.core.contracts import FEATURE_COLUMNS
 from src.ml.core.data import load
@@ -15,6 +15,7 @@ from src.ml.core.report import (
     baselines,
     build_report,
     classification_scores,
+    half_vote,
     leaderboard,
     score_entries,
 )
@@ -137,3 +138,33 @@ def test_markdown_leaderboard_names_the_loss_and_the_baseline_verdict(tmp_path):
     header = (tmp_path / "report" / "with_spike" / "leaderboard_classification.md").read_text(
         encoding="utf-8").splitlines()[2]
     assert "loss_name" in header and "beats_best_baseline" in header
+
+
+def _classification_rows(tmp_path, variant="with_spike"):
+    build_report(variant, report_root=tmp_path / "report", figure_root=tmp_path / "fig", replicates=20)
+    path = tmp_path / "report" / variant / "leaderboard_classification.csv"
+    return {row["model"]: row for row in csv.DictReader(path.open(encoding="utf-8"))}
+
+
+def test_half_vote_undoes_the_sigmoid_and_the_vote_normalisation():
+    # A saved AdaBoost score is sigmoid(2F / sum(alpha)). With sum(alpha) = 2 the votes
+    # F = 2, -2 and 0.5 are stored as sigmoid(2), sigmoid(-2) and sigmoid(0.5).
+    stored = 1.0 / (1.0 + np.exp(-np.array([2.0, -2.0, 0.5])))
+    np.testing.assert_allclose(half_vote(stored, weight_sum=2.0), [1.0, -1.0, 0.25])
+
+
+def test_every_fitted_classifier_gets_a_loss_in_the_leaderboard(tmp_path):
+    rows = _classification_rows(tmp_path)
+    assert [name for name, row in rows.items() if row["kind"] == "model" and row["loss"] == ""] == []
+
+
+@pytest.mark.parametrize("variant", ["with_spike", "non_spike"])
+def test_adaboost_loss_is_the_one_its_training_curve_tracks(tmp_path, variant):
+    """exp(-yF/2) on the unnormalised vote F, rebuilt here from the saved stumps."""
+    row = _classification_rows(tmp_path, variant)["adaboost"]
+    validation = load(variant).validation
+    model, transform = load_model(run_directory(OUTPUT_ROOT, variant, "adaboost"))
+    X = transform(validation.X)
+    vote = sum(alpha * (2 * stump.predict(X) - 1) for stump, alpha in zip(model.stumps_, model.estimator_weights_))
+    signed = 2 * validation.y_classification - 1
+    assert float(row["loss"]) == pytest.approx(np.mean(np.exp(-0.5 * signed * vote)), rel=1e-9)

@@ -16,7 +16,7 @@ import numpy as np
 from config import PROJECT_ROOT
 
 from . import figures
-from .artifacts import Run, read_runs
+from .artifacts import Run, load_model, read_runs
 from .bootstrap import REPLICATES, block_indices, difference, interval, replicate
 from .contracts import FEATURE_COLUMNS
 from .data import load
@@ -139,6 +139,17 @@ def _check_current(runs: list[Run], validation) -> None:
             raise ValueError(f"{run.variant}/{run.name} predictions do not cover the Validation dates")
 
 
+def half_vote(probability, weight_sum: float) -> np.ndarray:
+    """Half of AdaBoost's unnormalised vote F, recovered from the probability a run saved.
+
+    The run stores sigmoid(2F / sum(alpha)), while the loss the model descends, and the
+    one its training curve records, is exp(-yF/2). Undoing the sigmoid and the
+    normalisation puts the Validation loss on the scale of that curve.
+    """
+    probability = np.asarray(probability, dtype=np.float64)
+    return np.log(probability / (1.0 - probability)) * weight_sum / 4.0
+
+
 def _classification_extras(row: dict, entry: dict, run: Run | None, losses: dict) -> None:
     matrix = classification_metrics(entry["target"], entry["score"],
                                     predicted_labels=entry["prediction"])["confusion_matrix"]
@@ -147,11 +158,14 @@ def _classification_extras(row: dict, entry: dict, run: Run | None, losses: dict
     if run is None:
         row.update(loss_name=None, loss=None, score_kind=None)
         return
-    kind = run.metrics["score_kind"]
-    measured = loss(losses[run.name], run.target,
-                    scores=run.score if kind == "decision" else None,
+    kind, name = run.metrics["score_kind"], losses[run.name]
+    scores = run.score if kind == "decision" else None
+    if name == "exponential_loss" and kind == "probability":
+        model, _ = load_model(run.directory)
+        scores = half_vote(run.score, model.estimator_weights_.sum())
+    measured = loss(name, run.target, scores=scores,
                     probabilities=run.score if kind == "probability" else None)
-    row.update(loss_name=losses[run.name], loss=measured["value"], score_kind=kind)
+    row.update(loss_name=name, loss=measured["value"], score_kind=kind)
 
 
 def build_report(variant: str, *, artifact_root=None, report_root=None, figure_root=None,

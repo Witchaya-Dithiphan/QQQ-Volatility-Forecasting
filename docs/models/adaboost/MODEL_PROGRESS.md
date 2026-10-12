@@ -32,6 +32,7 @@ card ทำนายว่า AdaBoost จะฟื้นตัวชัดท�
 - ทั้ง grid: AUC ของ `non_spike` ต่ำกว่าทั้ง 6 candidates และ AP ต่ำกว่า 5 จาก 6
 - เทียบ `random_forest` ที่ AP เพิ่ม +0.0462 (0.2548 → 0.3010) — AdaBoost ไม่ได้ฟื้นตัวมากที่สุด
 - exponential loss บน Train จบที่ 0.5791 (`with_spike`) และ 0.5526 (`non_spike`) หลัง 100 รอบ — train fit ดีขึ้นเล็กน้อย แต่ไม่ส่งผลถึง Validation
+- loss ตัวเดียวกันวัดบน Validation ได้ 0.5771 (`with_spike`) และ 0.5875 (`non_spike`) (⚠️ เพิ่ม 2026-10-13: เดิมช่อง loss ของ `adaboost` ในตารางสรุปเป็น n/a เพราะโค้ดสรุปผลส่งให้แต่ความน่าจะเป็น ตอนนี้ `src/ml/core/report.py` แปลงกลับเป็นคะแนนโหวตก่อนคำนวณ ไม่กระทบ artifact, lock หรือผล Test)
 
 ข้อควรระวังในการตีความ: Validation มี positive เพียง 34 แถว ความต่างระดับ 0.004 ของ AP อยู่ในระดับ noise และยังไม่ได้ทำ paired test. kurtosis 16.26 เป็นของ target ต่อเนื่อง แต่ AdaBoost ตัวนี้เห็นแค่ label 0/1 จึงไม่ได้รับ fat tail โดยตรง — นี่เป็นคำอธิบายที่เป็นไปได้ ยังไม่ได้พิสูจน์.
 
