@@ -119,10 +119,10 @@ trainer เลือกจริง แล้วเทียบกับ library
 
 | โมเดล | ผลต่าง |
 | --- | --- |
-| simple_linear, multiple_linear, polynomial, gaussian_nb, knn, adaboost, mlp | ≤ 1e-15 |
+| simple_linear, multiple_linear, polynomial, gaussian_nb, knn, adaboost, mlp | ≤ 2e-15 (⚠️ แก้ไข 2026-10-13: เดิมเขียน ≤ 1e-15 แต่วัดซ้ำได้สูงสุด 1.1e-15 ที่ `gaussian_nb` แบบ `non_spike`) |
 | perceptron, decision_tree, random_forest, gradient_boosting, xgboost | 0 |
 | kmeans, agglomerative | partition ตรง 100% |
-| elastic_net | ≤ 2e-06 (กฎหยุดต่างจาก sklearn) |
+| elastic_net | ≤ 3e-06 (กฎหยุดต่างจาก sklearn · ⚠️ แก้ไข 2026-10-13: เดิมเขียน ≤ 2e-06 แต่วัดซ้ำได้ 8.8e-07 ที่ `with_spike` และ 2.2e-06 ที่ `non_spike`) |
 | svm | objective ≤ 3e-06 |
 | logistic | ≤ 1e-03 (หยุดที่ 5,000 รอบ) |
 | slp | 0.07–0.29 (หยุดที่โควตา 1,000 epochs; reference คือ logistic ที่ลู่เข้า) |
@@ -165,7 +165,7 @@ trainer เลือกจริง แล้วเทียบกับ library
 | xgboost | model | 0.2508 [0.0559, 0.4681] | 0.6693 [0.4080, 0.8368] | 0.2449 [0.0000, 0.4424] | 0.1765 [0.0000, 0.3674] | 0.4000 | 0.9733 | 0.9003 | binary_logistic_loss | 0.3263 | yes | yes |
 | baseline_persistence | baseline | 0.2474 [0.0545, 0.5002] | 0.7214 [0.5384, 0.8407] | 0.2899 [0.0000, 0.5589] | 0.2941 [0.0000, 0.5601] | 0.2857 | 0.9258 | 0.8679 | n/a | n/a | yes | n/a |
 | slp | model | 0.2427 [0.0545, 0.4432] | 0.6803 [0.4458, 0.8289] | 0.2609 [0.0000, 0.4615] | 0.1765 [0.0000, 0.3674] | 0.5000 | 0.9822 | 0.9084 | binary_cross_entropy | 0.3046 | yes | no |
-| adaboost | model | 0.2363 [0.0626, 0.4381] | 0.6768 [0.4602, 0.8196] | 0.2222 [0.0000, 0.4226] | 0.1765 [0.0000, 0.3674] | 0.3000 | 0.9585 | 0.8868 | exponential_loss | n/a | yes | no |
+| adaboost | model | 0.2363 [0.0626, 0.4381] | 0.6768 [0.4602, 0.8196] | 0.2222 [0.0000, 0.4226] | 0.1765 [0.0000, 0.3674] | 0.3000 | 0.9585 | 0.8868 | exponential_loss | 0.5771 | yes | no |
 | logistic | model | 0.2330 [0.0526, 0.4301] | 0.6732 [0.4224, 0.8305] | 0.2609 [0.0000, 0.4615] | 0.1765 [0.0000, 0.3674] | 0.5000 | 0.9822 | 0.9084 | binary_cross_entropy | 0.3089 | yes | no |
 | stacking | model | 0.2262 [0.0551, 0.4176] | 0.6641 [0.4218, 0.8155] | 0.2353 [0.0000, 0.4000] | 0.1765 [0.0000, 0.3674] | 0.3529 | 0.9674 | 0.8949 | log_loss | 0.3455 | yes | no |
 | gaussian_nb | model | 0.2218 [0.0464, 0.4333] | 0.6665 [0.4217, 0.8214] | 0.2812 [0.0000, 0.5001] | 0.2647 [0.0000, 0.5228] | 0.3000 | 0.9377 | 0.8760 | log_loss | 0.6203 | yes | no |

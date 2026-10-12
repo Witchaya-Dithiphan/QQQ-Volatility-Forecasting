@@ -20,8 +20,8 @@
 ตรวจเมื่อ 2026-10-11 แต่ละข้อมีหลักฐานที่ตรวจซ้ำได้
 
 - [x] 19 โมเดล × 2 variants = 38 runs ครบ — `outputs/modeling/selection_lock.json` (`run_count: 38`)
-- [x] `pytest -q` เขียวทั้งหมด — 1,267 passed บน clone เปล่าของ commit `d188376`
-- [x] metric ครบตามโจทย์ — `outputs/modeling/report/tables/classification_metrics_with_spike.md` (Loss, confusion matrix, Accuracy, Precision, Sensitivity, Specificity, TNR, F1, ROC-AUC), `leaderboard_regression.md` (R²), รูป ROC และ performance curve ใต้ `outputs/figures/modeling/`
+- [x] `pytest -q` เขียวทั้งหมด — 1,267 passed บน clone เปล่าของ commit `d188376` และรันซ้ำเมื่อ 2026-10-13 ได้ 1,267 passed ทั้งบน tree เดียวกับ `main` ที่ `d031716` และบน clone ใหม่ของ `a9ae105` ที่สร้าง virtual environment ใหม่จาก `requirements.txt` · หลังเพิ่ม test ของ loss ของ AdaBoost 4 ข้อ ชุดเต็มเป็น 1,271 passed
+- [x] metric ครบตามโจทย์ — `outputs/modeling/report/tables/classification_metrics_with_spike.md` (Loss, confusion matrix, Accuracy, Precision, Sensitivity, Specificity, TNR, F1, ROC-AUC), `leaderboard_regression.md` (R²), รูป ROC และ performance curve ใต้ `outputs/figures/modeling/` · ตรวจซ้ำ 2026-10-13: ช่อง Loss ของ `adaboost` ซึ่งเดิมเป็น n/a ถูกเติมแล้ว ตอนนี้ classifier ทั้ง 13 ตัวมีค่า Loss ครบ
 - [x] save → load → re-test พิสูจน์ได้ทุกโมเดล — `tests/ml/core/test_artifacts.py` โหลดทั้ง 38 ชุดแล้วทำนายซ้ำได้ค่าเดิม
 - [x] paired comparison A↔B พร้อมบทวิเคราะห์ — `outputs/modeling/report/comparison_a_vs_b.md`, รายงานหัวข้อ 8.2
 - [x] notebooks 03/04/05 รันจบโดยไม่ error — `tests/test_notebooks.py`
@@ -53,7 +53,7 @@
 | เดิม | สถานะ |
 | --- | --- |
 | Environment ไม่ตรง / รัน pipeline ไม่ได้ | ปิด — Python 3.14.8 + 69 distributions ติดตั้งครบ `pip check` สะอาด |
-| 6 tests fail | ปิด — 5 ข้อคือ cross-drive quirk (แก้ด้วย ADR-006), 1 ข้อคือ provenance ที่ซ่อมแล้ว ตอนนั้น 459 passed, 3 skipped · ⚠️ แก้ไข 2026-10-11: ปัจจุบัน **1,002 passed, 0 failed** |
+| 6 tests fail | ปิด — 5 ข้อคือ cross-drive quirk (แก้ด้วย ADR-006), 1 ข้อคือ provenance ที่ซ่อมแล้ว ตอนนั้น 459 passed, 3 skipped · ⚠️ แก้ไข 2026-10-13: ปัจจุบัน **1,271 passed, 0 failed** |
 | ไม่รู้ว่าเอกสารเชื่อได้แค่ไหน | ปิด — `docs/archive/REALITY_AUDIT.md` |
 | Deadline คลาดเคลื่อน 6 วัน | ปิด — ยืนยัน 18 ต.ค. |
 | Governance layer บล็อกการเพิ่มโมเดล | ปิด — ADR-001 เลิกใช้ทั้ง package |

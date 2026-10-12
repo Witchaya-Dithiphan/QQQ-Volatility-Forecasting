@@ -2,6 +2,20 @@
 
 > เอกสารนี้บอกว่าไฟล์ไหน **เก็บ / ย้าย / ลบ** และหน้าตาปลายทางเป็นอย่างไร
 > เหตุผลเบื้องหลังอยู่ใน `ARCHITECTURE.md` (ADR-001)
+>
+> ⚠️ **แก้ไข 2026-10-13:** เอกสารนี้คือ **แผนการย้ายโครงสร้าง ณ 2026-10-10** เก็บไว้เป็นประวัติของการตัดสินใจ
+> แผนภาพในหัวข้อ 1 ยังไม่รวมสิ่งที่เพิ่มใน Phase C ถ้าต้องการรู้ว่าตอนนี้ไฟล์อยู่ที่ไหน ให้ดู
+> [`README.md`](../../README.md) หรือคู่มือ [`PROJECT_GUIDE_TH.md`](../guides/PROJECT_GUIDE_TH.md) หัวข้อ 11.1
+>
+> สิ่งที่มีอยู่จริงแต่ไม่อยู่ในแผนภาพ:
+>
+> - โค้ด: `src/ml/finalize.py`, `src/ml/report_tables.py`, `src/ml/docs_sync.py`, `src/ml/registry.py`
+>   (อยู่ใต้ `src/ml/` ไม่ใช่ `core/`) และ `src/ml/core/` มีเพิ่ม `artifacts.py`, `bootstrap.py`, `comparison.py`,
+>   `contracts.py`, `importance.py`, `report.py`, `walk_forward.py` คำสั่งของ `run.py` มี `compare` และ `analyze` เพิ่ม
+> - ผลลัพธ์: `outputs/modeling/report/`, `outputs/modeling/final/`, `outputs/modeling/selection_lock.json`,
+>   `outputs/modeling/finalize_receipt.json`
+> - ไฟล์ส่งงานและเอกสาร: `deliverables/`, `docs/report/`, `docs/audit/`, `docs/models/`
+> - ที่ย้ายแล้ว: `docs/status/` และไฟล์งานสองไฟล์ใน `docs/tasks/` ถูกย้ายไป `docs/archive/`
 
 ---
 
