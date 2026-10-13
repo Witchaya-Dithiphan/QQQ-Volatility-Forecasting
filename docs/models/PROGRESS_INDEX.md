@@ -1,8 +1,7 @@
 # MASTER PROGRESS INDEX — 19 โมเดล
 
 > **ดัชนีเท่านั้น** — รายละเอียดอยู่ใน `docs/models/<name>/MODEL_PROGRESS.md` ของแต่ละตัว
-> วิธีทำงาน: invoke skill `qqq-model` (กลั่นจาก `AGENTS.md` + `MODEL_CARDS.md` แล้ว ไม่ต้องอ่านต้นฉบับซ้ำ)
-> อัปเดตตารางนี้ + ไฟล์ของโมเดลนั้น หลังจบทุกตัว · **ห้ามลบผลเก่า**
+> สเปกของแต่ละโมเดลอยู่ใน [`MODEL_CARDS.md`](../plan/MODEL_CARDS.md)
 
 **สถานะรวม (อัปเดต 2026-10-11):** ✅ **ครบ 19/19 โมเดล ทั้งสอง variant** · Phase C เสร็จถึงขั้น finalize: leaderboard, เทียบ with_spike กับ non_spike, feature importance, walk-forward และผล Test (อ่านครั้งเดียว) อยู่ใต้ `outputs/modeling/` · ตารางท้ายไฟล์นี้สร้างจากไฟล์ผลโดยตรง ·
 ชั้นข้อมูลผ่าน audit: [DATA_PIPELINE_AUDIT.md](../audit/DATA_PIPELINE_AUDIT.md)
@@ -11,30 +10,30 @@
 
 | # | โมเดล | task | สถานะ | parity | ผลหลัก (validation, with_spike) | บันทึก |
 | --- | --- | --- | --- | --- | --- | --- |
-| 1 | `multiple_linear` | reg | ✅ | exact 1.1e-15 | RMSE 0.068864 · R² **−0.0446** | [↗](../models/multiple_linear/MODEL_PROGRESS.md) |
-| 2 | `simple_linear` | reg | ✅ | exact (8/8 ฟีเจอร์) | RMSE 0.069038 · R² **−0.0498** | [↗](../models/simple_linear/MODEL_PROGRESS.md) |
-| 3 | `knn` | cls | ✅ | exact (8/8, held-out) | AUC **0.6987** · F1 0.2000 · Acc 0.8922 | [↗](../models/knn/MODEL_PROGRESS.md) · ปลดล็อก `stacking` แล้ว |
-| 4 | `logistic` | cls | ✅ | exact (6/6) Δcoef 2.9e-08 | AUC 0.6732 · F1 0.2609 · Acc 0.9084 | [↗](../models/logistic/MODEL_PROGRESS.md) · **ปลดล็อก `stacking` ครบแล้ว** |
-| 5 | `gaussian_nb` | cls | ✅ | exact 1e-12 | **F1 0.2812** (ดีสุดในฝั่ง linear/probabilistic; `mlp` 0.3200 และ `decision_tree` 0.3099 สูงกว่า) · AUC 0.6665 | [↗](../models/gaussian_nb/MODEL_PROGRESS.md) |
-| 6 | `polynomial` | reg | ✅ | exact (16/16) | RMSE 0.069065 · R² −0.0507 | [↗](../models/polynomial/MODEL_PROGRESS.md) |
-| 7 | `perceptron` | cls | ✅ | exact 1e-10 | **AUC 0.2993** (< สุ่ม) · F1 0.0 | [↗](../models/perceptron/MODEL_PROGRESS.md) ตรวจแล้ว sklearn ได้เท่ากัน |
-| 8 | `slp` | cls | ✅ | converged 1.3e-08 vs LogReg | AUC **0.6803** (`knn` 0.6987 สูงกว่า) · F1 0.2609 | [↗](../models/slp/MODEL_PROGRESS.md) |
-| 9 | `elastic_net` ★ | reg | ✅ | exact (12/12) 1e-6 | **RMSE 0.066806 · R² +0.0169** ชนะทุกตัว | [↗](../models/elastic_net/MODEL_PROGRESS.md) **หลักฐาน +5** |
-| 10 | `kmeans` | clustering | ✅ | partition ตรง 5/5 · inertia ≤ sklearn | k=2 · silhouette **0.3666** | [↗](../models/kmeans/MODEL_PROGRESS.md) |
-| 11 | `agglomerative` | clustering | ✅ | partition ตรง 10/10 | k=2 ward · silhouette 0.3602 | [↗](../models/agglomerative/MODEL_PROGRESS.md) |
+| 1 | `multiple_linear` | reg | ✅ | exact 1.1e-15 | RMSE 0.068864 · R² **−0.0446** | [↗](multiple_linear/MODEL_PROGRESS.md) |
+| 2 | `simple_linear` | reg | ✅ | exact (8/8 ฟีเจอร์) | RMSE 0.069038 · R² **−0.0498** | [↗](simple_linear/MODEL_PROGRESS.md) |
+| 3 | `knn` | cls | ✅ | exact (8/8, held-out) | AUC **0.6987** · F1 0.2000 · Acc 0.8922 | [↗](knn/MODEL_PROGRESS.md) · ปลดล็อก `stacking` แล้ว |
+| 4 | `logistic` | cls | ✅ | exact (6/6) Δcoef 2.9e-08 | AUC 0.6732 · F1 0.2609 · Acc 0.9084 | [↗](logistic/MODEL_PROGRESS.md) · **ปลดล็อก `stacking` ครบแล้ว** |
+| 5 | `gaussian_nb` | cls | ✅ | exact 1e-12 | **F1 0.2812** (ดีสุดในฝั่ง linear/probabilistic; `mlp` 0.3200 และ `decision_tree` 0.3099 สูงกว่า) · AUC 0.6665 | [↗](gaussian_nb/MODEL_PROGRESS.md) |
+| 6 | `polynomial` | reg | ✅ | exact (16/16) | RMSE 0.069065 · R² −0.0507 | [↗](polynomial/MODEL_PROGRESS.md) |
+| 7 | `perceptron` | cls | ✅ | exact 1e-10 | **AUC 0.2993** (< สุ่ม) · F1 0.0 | [↗](perceptron/MODEL_PROGRESS.md) ตรวจแล้ว sklearn ได้เท่ากัน |
+| 8 | `slp` | cls | ✅ | converged 1.3e-08 vs LogReg | AUC **0.6803** (`knn` 0.6987 สูงกว่า) · F1 0.2609 | [↗](slp/MODEL_PROGRESS.md) |
+| 9 | `elastic_net` ★ | reg | ✅ | exact (12/12) 1e-6 | **RMSE 0.066806 · R² +0.0169** ชนะทุกตัว | [↗](elastic_net/MODEL_PROGRESS.md) **หลักฐาน +5** |
+| 10 | `kmeans` | clustering | ✅ | partition ตรง 5/5 · inertia ≤ sklearn | k=2 · silhouette **0.3666** | [↗](kmeans/MODEL_PROGRESS.md) |
+| 11 | `agglomerative` | clustering | ✅ | partition ตรง 10/10 | k=2 ward · silhouette 0.3602 | [↗](agglomerative/MODEL_PROGRESS.md) |
 
 ## ฝั่ง Codex (8 ตัว — เจ้าของดูแลเอง)
 
 | โมเดล | สถานะ | ผลหลัก (validation) | บันทึก |
 | --- | --- | --- | --- |
-| `decision_tree` | ✅ parity/training/reload/leaderboard ครบ | AUC 0.6418 (`with_spike`) · 0.6924 (`non_spike`) | [↗](../models/decision_tree/MODEL_PROGRESS.md) |
-| `random_forest` | ✅ parity/training/reload/leaderboard ครบ | AP 0.2548 (`with_spike`) · 0.3010 (`non_spike`) | [↗](../models/random_forest/MODEL_PROGRESS.md) |
-| `adaboost` ★ | ✅ parity/training/reload/leaderboard ครบ | AP 0.2363 (`with_spike`) · 0.2407 (`non_spike`) | [↗](../models/adaboost/MODEL_PROGRESS.md) |
-| `gradient_boosting` | ✅ parity/training/reload/leaderboard ครบ | AP 0.2531 (`with_spike`) · 0.2525 (`non_spike`) | [↗](../models/gradient_boosting/MODEL_PROGRESS.md) |
-| `xgboost` | ✅ parity/training/reload/leaderboard ครบ | AP 0.2508 (`with_spike`) · 0.2652 (`non_spike`) | [↗](../models/xgboost/MODEL_PROGRESS.md) |
-| `svm` | ✅ parity/training/reload/leaderboard ครบ | AP 0.2514 (`with_spike`) · 0.2501 (`non_spike`) | [↗](../models/svm/MODEL_PROGRESS.md) |
-| `mlp` | ✅ parity/training/reload/leaderboard ครบ | AP 0.2668 (`with_spike`) · 0.2808 (`non_spike`) | [↗](../models/mlp/MODEL_PROGRESS.md) |
-| `stacking` | ✅ parity/training/reload/leaderboard ครบ | AP 0.2262 (`with_spike`) · 0.2311 (`non_spike`) | [↗](../models/stacking/MODEL_PROGRESS.md) |
+| `decision_tree` | ✅ parity/training/reload/leaderboard ครบ | AUC 0.6418 (`with_spike`) · 0.6924 (`non_spike`) | [↗](decision_tree/MODEL_PROGRESS.md) |
+| `random_forest` | ✅ parity/training/reload/leaderboard ครบ | AP 0.2548 (`with_spike`) · 0.3010 (`non_spike`) | [↗](random_forest/MODEL_PROGRESS.md) |
+| `adaboost` ★ | ✅ parity/training/reload/leaderboard ครบ | AP 0.2363 (`with_spike`) · 0.2407 (`non_spike`) | [↗](adaboost/MODEL_PROGRESS.md) |
+| `gradient_boosting` | ✅ parity/training/reload/leaderboard ครบ | AP 0.2531 (`with_spike`) · 0.2525 (`non_spike`) | [↗](gradient_boosting/MODEL_PROGRESS.md) |
+| `xgboost` | ✅ parity/training/reload/leaderboard ครบ | AP 0.2508 (`with_spike`) · 0.2652 (`non_spike`) | [↗](xgboost/MODEL_PROGRESS.md) |
+| `svm` | ✅ parity/training/reload/leaderboard ครบ | AP 0.2514 (`with_spike`) · 0.2501 (`non_spike`) | [↗](svm/MODEL_PROGRESS.md) |
+| `mlp` | ✅ parity/training/reload/leaderboard ครบ | AP 0.2668 (`with_spike`) · 0.2808 (`non_spike`) | [↗](mlp/MODEL_PROGRESS.md) |
+| `stacking` | ✅ parity/training/reload/leaderboard ครบ | AP 0.2262 (`with_spike`) · 0.2311 (`non_spike`) | [↗](stacking/MODEL_PROGRESS.md) |
 
 ⚠️ แก้ไข 2026-10-11: branch `feat/models-tree-family` ถูก merge แล้ว และ DoD ข้อ leaderboard ครบทุกตัวหลัง `run.py report` ใช้งานได้
 
@@ -57,8 +56,8 @@ paired comparison A↔B · notebooks 03/04/05
 
 ## ถัดไป
 
-Phase C เสร็จแล้วถึงขั้น finalize (2026-10-11) รายละเอียดและลำดับงานอยู่ในแผน
-[`2026-10-11-phase-c-report-and-finalize.md`](../superpowers/plans/2026-10-11-phase-c-report-and-finalize.md)
+Phase C เสร็จแล้วถึงขั้น finalize (2026-10-11) คำสั่งที่ใช้สร้างผลแต่ละส่วนอยู่ใน
+[`RUNBOOK.md`](../guides/RUNBOOK.md)
 
 | งาน | สถานะ | ผลลัพธ์อยู่ที่ |
 | --- | --- | --- |
@@ -67,9 +66,10 @@ Phase C เสร็จแล้วถึงขั้น finalize (2026-10-11) �
 | `run.py analyze` — feature importance + walk-forward | ✅ | `outputs/modeling/report/<variant>/` |
 | `run.py finalize` — อ่าน Test ครั้งเดียว | ✅ รันแล้ว ห้ามรันซ้ำ | `outputs/modeling/final/`, `outputs/modeling/finalize_receipt.json` |
 | notebooks 03 / 04 / 05 | ✅ | `notebooks/` |
+| notebook 06 เกณฑ์ spike และเหตุผลที่เลือก (2026-10-13) | ✅ | `notebooks/06_spike_analysis.ipynb` |
 | รายงานและสไลด์ | ดู `docs/report/` และ `deliverables/` | |
 
-## ข้อค้นพบสะสม (ใช้ในรายงาน §8.2)
+## ข้อค้นพบสะสม (ใช้ในรายงานหัวข้อ 4.5 และ 5.2)
 
 ทั้ง 2 โมเดล regression ที่ทำแล้วให้ **pattern เดียวกัน**: `with_spike` R² ติดลบ ·
 `non_spike` R² พลิกเป็นบวก

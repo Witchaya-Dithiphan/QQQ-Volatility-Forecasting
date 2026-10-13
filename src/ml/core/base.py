@@ -1,4 +1,4 @@
-"""The contract every scratch model implements. See AGENTS.md section 4.
+"""The contract every scratch model implements.
 
 Abstract rather than duck-typed on purpose: the two model families are written in
 parallel by different developers on different branches, so a missing method has to

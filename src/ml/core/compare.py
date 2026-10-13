@@ -1,4 +1,4 @@
-"""Strict scratch-vs-reference comparison. Policy lives in AGENTS.md section 6.
+"""Strict scratch-vs-reference comparison. Policy: ADR-002 in docs/plan/ARCHITECTURE.md.
 
 The failure message names the worst index and both values because the point of this
 gate is diagnosing the mismatch; "arrays are not almost equal" sends you back to the
@@ -68,7 +68,7 @@ def assert_parity(scratch, reference, X, y=None, *, task: str, label: str = "pre
     """Raise ParityError unless the scratch model matches its reference.
 
     `svm` is the one model allowed a different criterion (objective-level rather than
-    weight-level) because hinge loss is non-smooth; see AGENTS.md section 6.
+    weight-level) because hinge loss is non-smooth; see ADR-002.
     """
     scratch_prediction = np.asarray(scratch.predict(X), dtype=np.float64)
     reference_prediction = np.asarray(reference.predict(X), dtype=np.float64)

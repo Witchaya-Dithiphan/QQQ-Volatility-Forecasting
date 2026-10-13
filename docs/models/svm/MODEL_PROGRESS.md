@@ -32,7 +32,7 @@
 
 ## Parity
 
-เกณฑ์ของ SVM ตาม AGENTS.md §6 (ข้อยกเว้นเดียวของโปรเจกต์): เทียบที่ **objective** ไม่ใช่น้ำหนัก เพราะ hinge ไม่เรียบ.
+เกณฑ์ของ SVM ตาม ADR-002 ใน `docs/plan/ARCHITECTURE.md` (ข้อยกเว้นเดียวของโปรเจกต์): เทียบที่ **objective** ไม่ใช่น้ำหนัก เพราะ hinge ไม่เรียบ.
 
 วัดครบ 24 candidates จริง (3 C × 4 PCA × 2 variants):
 
@@ -51,7 +51,7 @@ synthetic 3 seeds × 3 ค่า C ผ่านเกณฑ์เดียวก
 - **center feature ภายใน solver** (เพิ่ม 2026-10-11) แล้วเลื่อน intercept กลับตอนจบ. intercept ไม่ถูก penalize
   ดังนั้น `w·(x − mean) + b` กับ `w·x + b'` เป็นโมเดลเดียวกันและมี optimum เดียวกัน — ต่างแค่ความเร็วลู่เข้า.
   ทำเฉพาะเมื่อ `fit_intercept=True`.
-- **12 candidates ต้องแก้ trainer** (ดูหมายเหตุ core ใน [`codex-tree-family.md`](../../archive/codex-tree-family.md)): svm ไขว้ทุก C กับทุกขนาด PCA ต่างจาก random_forest ที่ลอง PCA เฉพาะค่าที่ชนะ.
+- **12 candidates ต้องแก้ trainer**: svm ไขว้ทุก C กับทุกขนาด PCA ต่างจาก random_forest ที่ลอง PCA เฉพาะค่าที่ชนะ.
 
 ## ไฟล์
 

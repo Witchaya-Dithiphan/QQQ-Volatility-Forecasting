@@ -330,6 +330,10 @@ Phase 2 test ต้องการโฟลเดอร์ reproduction ที�
 จาก `requirements.txt` ใหม่ทั้งหมด** (บนเครื่องเดิม) ผลคือ `pip check` สะอาด ข้อมูลที่สร้างใหม่ 13 ไฟล์เหมือนของเดิมทุกไบต์
 notebook 01–02 รันจบและได้รูปเหมือนเดิม และ `pytest -q` ได้ 1,267 passed
 
+ทดสอบอีกครั้งเมื่อ 2026-10-13 หลังเพิ่ม notebook 06 โดยส่งออกไฟล์ที่ git ติดตามทั้ง 753 ไฟล์ไปโฟลเดอร์ว่าง
+(ใช้ environment ที่สร้างจาก `requirements.txt` ในรอบก่อน) รันขั้น 3–5 และขั้น 10 แล้วรัน notebook 06 จาก kernel ใหม่
+ได้ตารางและรูปเหมือนที่บันทึกไว้ทุกไบต์ และ `pytest -q` ได้ 1,308 passed
+
 | ขั้น | คำสั่ง | เวลาโดยประมาณ | สิ่งที่ควรเห็น |
 | --- | --- | --- | --- |
 | 1 | สร้าง environment และติดตั้ง library ตามข้อ 2–3 | หลายนาที | `pip check` ไม่มีข้อผิดพลาด |
@@ -342,7 +346,7 @@ notebook 01–02 รันจบและได้รูปเหมือนเ
 | 8 | `.\.venv\Scripts\python.exe -m src.ml.run compare` | ราว 15 วินาที | พิมพ์ path 4 บรรทัด |
 | 9 | `.\.venv\Scripts\python.exe -m src.ml.run analyze --variant with_spike` (และ `non_spike`) | 3–4 นาทีต่อครั้ง | พิมพ์ path 4 บรรทัด |
 | 10 | `.\.venv\Scripts\python.exe -m src.ml.docs_sync` | ราว 30 วินาที | ไม่พิมพ์อะไร (เอกสารตรงกับไฟล์ผลอยู่แล้ว) |
-| 11 | เปิด `notebooks\03_regression.ipynb`, `04_classification.ipynb`, `05_results_comparison.ipynb` | — | ผลถูกบันทึกไว้ในไฟล์แล้ว รันซ้ำได้ |
+| 11 | เปิด `notebooks\03_regression.ipynb`, `04_classification.ipynb`, `05_results_comparison.ipynb`, `06_spike_analysis.ipynb` | — | ผลถูกบันทึกไว้ในไฟล์แล้ว รันซ้ำได้ |
 
 **ไม่ต้องเทรนโมเดลใหม่** ผลของทั้ง 38 ชุดมากับ repo ใต้ `outputs\modeling\` ขั้น 7–10 สร้างตารางและรูปซ้ำจากไฟล์เหล่านั้น
 และได้ผลเท่าเดิมทุกครั้งเพราะใช้ seed คงที่

@@ -15,7 +15,10 @@
 > - ผลลัพธ์: `outputs/modeling/report/`, `outputs/modeling/final/`, `outputs/modeling/selection_lock.json`,
 >   `outputs/modeling/finalize_receipt.json`
 > - ไฟล์ส่งงานและเอกสาร: `deliverables/`, `docs/report/`, `docs/audit/`, `docs/models/`
-> - ที่ย้ายแล้ว: `docs/status/` และไฟล์งานสองไฟล์ใน `docs/tasks/` ถูกย้ายไป `docs/archive/`
+> - ที่ย้ายแล้ว: `docs/status/` ถูกย้ายไป `docs/archive/` · ดัชนีสถานะโมเดลอยู่ที่ `docs/models/PROGRESS_INDEX.md`
+> - ที่นำออกจาก repo เมื่อปิดงาน (2026-10-13): ไฟล์กติกาและการตั้งค่าของเครื่องมือช่วยเขียนโค้ดที่ root,
+>   ใบงานแบ่งงานและแผนทำงานรายขั้น ซึ่งใช้ระหว่างพัฒนาเท่านั้น
+>   เกณฑ์เทียบกับ library ที่เคยอยู่ในไฟล์กติกาถูกย้ายมาไว้ที่ ADR-002 ใน `ARCHITECTURE.md`
 
 ---
 
@@ -23,21 +26,15 @@
 
 ```
 QQQ-Volatility-Forecasting/
-├── README.md                    ภาพรวม + quick start   ┐
-├── AGENTS.md                    ★ contract กลาง        ├ 3 ไฟล์นี้ต้องอยู่ root
-├── CLAUDE.md                    ★ ชี้ไป AGENTS.md      ┘ เพราะเป็น convention ของเครื่องมือ
+├── README.md                    ภาพรวม + quick start
 │
 ├── docs/
 │   ├── README.md                ★ index ของเอกสารทั้งหมด
-│   ├── tasks/                   ★ งานแบ่งตามคน
-│   │   ├── claude-linear-family.md    core framework + 11 โมเดล
-│   │   └── codex-tree-family.md       8 โมเดล (เขียนให้ Codex ใช้ได้ทันที)
 │   ├── plan/                    ★ ARCHITECTURE · MODEL_CARDS · PROJECT_STRUCTURE
 │   │                              ROADMAP · RISKS_AND_DOD · REPORT_AND_SLIDES_OUTLINE
 │   ├── guides/RUNBOOK.md        ติดตั้งและรัน pipeline
 │   ├── status/                  PROJECT_STATUS · HANDOFF
 │   ├── archive/REALITY_AUDIT.md   ★ สถานะจริง 2026-10-10
-│   ├── superpowers/             spec + implementation plan จาก workflow skill
 │   └── archive/                 MODEL_TRAINING_PLAN · PHASE2_SPIKE_READINESS
 │                                spike-analysis-plan (เก็บเป็นหลักฐาน ห้ามใช้สั่งงาน)
 │

@@ -1,7 +1,7 @@
 # MODEL CARDS — สเปก 19 โมเดล
 
 > สเปกรายตัวที่ใช้ลงมือเขียนโค้ดได้เลย โดยไม่ต้องอ่านบทสนทนาหรือถามใคร
-> กฎกลางอยู่ใน [`AGENTS.md`](../../AGENTS.md) · เหตุผลเชิงสถาปัตยกรรมอยู่ใน [`ARCHITECTURE.md`](ARCHITECTURE.md)
+> เหตุผลเชิงสถาปัตยกรรมและเกณฑ์เทียบกับ library (ADR-002) อยู่ใน [`ARCHITECTURE.md`](ARCHITECTURE.md)
 > **grid ทุกตัวมาจาก `configs/modeling.json` ห้ามแต่งเอง** — ชื่อโมเดล = key ใน config = ชื่อไฟล์ = `BaseModel.name`
 
 ---
@@ -47,7 +47,7 @@ np.random.default_rng(42).integers(0, 200, 200)              -> [ 17 154 130  87
 
 ### 0.2 นิยาม "ตรงกับ reference" รายโมเดล
 
-มติของโปรเจกต์คือ strict เท่ากันทุกตัว (`AGENTS.md` §6) แต่ต้นทุนการไล่ให้ตรงต่างกันมาก
+มติของโปรเจกต์คือ strict เท่ากันทุกตัว (ADR-002 ใน `ARCHITECTURE.md`) แต่ต้นทุนการไล่ให้ตรงต่างกันมาก
 คอลัมน์ **parity** ในตารางข้างล่างบอกว่าแต่ละตัวอยู่กลุ่มไหน:
 
 | กลุ่ม | ความหมาย | ทำอย่างไร |
@@ -57,7 +57,7 @@ np.random.default_rng(42).integers(0, 200, 200)              -> [ 17 154 130  87
 | **iterative** | ผลขึ้นกับลำดับ update และ learning rate | ตั้ง hyperparameter ให้ตรงเป๊ะแล้วเทียบ ถ้ายังต่างให้เทียบที่ objective value และบันทึกเหตุผล |
 
 ถ้าไล่ไม่ตรงจริง ๆ **ห้ามลดเกณฑ์เงียบ ๆ และห้ามเอาผล reference มาสวมแทน scratch** —
-บันทึกใน card ของตัวเองว่าต่างตรงไหนเพราะอะไร แล้วแจ้งเจ้าของโปรเจกต์ (`AGENTS.md` §6)
+บันทึกใน card ของตัวเองว่าต่างตรงไหนเพราะอะไร แล้วแจ้งเจ้าของโปรเจกต์ (ADR-002)
 
 ---
 
@@ -1226,7 +1226,7 @@ k = n → ทุกจุดเป็น cluster เดี่ยว · ward บ�
 
 ## 5. Checklist ก่อนบอกว่าโมเดลเสร็จ
 
-คัดจาก `AGENTS.md` §5 — ติ๊กครบ 6 ข้อเท่านั้น
+ติ๊กครบ 6 ข้อเท่านั้น (ชุดเดียวกับ `RISKS_AND_DOD.md` หัวข้อ 1.1)
 
 - [ ] ไฟล์ `src/ml/<task>/<name>.py` ทำตาม `BaseModel` ครบทุก method และ hyperparameter มี default หมด
 - [ ] `tests/ml/<task>/test_<name>.py` มีครบ 3 แบบ: unit test กลไกภายใน · strict parity · save/load round-trip

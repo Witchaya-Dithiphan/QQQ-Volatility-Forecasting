@@ -6,8 +6,10 @@
 ## สถานะ ณ 2026-10-11
 
 งานโค้ดและผลการทดลอง **เสร็จก่อนกำหนด**: โมเดล 19 ตัว × 2 variant, leaderboard, เทียบ A↔B, feature importance,
-walk-forward, ผลบน Test (อ่านครั้งเดียว), notebook 03–05, รายงาน (docx + PDF) และสไลด์ 22 แผ่น
-รายละเอียดอยู่ในแผน [`2026-10-11-phase-c-report-and-finalize.md`](../superpowers/plans/2026-10-11-phase-c-report-and-finalize.md)
+walk-forward, ผลบน Test (อ่านครั้งเดียว), notebook 03–05, รายงาน (docx + PDF) และสไลด์
+เพิ่มเมื่อ 2026-10-13: notebook 06 อธิบายเกณฑ์ spike และเหตุผลที่เลือก พร้อมหัวข้อ 3.3.4 ของรายงานและสไลด์แผ่นที่ 9–10
+และรายงานถูกจัดใหม่เป็นรูปแบบรายงานวิชาการ (ปก ปกใน คำนำ บทคัดย่อ สารบัญสามชุด บทที่ 1–5 บรรณานุกรม ภาคผนวก) สไลด์เป็น 24 แผ่น
+คำสั่งที่ใช้สร้างผลแต่ละส่วนอยู่ใน [`RUNBOOK.md`](../guides/RUNBOOK.md)
 
 ## แผนจากนี้ถึงวันส่ง (12 → 18 ต.ค.)
 
@@ -15,12 +17,12 @@ walk-forward, ผลบน Test (อ่านครั้งเดียว), no
 
 | วัน | งาน | เสร็จเมื่อ |
 | --- | --- | --- |
-| **12 อา.** | กรอกชื่อและรหัสนักศึกษาใน `deliverables/report.docx` และสไลด์แผ่นแรก · ยืนยันการลงทะเบียนกลุ่มใน Google Sheet ของวิชา | หน้าปกไม่มีวงเล็บเหลี่ยม · R10 ปิด |
+| **12 อา.** | กรอกข้อความในวงเล็บเหลี่ยมบนปกและปกในของ `deliverables/report.docx` (ชื่อและรหัสนักศึกษา อาจารย์ผู้สอน ชื่อรายวิชา สถาบัน) และสไลด์แผ่นแรก · ยืนยันการลงทะเบียนกลุ่มใน Google Sheet ของวิชา | หน้าปกไม่มีวงเล็บเหลี่ยม · R10 ปิด |
 | **13 จ.** | อ่านรายงานทั้งฉบับ ปรับสำนวนให้เป็นของทีม · ตรวจว่าเข้าใจทุกตารางและตอบคำถามได้ (ใช้คู่มือหัวข้อ 12.2) | ทั้งสองคนอธิบายผลหลัก 4 ข้อได้โดยไม่ดูโน้ต |
 | **14 อ.** | ✅ ทำแล้วก่อนกำหนด: PR #4 (งาน Phase C) merge เมื่อ 11 ต.ค. และ PR #5 (คู่มือฉบับเดียวจบ) merge เมื่อ 13 ต.ค. | `main` บน GitHub มีงานครบ |
 | **15 พ.** | ซ้อมนำเสนอรอบที่ 1 พร้อมจับเวลา (เป้า 15–20 นาที) · จดสไลด์ที่พูดติด | ได้เวลาจริงและรายการที่ต้องแก้ |
 | **16 พฤ.** | แก้สไลด์และรายงานตามที่ซ้อม · ส่งออก PDF ใหม่ · ซ้อมรอบที่ 2 | ไฟล์ส่งนิ่ง |
-| **17 ศ.** | **Buffer** · ตรวจสุดท้าย: `pytest -q`, เปิด notebook 03–05, `python -m src.ml.docs_sync` ต้องไม่พิมพ์อะไร, `git diff` ต้องไม่แสดงอะไร (ถ้า `git status` ขึ้นว่าไฟล์ถูกแก้ทั้งที่ `git diff` ว่าง เป็นเรื่อง line ending ดู RUNBOOK ข้อ 12) | ทุกคำสั่งผ่าน |
+| **17 ศ.** | **Buffer** · ตรวจสุดท้าย: `pytest -q`, เปิด notebook 03–06, `python -m src.ml.docs_sync` ต้องไม่พิมพ์อะไร, `git diff` ต้องไม่แสดงอะไร (ถ้า `git status` ขึ้นว่าไฟล์ถูกแก้ทั้งที่ `git diff` ว่าง เป็นเรื่อง line ending ดู RUNBOOK ข้อ 12) | ทุกคำสั่งผ่าน |
 | **18 ส.** | ส่งงานและนำเสนอ | ✅ |
 
 **ข้อห้ามจนกว่าจะส่ง:** ไม่รัน `finalize --allow-test` ซ้ำ · ไม่ train โมเดลใหม่ทับของเดิม · ไม่แก้ `src/ml/` ส่วนที่กระทบคำทำนาย
@@ -57,7 +59,7 @@ core framework  ──►  pilot ผ่าน  ──►  merge main  ──┬�
 
 | วัน | Claude Code (คุณ) | Codex CLI (เพื่อน) | Gate ที่ต้องผ่านก่อนจบวัน |
 | --- | --- | --- | --- |
-| **10 ศ.** | แผน + audit ✅ · ล้าง `src/modeling` · ย้ายโค้ดคณิต · `base.py`, `data.py`, `compare.py` | อ่าน `AGENTS.md` + `MODEL_CARDS.md` · ตั้ง environment · ลองเขียน Decision Tree stump ไว้ก่อนแบบ local | `pytest -q` เขียวหลังย้ายโค้ด |
+| **10 ศ.** | แผน + audit ✅ · ล้าง `src/modeling` · ย้ายโค้ดคณิต · `base.py`, `data.py`, `compare.py` | อ่านกติกากลางของทีม + `MODEL_CARDS.md` · ตั้ง environment · ลองเขียน Decision Tree stump ไว้ก่อนแบบ local | `pytest -q` เขียวหลังย้ายโค้ด |
 | **11 ส.** | `trainer.py`, `registry.py`, `run.py`, `figures.py` · **pilot Multiple Linear ครบลูป** | เตรียม decision tree ให้พร้อม merge ทันทีที่ core เข้า main | pilot ผลิต artifact ครบ 8 ไฟล์ + ROC/perf curve จริง |
 | **12 อา.** | merge `feat/ml-core` → `main` · เริ่ม Linear, Multiple, Polynomial, Elastic Net★ | rebase · เริ่ม Decision Tree, Random Forest | core freeze · ทั้งคู่ rebase แล้ว |
 | **13 จ.** | Logistic, Naive Bayes, k-NN | Gradient Boosting, AdaBoost★ | ≥ 4 โมเดลต่อคนผ่าน parity |

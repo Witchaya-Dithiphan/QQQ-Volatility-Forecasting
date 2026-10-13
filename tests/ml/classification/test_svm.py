@@ -1,8 +1,8 @@
 """Linear soft-margin SVM: optimality worked by hand, then objective parity with libsvm.
 
 Hinge loss has kinks, so two correct solvers can stop at slightly different weights.
-The comparison is therefore on the objective both are minimising, as AGENTS.md allows
-for this one model.
+The comparison is therefore on the objective both are minimising, as ADR-002 in
+docs/plan/ARCHITECTURE.md allows for this one model.
 """
 
 import numpy as np

@@ -2,7 +2,7 @@
 
 > ขอบเขตของเอกสารนี้คือ **ชั้น modeling เท่านั้น** ชั้นข้อมูล (Phase 1/2) เสร็จและ freeze แล้ว
 > สถานะจริงที่เอกสารนี้ตั้งอยู่บน: `docs/archive/REALITY_AUDIT.md`
-> contract ที่ต้องทำตามตอนเขียนโค้ด: `AGENTS.md`
+> interface ที่ทุกโมเดลต้องทำตาม: `src/ml/core/base.py` · เกณฑ์เทียบกับ library: ADR-002 ในเอกสารนี้
 
 ---
 
@@ -47,7 +47,7 @@ hyperparameter, วัดผล, เซฟ, วาดรูป) เป็นห�
 
 | ไฟล์ | หน้าที่ | ที่มา |
 | --- | --- | --- |
-| `base.py` | `BaseModel` interface (ดู `AGENTS.md` §4) | เขียนใหม่ |
+| `base.py` | `BaseModel` interface: method ที่ทุกโมเดลต้องมี (`fit`, `predict`, `state_dict`, `load_state`, `reference`) | เขียนใหม่ |
 | `data.py` | โหลด Train/Validation ตาม variant, ตรวจ SHA-256 + schema, Test แบบ default-deny | ย้ายจาก `modeling/datasets.py` แล้วตัด report-identity chain |
 | `preprocess.py` | `Standardizer`, `PCA` | **ย้ายตรง ๆ** จาก `modeling/preprocessing.py` (มี 9 tests ผ่านแล้ว) |
 | `metrics.py` | regression/classification/clustering metrics, losses, ROC/PR curve, threshold & candidate selection | **ย้ายตรง ๆ** จาก `modeling/metrics.py` (มี 11 tests ผ่านแล้ว) |
@@ -113,7 +113,25 @@ artifact 8–12 ไฟล์ + manifest 25 ฟิลด์ต่อ run × 38 ru
 
 **บริบท:** ทางเลือกคือแบ่ง tier (closed-form เข้ม / iterative หลวม) หรือใช้เกณฑ์เดียว
 
-**มติ:** เกณฑ์เดียวทุกตัวตาม `AGENTS.md` §6
+**มติ:** เกณฑ์เดียวทุกตัว ตรวจด้วย `assert_parity` ใน `src/ml/core/compare.py`
+
+| task | เกณฑ์ |
+| --- | --- |
+| regression | `np.allclose(scratch.predict(X), reference.predict(X), rtol=1e-5, atol=1e-8)` |
+| classification | label ตรงกัน **100%** และ `decision_function`/`predict_proba` ผ่าน `allclose(rtol=1e-5)` |
+| clustering | การแบ่งกลุ่มตรงกันหลังจับคู่หมายเลขกลุ่ม (ชื่อกลุ่มสลับได้ แต่สมาชิกของแต่ละกลุ่มต้องเหมือนกัน) |
+
+ทดสอบบนข้อมูลสังเคราะห์ที่ควบคุมได้เป็นด่านแรก แล้วตามด้วย Train จริง
+
+**ข้อยกเว้นเดียว: `svm`** objective ของ SVM (hinge loss) ไม่เรียบ solver สองตัวจึงหยุดคนละจุดใกล้ค่าต่ำสุดได้
+โดยไม่มีตัวใดผิด วัดจริงที่ C=1.0 พบว่า scratch ได้ objective **ต่ำกว่า** sklearn (34.8258 < 34.9859)
+SVM จึงเทียบที่ค่า objective แทนการเทียบน้ำหนัก
+
+```text
+rel_gap = |J_scratch - J_ref| / J_ref < 1e-3   และ   J_scratch <= J_ref·(1+1e-3)   และ   label agreement >= 0.99
+```
+
+ถ้าเทียบแล้วไม่ผ่าน ห้ามลดเกณฑ์ และห้ามนำผลของ library มาใช้แทนผลของ scratch ให้บันทึกสาเหตุลงใน card ของโมเดลนั้น
 
 **เหตุผล:** การแบ่ง tier เปิดช่องให้ "ปรับเกณฑ์จนผ่าน" ซึ่งทำลายคุณค่าทั้งหมดของการมี reference
 ความต่างที่มักถูกอ้างว่าเลี่ยงไม่ได้ (tie-breaking, ลำดับ update, การ bin, ค่าเริ่มต้น weight)
@@ -175,7 +193,7 @@ artifact 8–12 ไฟล์ + manifest 25 ฟิลด์ต่อ run × 38 ru
 
 **เหตุผล:** เป็น path สัมพัทธ์ในรีโป จึงใช้ได้กับทุกเครื่องของทีมโดยไม่ต้องตั้งค่าเอง
 พิสูจน์แล้วว่าทำให้ผลเป็น **459 passed, 3 skipped, 0 failed** ณ วันนั้น
-(⚠️ แก้ไข 2026-10-13: ปัจจุบัน 1,271 passed)
+(⚠️ แก้ไข 2026-10-13: ปัจจุบัน 1,308 passed)
 
 ### ADR-007 — ล็อกก่อนเปิด Test และออกใบรับรองหลังเปิด (เพิ่ม 2026-10-11)
 

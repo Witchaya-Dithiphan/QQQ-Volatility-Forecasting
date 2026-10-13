@@ -6,7 +6,7 @@
 >
 > | เรื่อง | ใช้ฉบับนี้ |
 > | --- | --- |
-> | กฎการเขียนโค้ด / interface / การแบ่งงาน | [AGENTS.md](../../AGENTS.md) |
+> | กฎการเขียนโค้ด / interface / การแบ่งงาน | `AGENTS.md` (ไฟล์กติกาของเครื่องมือช่วยเขียนโค้ด นำออกจาก repo แล้ว) |
 > | สถาปัตยกรรมและเหตุผล (ADR) | [ARCHITECTURE.md](../plan/ARCHITECTURE.md) |
 > | สเปก 19 โมเดล | [MODEL_CARDS.md](../plan/MODEL_CARDS.md) |
 > | แผนรายวัน / สิ่งที่ตัดได้ | [ROADMAP.md](../plan/ROADMAP.md) |

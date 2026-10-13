@@ -29,7 +29,7 @@
 > *"why must use ML/DL?"* ที่โจทย์ให้คะแนนได้เลย
 >
 > รายละเอียดครบและรายการที่เอกสารเดิมขัดกับโค้ด: **[docs/audit/REALITY_AUDIT.md](../audit/REALITY_AUDIT.md)**
-> แผนงานชั้น modeling รอบใหม่: [ARCHITECTURE.md](../plan/ARCHITECTURE.md) · [ROADMAP.md](../plan/ROADMAP.md) · [AGENTS.md](../../AGENTS.md)
+> แผนงานชั้น modeling รอบใหม่: [ARCHITECTURE.md](../plan/ARCHITECTURE.md) · [ROADMAP.md](../plan/ROADMAP.md) · `AGENTS.md` (ไฟล์กติกาของเครื่องมือช่วยเขียนโค้ด นำออกจาก repo แล้ว)
 
 ### บันทึกประวัติก่อนหน้า (หลักฐาน ไม่ใช่สถานะปัจจุบัน)
 
