@@ -35,7 +35,7 @@
 3. **โมเดลเก่งในช่วงตลาดปกติ แต่ไม่เก่งในช่วงปั่นป่วน** ภายในช่วงรอบวัน spike โมเดลแยกไม่ได้ว่าวันไหนจะผันผวนสูง (ROC-AUC ใกล้ 0.5)
 4. **ผู้นำบน Validation ไม่จำเป็นต้องเป็นผู้นำบน Test** Validation มีวันผันผวนสูงเพียง 34 วัน จึงตัดสินผู้ชนะไม่ได้
 
-อ่านผลเต็มได้ที่ [`notebooks/05_results_comparison.ipynb`](notebooks/05_results_comparison.ipynb) และรายงานใน [`docs/report/`](docs/report/)
+อ่านผลเต็มได้ที่ [`notebooks/05_results_comparison.ipynb`](notebooks/05_results_comparison.ipynb) และรายงานใน [`docs/report/`](docs/report/) ส่วนเกณฑ์ที่ใช้นิยาม spike (Q3 + 3 × IQR ของข้อมูลเทรน) และเหตุผลที่เลือกเกณฑ์นี้ อยู่ใน [`notebooks/06_spike_analysis.ipynb`](notebooks/06_spike_analysis.ipynb)
 
 ## เริ่มใช้งาน
 
@@ -55,13 +55,14 @@ rem 3. ตรวจว่าทุกอย่างทำงาน (ราว 1
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-ผลของโมเดลที่เทรนแล้วทั้ง 38 ชุดมากับ repo ใต้ `outputs/modeling/` จึงเปิด notebook 03–05 ดูผลได้ทันทีโดยไม่ต้องเทรนใหม่
+ผลของโมเดลที่เทรนแล้วทั้ง 38 ชุดมากับ repo ใต้ `outputs/modeling/` จึงเปิด notebook 03–06 ดูผลได้ทันทีโดยไม่ต้องเทรนใหม่
 
 ## ดูผลและทำซ้ำ
 
 | ต้องการ | คำสั่ง | ใช้เวลา |
 | --- | --- | --- |
 | ดูผลพร้อมคำอธิบาย | เปิด `notebooks/03_regression.ipynb`, `04_classification.ipynb`, `05_results_comparison.ipynb` | — |
+| ดูว่าเกณฑ์ spike คืออะไรและทำไมเลือกเกณฑ์นี้ | เปิด `notebooks/06_spike_analysis.ipynb` | — |
 | สร้างตารางจัดอันดับและรูปใหม่ | `.\.venv\Scripts\python.exe -m src.ml.run report --variant with_spike` (และ `non_spike`) | ~15 วินาที |
 | เทียบ `with_spike` กับ `non_spike` | `.\.venv\Scripts\python.exe -m src.ml.run compare` | ~15 วินาที |
 | feature importance และ walk-forward | `.\.venv\Scripts\python.exe -m src.ml.run analyze --variant with_spike` (และ `non_spike`) | ~4 นาที |
@@ -82,7 +83,7 @@ rem 3. ตรวจว่าทุกอย่างทำงาน (ราว 1
 | `outputs/modeling/<variant>/<task>/<model>/` | ผลของแต่ละโมเดล: น้ำหนัก, การตั้งค่า, คะแนน, คำทำนาย |
 | `outputs/modeling/report/`, `outputs/modeling/final/` | ตารางสรุปบน Validation และบน Test |
 | `outputs/figures/` | รูปทั้งหมด |
-| `notebooks/` | 01–02 ข้อมูลและ feature · 03–05 ผลของโมเดล |
+| `notebooks/` | 01–02 ข้อมูลและ feature · 03–05 ผลของโมเดล · 06 เกณฑ์ spike และเหตุผลที่เลือก |
 | `tests/` | test กว่า 1,200 ข้อ รวม test ที่กันข้อมูลรั่วและกันการอ่าน Test ก่อนเวลา |
 | `docs/` | เอกสารทั้งหมด ดูสารบัญที่ [`docs/README.md`](docs/README.md) |
 
@@ -107,6 +108,6 @@ rem 3. ตรวจว่าทุกอย่างทำงาน (ราว 1
 ## เอกสาร
 
 - สารบัญเอกสารทั้งหมด: [`docs/README.md`](docs/README.md)
-- กฎการเขียนโค้ดของโปรเจกต์: [`AGENTS.md`](AGENTS.md)
+- การออกแบบและสเปกของโมเดล: [`docs/plan/ARCHITECTURE.md`](docs/plan/ARCHITECTURE.md) และ [`docs/plan/MODEL_CARDS.md`](docs/plan/MODEL_CARDS.md)
 - ผลตรวจความถูกต้องของข้อมูล: [`docs/audit/DATA_PIPELINE_AUDIT.md`](docs/audit/DATA_PIPELINE_AUDIT.md)
 - โจทย์ของวิชา: [`_69-1-01076641_Project-description.pdf`](_69-1-01076641_Project-description.pdf)

@@ -74,7 +74,7 @@ def main() -> int:
     write_tables()
     documents = [PROJECT_ROOT / "README.md", *sorted((PROJECT_ROOT / "docs").rglob("*.md"))]
     for document in documents:
-        if "archive" in document.parts or "superpowers" in document.parts:
+        if "archive" in document.parts:
             continue
         if sync(document):
             print(f"updated {document.relative_to(PROJECT_ROOT).as_posix()}")

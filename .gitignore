@@ -49,7 +49,7 @@ data/processed/*
 
 # Generated outputs
 #
-# ผลโมเดล รายงาน และรูป = หลักฐานที่รายงานต้องอ้างอิง และทั้งสอง agent ต้องเห็นเพื่อทำ
+# ผลโมเดล รายงาน และรูป = หลักฐานที่รายงานต้องอ้างอิง และสมาชิกทีมทุกคนต้องเห็นเพื่อทำ
 # leaderboard กับ paired comparison A/B จึง commit ทั้งหมด — วัดแล้ว 38 runs รวม 1.08 MB
 # (text 1.04 + binary .npz 0.04) ซึ่งเล็กเกินกว่าจะมีเหตุผลให้ซ่อน
 
@@ -76,6 +76,15 @@ temp/
 .idea/
 .vscode/
 *.code-workspace
+
+# Coding-assistant files: instructions and settings for the tools used while developing.
+# They are not part of the project and stay on the developer's machine.
+AGENTS.md
+CLAUDE.md
+CLAUDE.local.md
+.claude/
+.codex/
+.superpowers/
 
 # Operating-system files
 .DS_Store

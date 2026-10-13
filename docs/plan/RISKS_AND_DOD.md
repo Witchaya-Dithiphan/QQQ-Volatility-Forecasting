@@ -6,7 +6,7 @@
 
 ### 1.1 ระดับโมเดล (1 ใน 19)
 
-ติ๊กครบ 6 ข้อเท่านั้นจึงนับว่าเสร็จ — รายละเอียดใน `AGENTS.md` §5
+ติ๊กครบ 6 ข้อเท่านั้นจึงนับว่าเสร็จ
 
 - [ ] ไฟล์ `src/ml/<task>/<name>.py` ทำตาม `BaseModel` ครบทุก method
 - [ ] `tests/ml/<task>/test_<name>.py` ผ่าน: unit test กลไกภายใน + strict parity + save/load round-trip
@@ -20,12 +20,12 @@
 ตรวจเมื่อ 2026-10-11 แต่ละข้อมีหลักฐานที่ตรวจซ้ำได้
 
 - [x] 19 โมเดล × 2 variants = 38 runs ครบ — `outputs/modeling/selection_lock.json` (`run_count: 38`)
-- [x] `pytest -q` เขียวทั้งหมด — 1,267 passed บน clone เปล่าของ commit `d188376` และรันซ้ำเมื่อ 2026-10-13 ได้ 1,267 passed ทั้งบน tree เดียวกับ `main` ที่ `d031716` และบน clone ใหม่ของ `a9ae105` ที่สร้าง virtual environment ใหม่จาก `requirements.txt` · หลังเพิ่ม test ของ loss ของ AdaBoost 4 ข้อ ชุดเต็มเป็น 1,271 passed
+- [x] `pytest -q` เขียวทั้งหมด — 1,267 passed บน clone เปล่าของ commit `d188376` และรันซ้ำเมื่อ 2026-10-13 ได้ 1,267 passed ทั้งบน tree เดียวกับ `main` ที่ `d031716` และบน clone ใหม่ของ `a9ae105` ที่สร้าง virtual environment ใหม่จาก `requirements.txt` · หลังเพิ่ม test ของ loss ของ AdaBoost 4 ข้อ ชุดเต็มเป็น 1,271 passed · หลังเพิ่ม notebook 06 และ test ที่กันลิงก์ไปยังไฟล์ที่ git ไม่ติดตาม ชุดเต็มเป็น 1,308 passed
 - [x] metric ครบตามโจทย์ — `outputs/modeling/report/tables/classification_metrics_with_spike.md` (Loss, confusion matrix, Accuracy, Precision, Sensitivity, Specificity, TNR, F1, ROC-AUC), `leaderboard_regression.md` (R²), รูป ROC และ performance curve ใต้ `outputs/figures/modeling/` · ตรวจซ้ำ 2026-10-13: ช่อง Loss ของ `adaboost` ซึ่งเดิมเป็น n/a ถูกเติมแล้ว ตอนนี้ classifier ทั้ง 13 ตัวมีค่า Loss ครบ
 - [x] save → load → re-test พิสูจน์ได้ทุกโมเดล — `tests/ml/core/test_artifacts.py` โหลดทั้ง 38 ชุดแล้วทำนายซ้ำได้ค่าเดิม
-- [x] paired comparison A↔B พร้อมบทวิเคราะห์ — `outputs/modeling/report/comparison_a_vs_b.md`, รายงานหัวข้อ 8.2
-- [x] notebooks 03/04/05 รันจบโดยไม่ error — `tests/test_notebooks.py`
-- [x] report + slides เสร็จ มีตัวเลขจริงทุกช่อง — `deliverables/` (ยังต้องกรอกชื่อสมาชิกในหน้าปก)
+- [x] paired comparison A↔B พร้อมบทวิเคราะห์ — `outputs/modeling/report/comparison_a_vs_b.md`, รายงานหัวข้อ 4.5 และ 5.2
+- [x] notebooks 03/04/05/06 รันจบโดยไม่ error — `tests/test_notebooks.py`
+- [x] report + slides เสร็จ มีตัวเลขจริงทุกช่อง — `deliverables/` (ยังต้องกรอกข้อความในวงเล็บเหลี่ยมบนปกและปกในของรายงาน และสไลด์แผ่นแรก)
 - [x] Test ถูกแตะครั้งเดียวตอน finalize — `outputs/modeling/finalize_receipt.json` (`previous_receipts: []`)
 - [x] เอกสารตรงกับโค้ด — `tests/test_docs_sync.py`, `tests/test_docs_links.py`
 
@@ -39,7 +39,7 @@
 | R2 | **Core framework ช้ากว่ากำหนด** → ทั้งทีมรอ | กลาง | สูงมาก | จำกัด scope ตาม `ARCHITECTURE.md` §2 เท่านั้น · ห้ามเพิ่ม feature ระหว่างทาง | เช้าวันที่ 12 ยัง merge ไม่ได้ | ให้เพื่อนเริ่มเขียน Decision Tree แบบ standalone ไปก่อนด้วย interface ที่ระบุไว้ แล้วค่อยเสียบเข้า core |
 | R3 | **kernel SVM จาก scratch** — SMO เขียนยากและ converge ช้า | กลาง | กลาง | เริ่มจาก linear SVM ให้ผ่านก่อน แล้วค่อยเพิ่ม kernel | SMO ไม่ converge ใน 2 ชม. | เหลือ linear SVM + อธิบายว่า kernel trick ทำงานอย่างไรในรายงานโดยไม่ implement |
 | R4 | **merge conflict ระหว่าง 2 branch** | ต่ำ | กลาง | 1 โมเดล 1 ไฟล์ · core freeze หลัง merge · `registry.py` เรียงตามตัวอักษร | conflict ใน `core/` | แก้บน `main` แล้วให้ทั้งคู่ rebase ทันที |
-| R5 | **Codex ไม่ทำตาม interface** เพราะไม่มี context ของการคุยนี้ | กลาง | กลาง | `AGENTS.md` เขียนครบและเป็นแหล่งเดียว · pilot เป็นตัวอย่างให้ดูของจริง | PR แรกของเพื่อนไม่ตรง interface | review PR แรกละเอียดเป็นพิเศษ แล้วแก้ `AGENTS.md` ให้ชัดขึ้นแทนที่จะแก้โค้ดให้เขา |
+| R5 | **Codex ไม่ทำตาม interface** เพราะไม่มี context ของการคุยนี้ | กลาง | กลาง | เอกสารกติกากลางของทีมเขียนครบและเป็นแหล่งเดียว · pilot เป็นตัวอย่างให้ดูของจริง | PR แรกของเพื่อนไม่ตรง interface | review PR แรกละเอียดเป็นพิเศษ แล้วแก้เอกสารกติกากลางให้ชัดขึ้นแทนที่จะแก้โค้ดให้เขา |
 | R6 | **Test รั่วเข้า loop เลือกโมเดล** → ผลที่รายงานเป็นโมฆะ | ต่ำ | สูงมาก | `load_test()` default-deny · เรียกได้จาก `run.py finalize` เท่านั้น · finalize เป็นขั้นสุดท้ายในแผน | มีการ import `load_test` ในไฟล์โมเดล | ถ้าเกิดขึ้นจริงต้องประกาศในรายงาน ไม่ปกปิด |
 | R7 | **เวลาเขียน report ไม่พอ** เพราะโมเดลกินเวลาหมด | กลาง | สูง | ร่างโครงรายงานตั้งแต่วันนี้ · ใส่ตัวเลขทีหลัง · figures ถูกสร้างอัตโนมัติจาก `figures.py` | เย็นวันที่ 16 ยังไม่ได้เริ่มร่าง | ตัด scope โมเดลตามลำดับใน `ROADMAP.md` §4 — รายงานสำคัญกว่าโมเดลตัวที่ 19 |
 | R8 | **ตัวเลขในเอกสารไม่ตรงกับผลจริง** (เกิดมาแล้วรอบก่อน) | กลาง | สูง | ตัวเลขทุกตัวใน report ต้องมาจากไฟล์ใน `outputs/` · ห้ามพิมพ์มือ | เจอเลขที่หาไฟล์ต้นทางไม่เจอ | re-generate จาก artifact ก่อนส่ง |
@@ -53,7 +53,7 @@
 | เดิม | สถานะ |
 | --- | --- |
 | Environment ไม่ตรง / รัน pipeline ไม่ได้ | ปิด — Python 3.14.8 + 69 distributions ติดตั้งครบ `pip check` สะอาด |
-| 6 tests fail | ปิด — 5 ข้อคือ cross-drive quirk (แก้ด้วย ADR-006), 1 ข้อคือ provenance ที่ซ่อมแล้ว ตอนนั้น 459 passed, 3 skipped · ⚠️ แก้ไข 2026-10-13: ปัจจุบัน **1,271 passed, 0 failed** |
+| 6 tests fail | ปิด — 5 ข้อคือ cross-drive quirk (แก้ด้วย ADR-006), 1 ข้อคือ provenance ที่ซ่อมแล้ว ตอนนั้น 459 passed, 3 skipped · ⚠️ แก้ไข 2026-10-13: ปัจจุบัน **1,308 passed, 0 failed** |
 | ไม่รู้ว่าเอกสารเชื่อได้แค่ไหน | ปิด — `docs/archive/REALITY_AUDIT.md` |
 | Deadline คลาดเคลื่อน 6 วัน | ปิด — ยืนยัน 18 ต.ค. |
 | Governance layer บล็อกการเพิ่มโมเดล | ปิด — ADR-001 เลิกใช้ทั้ง package |

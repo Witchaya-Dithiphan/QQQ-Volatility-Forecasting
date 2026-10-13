@@ -5,7 +5,9 @@ import pytest
 
 from config import PROJECT_ROOT
 
-NOTEBOOKS = ("03_regression.ipynb", "04_classification.ipynb", "05_results_comparison.ipynb")
+MODEL_NOTEBOOKS = ("03_regression.ipynb", "04_classification.ipynb", "05_results_comparison.ipynb")
+# 06 studies the spike rule on Train; it compares no model with a library, so it has no parity demo.
+NOTEBOOKS = (*MODEL_NOTEBOOKS, "06_spike_analysis.ipynb")
 FORBIDDEN = ("load_test(", "test_labeled", "test_flagged", "TEST_LABELED_DATA_PATH", "TEST_FLAGGED_PATH",
              "TEST_DATA_PATH", "train_model(", "src.ml.run train")
 PARITY_TAG = "parity-demo"
@@ -35,7 +37,7 @@ def test_notebook_never_trains_or_opens_the_test_split(name):
             assert PARITY_TAG in cell["metadata"].get("tags", []), f"{name}: fit outside the parity demo"
 
 
-@pytest.mark.parametrize("name", NOTEBOOKS)
+@pytest.mark.parametrize("name", MODEL_NOTEBOOKS)
 def test_notebook_has_exactly_one_parity_demo(name):
     tagged = [cell for cell in _cells(name) if PARITY_TAG in cell["metadata"].get("tags", [])]
     assert len(tagged) == 1

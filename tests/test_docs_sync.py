@@ -6,8 +6,7 @@ from src.ml.docs_sync import MARKER, sync, write_cards
 from src.ml.registry import model_names
 
 DOCUMENTS = [path for path in [PROJECT_ROOT / "README.md", *(PROJECT_ROOT / "docs").rglob("*.md")]
-             if "archive" not in path.parts and "superpowers" not in path.parts
-             and MARKER.search(path.read_text(encoding="utf-8"))]
+             if "archive" not in path.parts and MARKER.search(path.read_text(encoding="utf-8"))]
 
 
 def test_sync_replaces_only_the_generated_block(tmp_path, monkeypatch):

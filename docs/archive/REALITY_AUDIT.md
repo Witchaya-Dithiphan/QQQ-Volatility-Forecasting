@@ -5,7 +5,7 @@
 > ⚠️ **แก้ไข 2026-10-11 — เอกสารนี้เป็น snapshot ทางประวัติศาสตร์ของ commit `779c78d` ไม่ใช่สถานะปัจจุบัน**
 > หลังจากนั้นโมเดลครบ 19/19 (artifact 38 ชุดใน `outputs/modeling/`), `src/modeling/` ถูกลบ และจำนวน test
 > เปลี่ยนไปแล้ว ข้อความ "ชั้นโมเดลเป็นศูนย์", "459 passed", "0/19" และ §3 "ไม่มีอยู่จริง" ด้านล่างจึงไม่จริงอีกต่อไป
-> สถานะปัจจุบัน: [`docs/tasks/claude-model-progress.md`](../tasks/claude-model-progress.md) (โมเดล) และ
+> สถานะปัจจุบัน: [`docs/models/PROGRESS_INDEX.md`](../models/PROGRESS_INDEX.md) (โมเดล) และ
 > [`DATA_PIPELINE_AUDIT.md`](DATA_PIPELINE_AUDIT.md) (ชั้นข้อมูล) · ตัวเลขชั้นข้อมูลในเอกสารนี้ยังถูกต้อง
 
 > **วิธีอ่านเอกสารนี้:** ทุกตัวเลขมาจากการรันคำสั่งจริงบน `main` ที่ commit `779c78d`
