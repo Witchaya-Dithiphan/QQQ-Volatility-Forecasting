@@ -40,6 +40,7 @@ Python หรือ packages คนละ environment
 - Python 3.14.8
 - Repository นี้
 - Raw Snapshot `data/raw/qqq_daily.csv` (⚠️ แก้ไข 2026-10-11: อยู่ใน Git แล้ว ได้มาพร้อม clone)
+- แหล่งดาวน์โหลด/อ้างอิง Raw Dataset: [Google Drive](https://drive.google.com/file/d/1x4PBm9WrHYX8uxSn_pVoLY7_QOHrTWCR/view?usp=sharing) — ใช้สำหรับเข้าถึงต้นทางเท่านั้น ห้ามนำมาเขียนทับ snapshot ที่ตรึงไว้โดยไม่ตรวจ manifest
 
 `.venv` และ generated artifacts ใน `data/interim`, `data/processed` ไม่ถูก track ใน Git ผู้รับงานจึงต้อง
 สร้าง environment แล้วรัน data pipeline เองหลัง clone (Raw Snapshot มากับ clone แล้ว)
@@ -90,6 +91,8 @@ Python 3.14.8
 ```text
 data\raw\qqq_daily.csv
 ```
+
+Raw Dataset ต้นทางดาวน์โหลดได้จาก [Google Drive](https://drive.google.com/file/d/1x4PBm9WrHYX8uxSn_pVoLY7_QOHrTWCR/view?usp=sharing) แต่ pipeline ที่ทำซ้ำผลต้องใช้ snapshot ใน Git และผ่าน `verify-snapshot` ก่อนเสมอ
 
 จากนั้นตรวจ Snapshot กับ tracked manifest:
 

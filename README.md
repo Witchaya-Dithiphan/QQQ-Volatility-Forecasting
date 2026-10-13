@@ -75,7 +75,7 @@ rem 3. ตรวจว่าทุกอย่างทำงาน (ราว 1
 
 | ที่อยู่ | เนื้อหา |
 | --- | --- |
-| `data/raw/qqq_daily.csv` | ข้อมูลดิบ 2,512 วัน (snapshot ที่ตรึงไว้ พร้อม SHA-256 ใน `data/manifests/`) |
+| `data/raw/qqq_daily.csv` | ข้อมูลดิบ 2,512 วัน (snapshot ที่ตรึงไว้ พร้อม SHA-256 ใน `data/manifests/`) · [ดาวน์โหลด Raw Dataset จาก Google Drive](https://drive.google.com/file/d/1x4PBm9WrHYX8uxSn_pVoLY7_QOHrTWCR/view?usp=sharing) |
 | `src/*.py` | data pipeline: ทำความสะอาด, สร้าง feature และ target, แบ่งข้อมูล, ตรวจหา spike |
 | `src/ml/` | โมเดล 19 ตัว (`regression/`, `classification/`, `clustering/`) และแกนกลาง (`core/`) |
 | `src/ml/run.py` | คำสั่ง `train`, `report`, `compare`, `analyze`, `finalize` |
