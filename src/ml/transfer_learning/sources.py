@@ -40,6 +40,15 @@ HORIZON = 5
 SPLIT_SUSPECT_RETURN = 0.25
 
 
+def text_sha256(path: Path) -> str:
+    """SHA-256 of a text file with line endings normalised to LF.
+
+    Git stores these CSVs with LF while the Windows run wrote CRLF, so hashing raw bytes
+    would make every source look changed on a fresh clone (as core.artifacts does for JSON).
+    """
+    return hashlib.sha256(Path(path).read_bytes().replace(b"\r\n", b"\n")).hexdigest()
+
+
 def download_url(ticker: str, as_of: date) -> str:
     query = urlencode({"assetclass": "etf", "fromdate": _subtract_years(as_of, 10).isoformat(),
                        "todate": as_of.isoformat(), "limit": 5000})
@@ -66,12 +75,12 @@ def download(ticker: str, as_of: date, directory: Path = SOURCE_DIR) -> dict:
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / f"{ticker}_daily.csv"
     with path.open("w", newline="", encoding="utf-8") as stream:
-        writer = csv.DictWriter(stream, fieldnames=COLUMNS)
+        writer = csv.DictWriter(stream, fieldnames=COLUMNS, lineterminator="\n")
         writer.writeheader()
         writer.writerows(rows)
     return {"ticker": ticker, "url": url, "path": path.relative_to(PROJECT_ROOT).as_posix(),
             "rows": len(rows), "date_min": rows[0]["Date"], "date_max": rows[-1]["Date"],
-            "sha256": hashlib.sha256(path.read_bytes()).hexdigest()}
+            "sha256": text_sha256(path)}
 
 
 def featurize(raw: pd.DataFrame, cutoff: np.datetime64 | None = None) -> tuple[pd.DataFrame, dict]:
@@ -100,7 +109,7 @@ def load_source(ticker: str, cutoff: np.datetime64 = SOURCE_CUTOFF, directory: P
     manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
     entry = next(e for e in manifest["sources"] if e["ticker"] == ticker)
     path = directory / f"{ticker}_daily.csv"
-    if hashlib.sha256(path.read_bytes()).hexdigest() != entry["sha256"]:
+    if text_sha256(path) != entry["sha256"]:
         raise ValueError(f"Source changed on disk: {path}")
     frame, report = featurize(pd.read_csv(path, dtype=str), cutoff)
     if report["split_suspect_days"]:
@@ -120,7 +129,7 @@ def qqq_extended(directory: Path = SOURCE_DIR) -> pd.DataFrame:
     """
     manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
     entry = next(e for e in manifest["sources"] if e["ticker"] == "QQQ")
-    if hashlib.sha256((directory / "QQQ_daily.csv").read_bytes()).hexdigest() != entry["sha256"]:
+    if text_sha256(directory / "QQQ_daily.csv") != entry["sha256"]:
         raise ValueError("QQQ refresh changed on disk since the manifest was written")
     snapshot = pd.read_csv(PROJECT_ROOT / "data" / "raw" / "qqq_daily.csv", dtype=str)
     snapshot["Date"] = pd.to_datetime(snapshot["Date"], format="%m/%d/%Y").dt.strftime("%Y-%m-%d")

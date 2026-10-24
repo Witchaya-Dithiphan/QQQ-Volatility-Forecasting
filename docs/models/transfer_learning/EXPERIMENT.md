@@ -166,6 +166,13 @@ rem วิเคราะห์เพิ่มและสร้างรูป�
 
 `analysis.py` เขียนหลังจากมี `test_receipt.json` แล้ว ไม่เปิดข้อมูลชุดใดและไม่ refit จึงไม่อยู่ใน hash ของ `decision.json`
 
+**hash ของไฟล์ source ไม่ขึ้นกับ line ending**
+
+- **ปัญหาที่พบ:** หลังเปิด Test แล้วพบว่า Git เก็บ CSV ของ source เป็น LF ขณะที่เครื่อง Windows ที่ดึงข้อมูลเขียนเป็น CRLF ใน clone ใหม่ทุกไฟล์จึงดูเหมือนถูกแก้
+- **การแก้:** `sources.py` ใช้ `text_sha256` ซึ่ง hash เนื้อหาหลังแปลง CRLF เป็น LF แบบเดียวกับที่ `core.artifacts` ทำกับ JSON และบันทึกค่าใหม่ใน `manifest.json` (มี `hash_note`)
+- **ข้อมูลไม่เปลี่ยน:** ก่อนเปลี่ยนได้ตรวจว่าไฟล์ทุกไฟล์ตรงกับ hash เดิม byte ต่อ byte
+- **ผลต่อ `decision.json`:** ยังเก็บ hash ของ manifest และ code ก่อนการแก้นี้ ซึ่งถูกต้องตาม ณ เวลาที่เปิด Test
+
 ### Notebook และรายงาน
 
 - [notebook 04](../../../notebooks/04_classification.ipynb) หัวข้อ 17: อันดับบน Validation รวม arm ใหม่, กราฟ SSL → DAPT, tail AP ตอน fine-tune, PR curve และ forest plot ของผลต่างแบบ paired
