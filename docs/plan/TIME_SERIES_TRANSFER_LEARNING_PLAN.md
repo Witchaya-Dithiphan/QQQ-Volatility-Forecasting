@@ -8,7 +8,7 @@ Branch: `feat/time-series-transfer-learning`
 
 เริ่มจาก **GRU ขนาดเล็กที่ฝึกแบบ supervised บน SPY แล้ว fine-tune บน QQQ** เพื่อทำนาย `target_high_volatility` ของ QQQ ในอีก 5 วันทำการ วิธีนี้ตรงกับข้อเสนอเรื่องเรียนจากตลาดอื่นก่อนและใช้โมเดลสำหรับลำดับเวลา โดยมีการทดลอง QQQ-only GRU ที่โครงสร้างเหมือนกันเป็นตัวควบคุม หาก GRU แบบ transfer ไม่ชนะตัวควบคุม เราจะไม่กล่าวว่า transfer learning ช่วย
 
-SPY คือ ETF ที่ติดตาม S&P 500 และมี OHLCV ให้สร้างฟีเจอร์แบบเดียวกับ QQQ; ดัชนี S&P 500 โดยตรงไม่มีปริมาณซื้อขายที่เทียบกับฟีเจอร์ `volume_zscore_20` ได้ตรง ๆ ข้อมูล SPY **ยังไม่มีใน repository** จึงต้องจัดหาและบันทึกแหล่งที่มา/วัน snapshot ก่อนเริ่มเทรน
+SPY คือ ETF ที่ติดตาม S&P 500 และมี OHLCV ให้สร้างฟีเจอร์แบบเดียวกับ QQQ; ดัชนี S&P 500 โดยตรงไม่มีปริมาณซื้อขายที่เทียบกับฟีเจอร์ `volume_zscore_20` ได้ตรง ๆ ข้อมูล SPY **ยังไม่มีใน repository** จึงต้องจัดหาและบันทึกแหล่งที่มา/วัน snapshot ก่อนเริ่มเทรน โดยตรวจนโยบายปรับราคาของ SPY ให้เทียบได้กับ snapshot QQQ เดิม
 
 คำว่า *spike* ในโครงการหมายถึงวันผลตอบแทนสุดโต่งแบบวันเดียว ส่วน label ที่ต้องทำนายคือความผันผวนสูงใน 5 วันข้างหน้า สองสิ่งนี้ไม่ใช่ label เดียวกัน แผนหลักจะ pretrain ให้รู้จัก **ภาวะความผันผวนสูงในอนาคต** บน SPY; จะทดสอบหัวทำนาย spike รายวันเป็นงานเสริมได้ภายหลัง แต่ห้ามใช้ผลนั้นแทนหลักฐานการทำนายเป้าหมาย QQQ
 
@@ -36,7 +36,7 @@ SPY คือ ETF ที่ติดตาม S&P 500 และมี OHLCV ใ�
 ### 1. ล็อกข้อมูลและตรวจสัญญาข้อมูล
 
 1. บันทึก commit, data hash, ช่วงวัน และนิยาม target/feature เดิมก่อนทดลอง; ไม่แก้ `data/raw/qqq_daily.csv`, ชุด processed หลัก, `outputs/modeling/` หรือ selection lock ของ 19 โมเดลเดิม
-2. จัดหา **SPY adjusted OHLCV รายวัน** จากแหล่งที่ระบุ provenance, license, timezone, adjustment policy และ snapshot hash ชัดเจน เก็บแยกใต้ `data/external/transfer_learning/` หรือพื้นที่ input ของการทดลอง ห้ามเขียนทับ QQQ
+2. จัดหา **SPY OHLCV รายวัน** จากแหล่งที่ระบุ provenance, license, timezone, adjustment policy และ snapshot hash ชัดเจน เก็บแยกใต้ `data/external/transfer_learning/` หรือพื้นที่ input ของการทดลอง ห้ามเขียนทับ QQQ และห้ามผสมราคาที่ปรับ dividend/split คนละแบบกับ QQQ โดยไม่ตรวจผลกระทบต่อฟีเจอร์ก่อน
 3. ใช้สูตรฟีเจอร์เดียวกับ `src/build_features.py` และสูตร forward 5-day realized volatility เดียวกับ `src/build_targets.py`; ตรวจวันซื้อขายที่ไม่ตรงกัน, missing values, price adjustment และความต่างของ distribution ก่อนฝึก
 4. ตัด SPY ที่ใช้ pretrain ให้สิ้นสุดก่อน QQQ Train cutoff พร้อมกันอย่างน้อย 5 วันทำการสำหรับ label ที่มองไปข้างหน้า ใน walk-forward แต่ละ fold ให้ตัด source ตาม cutoff ของ fold นั้นด้วย ห้ามใช้ SPY ในช่วง Validation/Test ของ QQQ เป็นข้อมูลช่วยเรียนรู้น้ำหนัก แม้จะไม่มี QQQ label
 5. สร้าง source label ด้วย Q75 ของ SPY **เฉพาะ source Train ที่ใช้ในรอบนั้น** เพื่อเรียน “ภาวะสูงเมื่อเทียบกับ SPY”; QQQ ยังคงใช้ threshold เดิมของ QQQ Train ห้ามนำ QQQ Validation/Test ไป fit threshold หรือ scaler
