@@ -270,7 +270,8 @@ TEST_SPLIT_PATTERNS = (
     "test_labeled",
     "test_flagged",
 )
-TEST_SPLIT_ALLOWED = {"core/data.py", "core/contracts.py", "run.py"}
+# The separate post-submission evaluator also requires --allow-test and its own receipt.
+TEST_SPLIT_ALLOWED = {"core/data.py", "core/contracts.py", "run.py", "kernel_perceptron_test.py"}
 
 
 def test_src_never_shuffles_or_splits_at_random() -> None:
@@ -283,7 +284,7 @@ def test_src_never_shuffles_or_splits_at_random() -> None:
     assert offenders == []
 
 
-def test_only_the_data_module_and_finalize_reference_the_test_split() -> None:
+def test_only_approved_finalize_modules_reference_the_test_split() -> None:
     ml_root = PROJECT_ROOT / "src" / "ml"
     offenders = [
         f"{path.relative_to(ml_root).as_posix()}: {pattern}"
