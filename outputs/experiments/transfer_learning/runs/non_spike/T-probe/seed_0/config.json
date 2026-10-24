@@ -1,0 +1,75 @@
+{
+ "arm": "T-probe",
+ "variant": "non_spike",
+ "backbone": "transformer",
+ "seed": 0,
+ "encoder_lr": null,
+ "start": "ssl+dapt",
+ "model": {
+  "backbone": "transformer",
+  "n_features": 8,
+  "lookback": 60,
+  "d_model": 32,
+  "n_heads": 4,
+  "n_layers": 2,
+  "d_ff": 64,
+  "dropout": 0.1,
+  "seed": 0
+ },
+ "experiment": {
+  "lookback": 60,
+  "model": {
+   "d_model": 32,
+   "n_heads": 4,
+   "n_layers": 2,
+   "d_ff": 64,
+   "dropout": 0.1
+  },
+  "batch": 128,
+  "ssl": {
+   "epochs": 30,
+   "lr": 0.001
+  },
+  "dapt": {
+   "epochs": 20,
+   "lr": 0.0005
+  },
+  "finetune": {
+   "max_epochs": 100,
+   "patience": 10,
+   "head_lr": 0.001,
+   "encoder_lr_pretrained": 0.0003,
+   "encoder_lr_scratch": 0.001
+  },
+  "weight_decay": 0.0001,
+  "seeds": [
+   0,
+   1,
+   2
+  ],
+  "label_rule": "probability > 0.5",
+  "primary_arm": "T-full"
+ },
+ "scaler": {
+  "mean": [
+   0.0008967162973157312,
+   0.0046236254553218845,
+   0.1664877043017339,
+   0.17700533661252207,
+   0.013957639532875316,
+   1.0069161287644557,
+   57.42084389355075,
+   0.011325235560078861
+  ],
+  "scale": [
+   0.01197230558582142,
+   0.025216030456362146,
+   0.0985859012229927,
+   0.07894863299865022,
+   0.00861186349206801,
+   0.020297353555131865,
+   11.392619525378892,
+   1.0633844065080964
+  ]
+ }
+}

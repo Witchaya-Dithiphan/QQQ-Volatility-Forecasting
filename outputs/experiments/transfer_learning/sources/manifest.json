@@ -1,0 +1,129 @@
+{
+  "retrieved_at_utc": "2026-10-24T19:11:54+00:00",
+  "vendor": "Nasdaq historical quote API (same endpoint family as data/raw/qqq_daily.csv)",
+  "adjustment_policy": "Unadjusted OHLC as served by Nasdaq, identical to the accepted QQQ snapshot; no Adj Close. Splits are screened with |return_1d| > 25%.",
+  "source_cutoff": "2023-08-18",
+  "sources": [
+    {
+      "ticker": "SPY",
+      "url": "https://api.nasdaq.com/api/quote/SPY/historical?assetclass=etf&fromdate=2016-10-24&todate=2026-10-24&limit=5000",
+      "path": "outputs/experiments/transfer_learning/sources/SPY_daily.csv",
+      "rows": 2514,
+      "date_min": "2016-10-24",
+      "date_max": "2026-10-23",
+      "sha256": "8f557fc77e4e9ed109c33bde874cc6efef8287bb3644df7cb822ea376f182259",
+      "rows_removed_by_cleaning": 1,
+      "split_suspect_days": 0
+    },
+    {
+      "ticker": "DIA",
+      "url": "https://api.nasdaq.com/api/quote/DIA/historical?assetclass=etf&fromdate=2016-10-24&todate=2026-10-24&limit=5000",
+      "path": "outputs/experiments/transfer_learning/sources/DIA_daily.csv",
+      "rows": 2514,
+      "date_min": "2016-10-24",
+      "date_max": "2026-10-23",
+      "sha256": "b9bed26bd59ed9c81ac8ac2aafe660ecc69f17ecf067a6c04a6aa7604d8645db",
+      "rows_removed_by_cleaning": 0,
+      "split_suspect_days": 0
+    },
+    {
+      "ticker": "IWM",
+      "url": "https://api.nasdaq.com/api/quote/IWM/historical?assetclass=etf&fromdate=2016-10-24&todate=2026-10-24&limit=5000",
+      "path": "outputs/experiments/transfer_learning/sources/IWM_daily.csv",
+      "rows": 2514,
+      "date_min": "2016-10-24",
+      "date_max": "2026-10-23",
+      "sha256": "0a74137a3a6ad752fdf6fc5c5d4062ee0d9a65b4eda42f750d84e28d698569bc",
+      "rows_removed_by_cleaning": 1,
+      "split_suspect_days": 0
+    },
+    {
+      "ticker": "XLK",
+      "url": "https://api.nasdaq.com/api/quote/XLK/historical?assetclass=etf&fromdate=2016-10-24&todate=2026-10-24&limit=5000",
+      "path": "outputs/experiments/transfer_learning/sources/XLK_daily.csv",
+      "rows": 2514,
+      "date_min": "2016-10-24",
+      "date_max": "2026-10-23",
+      "sha256": "9cdecba8948837564f87da8af17a9d8c931217aca66cd34ce12f355a025f06fa",
+      "rows_removed_by_cleaning": 0,
+      "split_suspect_days": 0
+    },
+    {
+      "ticker": "XLF",
+      "url": "https://api.nasdaq.com/api/quote/XLF/historical?assetclass=etf&fromdate=2016-10-24&todate=2026-10-24&limit=5000",
+      "path": "outputs/experiments/transfer_learning/sources/XLF_daily.csv",
+      "rows": 2514,
+      "date_min": "2016-10-24",
+      "date_max": "2026-10-23",
+      "sha256": "6826f1277f01057c04a1333a5b6df60a4cc262fa004f8ee43da0066ca1195c4b",
+      "rows_removed_by_cleaning": 1,
+      "split_suspect_days": 0
+    },
+    {
+      "ticker": "XLE",
+      "url": "https://api.nasdaq.com/api/quote/XLE/historical?assetclass=etf&fromdate=2016-10-24&todate=2026-10-24&limit=5000",
+      "path": "outputs/experiments/transfer_learning/sources/XLE_daily.csv",
+      "rows": 2514,
+      "date_min": "2016-10-24",
+      "date_max": "2026-10-23",
+      "sha256": "5c5e1d7bddeccf559660715512d8eaf39bf2627c1ab54929671d559f0aca5093",
+      "rows_removed_by_cleaning": 1,
+      "split_suspect_days": 0
+    },
+    {
+      "ticker": "XLV",
+      "url": "https://api.nasdaq.com/api/quote/XLV/historical?assetclass=etf&fromdate=2016-10-24&todate=2026-10-24&limit=5000",
+      "path": "outputs/experiments/transfer_learning/sources/XLV_daily.csv",
+      "rows": 2514,
+      "date_min": "2016-10-24",
+      "date_max": "2026-10-23",
+      "sha256": "a86b4d46727e1bc0ae846a967aaca1411aff3530e08adbbdadea714265d524e4",
+      "rows_removed_by_cleaning": 0,
+      "split_suspect_days": 0
+    },
+    {
+      "ticker": "XLY",
+      "url": "https://api.nasdaq.com/api/quote/XLY/historical?assetclass=etf&fromdate=2016-10-24&todate=2026-10-24&limit=5000",
+      "path": "outputs/experiments/transfer_learning/sources/XLY_daily.csv",
+      "rows": 2514,
+      "date_min": "2016-10-24",
+      "date_max": "2026-10-23",
+      "sha256": "d2c1b513784298806f924b5b4b30aa76ea0ada12e14bcbcae81884fd607e190a",
+      "rows_removed_by_cleaning": 0,
+      "split_suspect_days": 0
+    },
+    {
+      "ticker": "EFA",
+      "url": "https://api.nasdaq.com/api/quote/EFA/historical?assetclass=etf&fromdate=2016-10-24&todate=2026-10-24&limit=5000",
+      "path": "outputs/experiments/transfer_learning/sources/EFA_daily.csv",
+      "rows": 2514,
+      "date_min": "2016-10-24",
+      "date_max": "2026-10-23",
+      "sha256": "6a6d3f6421afdaeeee3ab7f5a26859dee735e9fc7df542a316a4cc8af6281a16",
+      "rows_removed_by_cleaning": 0,
+      "split_suspect_days": 0
+    },
+    {
+      "ticker": "EEM",
+      "url": "https://api.nasdaq.com/api/quote/EEM/historical?assetclass=etf&fromdate=2016-10-24&todate=2026-10-24&limit=5000",
+      "path": "outputs/experiments/transfer_learning/sources/EEM_daily.csv",
+      "rows": 2514,
+      "date_min": "2016-10-24",
+      "date_max": "2026-10-23",
+      "sha256": "5a3b3ba9b97af7e44fa51a09e773a0fdd669e8439ee054d8266c84d4afe3ae60",
+      "rows_removed_by_cleaning": 0,
+      "split_suspect_days": 0
+    },
+    {
+      "ticker": "QQQ",
+      "url": "https://api.nasdaq.com/api/quote/QQQ/historical?assetclass=etf&fromdate=2016-10-24&todate=2026-10-24&limit=5000",
+      "path": "outputs/experiments/transfer_learning/sources/QQQ_daily.csv",
+      "rows": 2514,
+      "date_min": "2016-10-24",
+      "date_max": "2026-10-23",
+      "sha256": "9c7b38e4e62280355d1556dfe95090d3a53cc781d331768bcc417bf5d7557629",
+      "rows_removed_by_cleaning": 0,
+      "split_suspect_days": 0
+    }
+  ]
+}

@@ -1,0 +1,254 @@
+{
+ "with_spike": {
+  "validation": {
+   "G-scratch - mlp": {
+    "point": -0.008620084977698672,
+    "low": -0.04801682876599727,
+    "high": 0.05058252216002969,
+    "std": 0.02420803432492954,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-full - mlp": {
+    "point": -0.0016185235357606964,
+    "low": -0.0580298081595862,
+    "high": 0.050501196244357734,
+    "std": 0.028271932596443696,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-scratch - baseline_persistence": {
+    "point": 0.010782850102661834,
+    "low": -0.06448866791337768,
+    "high": 0.08808751574950405,
+    "std": 0.03702405243178985,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-full - G-scratch": {
+    "point": 0.007001561441937976,
+    "low": -0.08405863690261826,
+    "high": 0.062256505978373185,
+    "std": 0.03696364337729578,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-probe - G-scratch": {
+    "point": 0.03294926165140455,
+    "low": -0.049064401100920356,
+    "high": 0.1199283342547235,
+    "std": 0.0421732942099163,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "T-full - T-scratch": {
+    "point": 0.03455868136257803,
+    "low": 0.0024733922232352185,
+    "high": 0.13051535107159815,
+    "std": 0.03365821608321017,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": true
+   }
+  },
+  "test": {
+   "G-scratch - mlp": {
+    "point": -0.019269957188725817,
+    "low": -0.05974209559923733,
+    "high": 0.05571996747067915,
+    "std": 0.02921330137162991,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-full - mlp": {
+    "point": -0.05046380314091725,
+    "low": -0.09221365721129508,
+    "high": 0.07710705353652371,
+    "std": 0.04374549096957964,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-scratch - baseline_persistence": {
+    "point": 0.04335231387825922,
+    "low": -0.05748915372283687,
+    "high": 0.16370021513084929,
+    "std": 0.05797945986959627,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-full - G-scratch": {
+    "point": -0.031193845952191435,
+    "low": -0.09577740330462102,
+    "high": 0.09718273272312142,
+    "std": 0.04778028841897055,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-probe - G-scratch": {
+    "point": -0.007032837909262679,
+    "low": -0.10740584076778131,
+    "high": 0.11750819888834822,
+    "std": 0.05813823816746276,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "T-full - T-scratch": {
+    "point": 0.06952639504930888,
+    "low": 0.013242841546588868,
+    "high": 0.1885212312421393,
+    "std": 0.04269019356251374,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": true
+   }
+  }
+ },
+ "non_spike": {
+  "validation": {
+   "G-scratch - mlp": {
+    "point": -0.005250962417416072,
+    "low": -0.06147576345905154,
+    "high": 0.07411184881510108,
+    "std": 0.03332888264422754,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-full - mlp": {
+    "point": -0.00828186059656072,
+    "low": -0.0610069082277104,
+    "high": 0.05737871226816513,
+    "std": 0.03154155887760225,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-scratch - baseline_persistence": {
+    "point": 0.02809605432907808,
+    "low": -0.05021302468589205,
+    "high": 0.11269559878123074,
+    "std": 0.04022903229327745,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-full - G-scratch": {
+    "point": -0.0030308981791446477,
+    "low": -0.08548792209148728,
+    "high": 0.051617685640241356,
+    "std": 0.03454076583164645,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-probe - G-scratch": {
+    "point": -0.016028369480259264,
+    "low": -0.10434262156750816,
+    "high": 0.04070444137727519,
+    "std": 0.03718855156675969,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "T-full - T-scratch": {
+    "point": 0.019232044159497183,
+    "low": -0.0024928212659530843,
+    "high": 0.09537280185825259,
+    "std": 0.026114276911791433,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   }
+  },
+  "test": {
+   "G-scratch - mlp": {
+    "point": 0.05437744226067753,
+    "low": -0.027518788243538896,
+    "high": 0.12156865663269513,
+    "std": 0.037888225233285784,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-full - mlp": {
+    "point": 0.009974272736935519,
+    "low": -0.047072243308029935,
+    "high": 0.09155793202700901,
+    "std": 0.034838766970503886,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-scratch - baseline_persistence": {
+    "point": 0.08181367224778535,
+    "low": -0.033228705432021666,
+    "high": 0.19804383756990468,
+    "std": 0.05978966210033722,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-full - G-scratch": {
+    "point": -0.044403169523742014,
+    "low": -0.08790019018039737,
+    "high": 0.04478103543348533,
+    "std": 0.035231479549852104,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "G-probe - G-scratch": {
+    "point": -0.014196666517334533,
+    "low": -0.07214691329250913,
+    "high": 0.07854108671299195,
+    "std": 0.03912485033565495,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   },
+   "T-full - T-scratch": {
+    "point": 0.07349826095714695,
+    "low": -0.0034372337867046576,
+    "high": 0.20467747354414514,
+    "std": 0.05240225841084203,
+    "n_valid": 2000,
+    "n_replicates": 2000,
+    "level": 0.95,
+    "excludes_zero": false
+   }
+  }
+ }
+}

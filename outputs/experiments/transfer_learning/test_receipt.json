@@ -1,0 +1,16 @@
+{
+ "status": "completed",
+ "evaluated_at_utc": "2026-10-24T20:27:11+00:00",
+ "post_hoc": true,
+ "reason": "Post-submission transfer-learning study; model, seeds and label rule locked on Validation (decision.json) before this run. Test had already been opened for the 19-model study.",
+ "locked_model": "T-full mean probability over seeds [0, 1, 2], per variant",
+ "variants": [
+  "with_spike",
+  "non_spike"
+ ],
+ "decision_sha256": "07015f89a34d5515a5c7a216f101d2a0c539e14ce0cb333be43d4f6bb3192f66",
+ "test_sha256": "5e8ac488cb895a8899abd9b3ae9193b4dc6ebda2e77b79982cef4f5ea9bf7295",
+ "test_rows": 373,
+ "holdout_rows": 39,
+ "holdout_positives": 2
+}
