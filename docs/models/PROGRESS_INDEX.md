@@ -5,6 +5,8 @@
 
 **การทดลองเสริมหลังส่งงาน:** [RBF Kernel Perceptron](perceptron/KERNEL_EXPERIMENT.md) ลู่เข้าบน Train ทั้งสอง variants และมีผล Validation/Test แยกต่างหาก ไม่เพิ่มเข้า inventory 19 โมเดลเดิม
 
+**Transfer learning (หลังนำเสนอ):** [Transformer/GRU ที่ pretrain บน ETF 10 ตัวแล้ว fine-tune กับ QQQ](transfer_learning/EXPERIMENT.md) เขียนด้วย NumPy รวมถึง autograd และรันทั้งสอง variants ผลคือ GRU เสมอกับ MLP, Transformer แย่กว่า baseline และ pretraining ช่วยเฉพาะ Transformer ผล Test เป็น post-hoc และไม่เปลี่ยน leaderboard ของ 19 โมเดลเดิม
+
 **สถานะรวม (อัปเดต 2026-10-11):** ✅ **ครบ 19/19 โมเดล ทั้งสอง variant** · Phase C เสร็จถึงขั้น finalize: leaderboard, เทียบ with_spike กับ non_spike, feature importance, walk-forward และผล Test (อ่านครั้งเดียว) อยู่ใต้ `outputs/modeling/` · ตารางท้ายไฟล์นี้สร้างจากไฟล์ผลโดยตรง ·
 ชั้นข้อมูลผ่าน audit: [DATA_PIPELINE_AUDIT.md](../audit/DATA_PIPELINE_AUDIT.md)
 

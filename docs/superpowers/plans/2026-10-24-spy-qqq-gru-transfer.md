@@ -1,5 +1,7 @@
 # SPY to QQQ GRU Transfer Implementation Plan
 
+> **Superseded (2026-10-25):** แทนที่ด้วย [SSL → DAPT → Fine-tune Transformer](2026-10-25-ssl-dapt-transformer.md) ซึ่งเขียนด้วย NumPy autograd เอง (ไม่ใช้ PyTorch) และใช้ ETF 10 ตัวแทน SPY ตัวเดียว GRU ยังอยู่ในฐานะ ablation เก็บไฟล์นี้ไว้เป็นประวัติการตัดสินใจ
+>
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** วัดว่า GRU ที่ pretrain บน SPY แล้ว fine-tune บน QQQ ทำนาย `target_high_volatility` ได้ดีกว่า GRU ที่ฝึกบน QQQ อย่างเดียวและ baseline เดิมหรือไม่

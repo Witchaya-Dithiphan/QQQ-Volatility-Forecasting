@@ -2,9 +2,27 @@
 
 Branch: `feat/time-series-transfer-learning`
 
-สถานะ: แผนการทดลอง ยังไม่ได้เทรนโมเดลใหม่
+สถานะ: ทดลองเสร็จแล้ว (2026-10-25) — ผลอยู่ที่ [EXPERIMENT.md](../models/transfer_learning/EXPERIMENT.md) ส่วนแผน implementation อยู่ที่ [2026-10-25-ssl-dapt-transformer.md](../superpowers/plans/2026-10-25-ssl-dapt-transformer.md)
 
-## คำตัดสิน
+## คำตัดสินฉบับปรับ (2026-10-25)
+
+เปลี่ยนโมเดลหลักจาก GRU supervised SPY→QQQ เป็น **Transformer ขนาดเล็กที่เรียนสามขั้น**:
+
+1. self-supervised (masked-span reconstruction) บน ETF 10 ตัว ได้แก่ SPY, DIA, IWM, XLK, XLF, XLE, XLV, XLY, EFA และ EEM
+2. domain-adaptive pretraining ต่อบนฟีเจอร์ของ QQQ Train (ไม่ใช้ label)
+3. fine-tune ด้วย label ของ QQQ
+
+เหตุผลของการปรับ:
+
+- ตรงกับทุกคำที่อาจารย์เสนอ (self-supervised, domain-adaptive, transfer, ลำดับเวลา)
+- ใช้ข้อมูลตลาดอื่นได้มากขึ้นราว 10 เท่าโดยไม่ต้องใช้ label
+- GRU ยังอยู่ในฐานะ ablation backbone เพื่อเทียบ RNN กับ attention
+
+ทุกโมเดล **เขียนด้วย NumPy เองรวมถึง autograd** ตามกฎ from-scratch ของโครงการ (ไม่ใช้ PyTorch) และตรวจ gradient ทุก op ด้วย finite difference
+
+ข้อมูล ETF ดึงจาก Nasdaq endpoint เดียวกับ QQQ จึงใช้นโยบายราคาแบบเดียวกัน (ไม่ปรับ dividend) และตัดที่ 2023-08-18 ก่อนคำนวณ target ส่วน Test ที่เคยเปิดแล้วจะประเมินครั้งเดียวแบบ post-hoc และเพิ่ม holdout ใหม่จาก QQQ หลัง snapshot (2026-08-24..2026-10-16, 39 วัน) เป็นหลักฐานแบบ blind ส่วนข้อความด้านล่างเป็นแผนเดิม เก็บไว้เป็นเหตุผลประกอบ และเกณฑ์ตัดสินยังใช้ตามเดิม
+
+## คำตัดสินเดิม (2026-10-24)
 
 เริ่มจาก **GRU ขนาดเล็กที่ฝึกแบบ supervised บน SPY แล้ว fine-tune บน QQQ** เพื่อทำนาย `target_high_volatility` ของ QQQ ในอีก 5 วันทำการ วิธีนี้ตรงกับข้อเสนอเรื่องเรียนจากตลาดอื่นก่อนและใช้โมเดลสำหรับลำดับเวลา โดยมีการทดลอง QQQ-only GRU ที่โครงสร้างเหมือนกันเป็นตัวควบคุม หาก GRU แบบ transfer ไม่ชนะตัวควบคุม เราจะไม่กล่าวว่า transfer learning ช่วย
 

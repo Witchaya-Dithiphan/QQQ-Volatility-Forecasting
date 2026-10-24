@@ -43,6 +43,7 @@
 | [`MODEL_CARDS.md`](plan/MODEL_CARDS.md) | สเปก 19 โมเดล: สมการ, grid, library ที่ใช้เทียบ, กับดัก parity |
 | [`PROJECT_STRUCTURE.md`](plan/PROJECT_STRUCTURE.md) | โครงไฟล์ของรีโป |
 | [`ROADMAP.md`](plan/ROADMAP.md) | แผนรายวันถึงกำหนดส่ง 18 ต.ค. 2026 |
+| [`TIME_SERIES_TRANSFER_LEARNING_PLAN.md`](plan/TIME_SERIES_TRANSFER_LEARNING_PLAN.md) | แผนการทดลอง transfer learning หลังนำเสนอ (ผลอยู่ที่ `models/transfer_learning/`) |
 | [`RISKS_AND_DOD.md`](plan/RISKS_AND_DOD.md) | ความเสี่ยงและ definition of done |
 | [`REPORT_AND_SLIDES_OUTLINE.md`](plan/REPORT_AND_SLIDES_OUTLINE.md) | โครงรายงานและสไลด์ ผูกกับเกณฑ์คะแนน |
 
@@ -53,6 +54,7 @@
 | [`models/PROGRESS_INDEX.md`](models/PROGRESS_INDEX.md) | ดัชนีสถานะของโมเดลทั้ง 19 ตัว พร้อมผลเทียบกับ library |
 | [`models/<name>/MODEL_PROGRESS.md`](models/) | บันทึกรายโมเดล: ผลจริง, ผลเทียบกับ library, ปัญหาที่เจอและวิธีแก้ |
 | [`models/README.md`](models/README.md) | รูปแบบของบันทึกรายโมเดล |
+| [`models/transfer_learning/EXPERIMENT.md`](models/transfer_learning/EXPERIMENT.md) | การทดลองเสริมหลังนำเสนอ: SSL → DAPT → fine-tune Transformer/GRU จาก ETF 10 ตัวสู่ QQQ (ทั้งสอง variants) |
 
 ### `report/` — ต้นฉบับของรายงาน
 
