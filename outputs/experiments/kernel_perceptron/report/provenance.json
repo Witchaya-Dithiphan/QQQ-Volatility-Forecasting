@@ -1,0 +1,5 @@
+{
+  "bootstrap_replicates": 2000,
+  "source": "saved predictions only for Test; no Test refit or hyperparameter selection",
+  "test_receipt_sha256": "76992c7ba487d0c5995f881cfe8120c481564a541d2ffebfdc74e4723f354ac8"
+}

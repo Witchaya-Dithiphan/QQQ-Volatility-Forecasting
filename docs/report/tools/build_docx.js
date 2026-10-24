@@ -26,9 +26,12 @@ const LANDSCAPE_WIDTH = 16838 - 2 * 1134;
 const FIRST_LINE = 720;
 
 function runs(text, { size = BODY, bold = false, italics = false, color = INK } = {}) {
-  // **bold** and `code` only; everything else is literal.
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter((part) => part !== "");
-  return parts.map((part) => {
+  // Print link labels without Markdown URLs; preserve inline formatting inside labels.
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|`[^`]+`)/g).filter((part) => part !== "");
+  return parts.flatMap((part) => {
+    if (part.startsWith("[") && part.includes("](")) {
+      return runs(part.slice(1, part.indexOf("](")), { size, bold, italics, color });
+    }
     if (part.startsWith("**") && part.endsWith("**")) {
       return new TextRun({ text: part.slice(2, -2), bold: true, italics, size, color, font: FONT });
     }

@@ -19,6 +19,8 @@ docs/models/<model_name>/MODEL_PROGRESS.md
 
 โมเดลบางตัวพึ่งโมเดลอื่น เช่น `stacking` ใช้ `logistic` + `knn` + `decision_tree` ให้อ่านบันทึกของตัวที่ถูกพึ่งด้วย
 
+การทดลอง RBF Kernel Perceptron หลังส่งงานอยู่ใน [`perceptron/KERNEL_EXPERIMENT.md`](perceptron/KERNEL_EXPERIMENT.md) แยกจากดัชนี 19 โมเดลหลัก
+
 ## รูปแบบของบันทึก
 
 สั้น ๆ พอให้คนที่ไม่เคยเห็นงานนี้มาก่อนเข้าใจได้ ผลเก่าไม่ถูกลบ

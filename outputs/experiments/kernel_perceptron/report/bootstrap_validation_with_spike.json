@@ -1,0 +1,212 @@
+{
+  "block_days": 20,
+  "intervals": {
+    "kernel_perceptron": {
+      "average_precision": {
+        "high": 0.33052393296408306,
+        "level": 0.95,
+        "low": 0.06769392787115391,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.1732138615532917,
+        "std": 0.06853551499218424
+      },
+      "f1": {
+        "high": 0.375,
+        "level": 0.95,
+        "low": 0.039196832579185555,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.24175824175824176,
+        "std": 0.08723955717519136
+      },
+      "recall": {
+        "high": 0.525,
+        "level": 0.95,
+        "low": 0.06666666666666667,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.3235294117647059,
+        "std": 0.112633008115636
+      },
+      "roc_auc": {
+        "high": 0.7903302199800747,
+        "level": 0.95,
+        "low": 0.5112062545573565,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.683452609530459,
+        "std": 0.07189488198567194
+      }
+    },
+    "linear_perceptron": {
+      "average_precision": {
+        "high": 0.1333570157601011,
+        "level": 0.95,
+        "low": 0.031013199439715054,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.06477692616400207,
+        "std": 0.026391472145370923
+      },
+      "f1": {
+        "high": 0.0,
+        "level": 0.95,
+        "low": 0.0,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.0,
+        "std": 0.0
+      },
+      "recall": {
+        "high": 0.0,
+        "level": 0.95,
+        "low": 0.0,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.0,
+        "std": 0.0
+      },
+      "roc_auc": {
+        "high": 0.4717701839715076,
+        "level": 0.95,
+        "low": 0.18074289854066525,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.29926688776400767,
+        "std": 0.07505336607842517
+      }
+    },
+    "locked_headline": {
+      "average_precision": {
+        "high": 0.47242991997018496,
+        "level": 0.95,
+        "low": 0.057893218785199804,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.26681742473233955,
+        "std": 0.11783806325684926
+      },
+      "f1": {
+        "high": 0.5555555555555556,
+        "level": 0.95,
+        "low": 0.0,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.32,
+        "std": 0.1778665605865213
+      },
+      "recall": {
+        "high": 0.48890070921985807,
+        "level": 0.95,
+        "low": 0.0,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.23529411764705882,
+        "std": 0.14976226527659078
+      },
+      "roc_auc": {
+        "high": 0.8474012578822016,
+        "level": 0.95,
+        "low": 0.3961096973269184,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.6756851108395882,
+        "std": 0.11600129504908474
+      }
+    }
+  },
+  "paired_delta_vs_kernel": {
+    "linear_perceptron": {
+      "average_precision": {
+        "excludes_zero": true,
+        "high": 0.2371836801599011,
+        "level": 0.95,
+        "low": 0.009967806440252209,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.10843693538928961,
+        "std": 0.05934662725221338
+      },
+      "f1": {
+        "excludes_zero": true,
+        "high": 0.375,
+        "level": 0.95,
+        "low": 0.039196832579185555,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.24175824175824176,
+        "std": 0.08723955717519136
+      },
+      "recall": {
+        "excludes_zero": true,
+        "high": 0.525,
+        "level": 0.95,
+        "low": 0.06666666666666667,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.3235294117647059,
+        "std": 0.112633008115636
+      },
+      "roc_auc": {
+        "excludes_zero": true,
+        "high": 0.5958878691185381,
+        "level": 0.95,
+        "low": 0.059308099419973184,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.3841857217664514,
+        "std": 0.1385557716836429
+      }
+    },
+    "locked_headline": {
+      "average_precision": {
+        "excludes_zero": false,
+        "high": 0.07923314418289454,
+        "level": 0.95,
+        "low": -0.22091822379720977,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": -0.09360356317904786,
+        "std": 0.08041361540912119
+      },
+      "f1": {
+        "excludes_zero": false,
+        "high": 0.22500880281690136,
+        "level": 0.95,
+        "low": -0.24936245572609203,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": -0.07824175824175825,
+        "std": 0.12896716646302758
+      },
+      "recall": {
+        "excludes_zero": false,
+        "high": 0.375,
+        "level": 0.95,
+        "low": -0.06560109289617483,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.08823529411764708,
+        "std": 0.11390275057960304
+      },
+      "roc_auc": {
+        "excludes_zero": false,
+        "high": 0.20722010406229677,
+        "level": 0.95,
+        "low": -0.14714731643190782,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.0077674986908709,
+        "std": 0.08915714001888177
+      }
+    }
+  },
+  "reference_models": {
+    "linear_perceptron": "perceptron",
+    "locked_headline": "mlp"
+  },
+  "replicates": 2000,
+  "split": "validation",
+  "variant": "with_spike"
+}

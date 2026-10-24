@@ -1,0 +1,212 @@
+{
+  "block_days": 20,
+  "intervals": {
+    "kernel_perceptron": {
+      "average_precision": {
+        "high": 0.5974049516693685,
+        "level": 0.95,
+        "low": 0.2265232287885413,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.441578322012663,
+        "std": 0.09300881168599245
+      },
+      "f1": {
+        "high": 0.6200367231638416,
+        "level": 0.95,
+        "low": 0.3157894736842105,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.5308641975308642,
+        "std": 0.07896831911940323
+      },
+      "recall": {
+        "high": 0.6666666666666666,
+        "level": 0.95,
+        "low": 0.3912778366914105,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.589041095890411,
+        "std": 0.07008551674573497
+      },
+      "roc_auc": {
+        "high": 0.8466377143439373,
+        "level": 0.95,
+        "low": 0.6583465493644275,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.7826027397260275,
+        "std": 0.04673389023729398
+      }
+    },
+    "linear_perceptron": {
+      "average_precision": {
+        "high": 0.24634976655686902,
+        "level": 0.95,
+        "low": 0.06568319511822615,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.13740338115191134,
+        "std": 0.04681562211460564
+      },
+      "f1": {
+        "high": 0.1839615076182836,
+        "level": 0.95,
+        "low": 0.0,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.057692307692307696,
+        "std": 0.05420344042471163
+      },
+      "recall": {
+        "high": 0.1690195016251354,
+        "level": 0.95,
+        "low": 0.0,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.0410958904109589,
+        "std": 0.048926164619622674
+      },
+      "roc_auc": {
+        "high": 0.46883484315732227,
+        "level": 0.95,
+        "low": 0.15666722113625006,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.27493150684931505,
+        "std": 0.08035074430820577
+      }
+    },
+    "locked_headline": {
+      "average_precision": {
+        "high": 0.7602623942404391,
+        "level": 0.95,
+        "low": 0.26047910158993115,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.5990998051460626,
+        "std": 0.12880042140535014
+      },
+      "f1": {
+        "high": 0.6929292608585216,
+        "level": 0.95,
+        "low": 0.2103913630229422,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.5714285714285714,
+        "std": 0.12326468090179615
+      },
+      "recall": {
+        "high": 0.6505179438280165,
+        "level": 0.95,
+        "low": 0.14285714285714285,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.4931506849315068,
+        "std": 0.12677799573287526
+      },
+      "roc_auc": {
+        "high": 0.9031204665943218,
+        "level": 0.95,
+        "low": 0.6102768163092328,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.793013698630137,
+        "std": 0.07435422849395809
+      }
+    }
+  },
+  "paired_delta_vs_kernel": {
+    "linear_perceptron": {
+      "average_precision": {
+        "excludes_zero": true,
+        "high": 0.4359737315945225,
+        "level": 0.95,
+        "low": 0.1029910756750892,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.3041749408607517,
+        "std": 0.08420750784070584
+      },
+      "f1": {
+        "excludes_zero": true,
+        "high": 0.6000142540386442,
+        "level": 0.95,
+        "low": 0.1898007263737298,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.4731718898385565,
+        "std": 0.10554982031179254
+      },
+      "recall": {
+        "excludes_zero": true,
+        "high": 0.6666666666666666,
+        "level": 0.95,
+        "low": 0.25,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.547945205479452,
+        "std": 0.10354966818804133
+      },
+      "roc_auc": {
+        "excludes_zero": true,
+        "high": 0.6723337466244212,
+        "level": 0.95,
+        "low": 0.20678007184182084,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.5076712328767123,
+        "std": 0.11952360606183068
+      }
+    },
+    "locked_headline": {
+      "average_precision": {
+        "excludes_zero": false,
+        "high": 0.06479600026390638,
+        "level": 0.95,
+        "low": -0.33201035429328196,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": -0.15752148313339964,
+        "std": 0.1021131066945149
+      },
+      "f1": {
+        "excludes_zero": false,
+        "high": 0.17587076769455112,
+        "level": 0.95,
+        "low": -0.1832290744667146,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": -0.04056437389770717,
+        "std": 0.09351389261545864
+      },
+      "recall": {
+        "excludes_zero": false,
+        "high": 0.3571765498652289,
+        "level": 0.95,
+        "low": -0.08977272727272724,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": 0.09589041095890416,
+        "std": 0.11873840108619714
+      },
+      "roc_auc": {
+        "excludes_zero": false,
+        "high": 0.10541105245996985,
+        "level": 0.95,
+        "low": -0.10604118347610425,
+        "n_replicates": 2000,
+        "n_valid": 2000,
+        "point": -0.01041095890410959,
+        "std": 0.05429089752920642
+      }
+    }
+  },
+  "reference_models": {
+    "linear_perceptron": "perceptron",
+    "locked_headline": "mlp"
+  },
+  "replicates": 2000,
+  "split": "test",
+  "variant": "with_spike"
+}

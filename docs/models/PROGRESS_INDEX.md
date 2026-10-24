@@ -3,6 +3,8 @@
 > **ดัชนีเท่านั้น** — รายละเอียดอยู่ใน `docs/models/<name>/MODEL_PROGRESS.md` ของแต่ละตัว
 > สเปกของแต่ละโมเดลอยู่ใน [`MODEL_CARDS.md`](../plan/MODEL_CARDS.md)
 
+**การทดลองเสริมหลังส่งงาน:** [RBF Kernel Perceptron](perceptron/KERNEL_EXPERIMENT.md) ลู่เข้าบน Train ทั้งสอง variants และมีผล Validation/Test แยกต่างหาก ไม่เพิ่มเข้า inventory 19 โมเดลเดิม
+
 **สถานะรวม (อัปเดต 2026-10-11):** ✅ **ครบ 19/19 โมเดล ทั้งสอง variant** · Phase C เสร็จถึงขั้น finalize: leaderboard, เทียบ with_spike กับ non_spike, feature importance, walk-forward และผล Test (อ่านครั้งเดียว) อยู่ใต้ `outputs/modeling/` · ตารางท้ายไฟล์นี้สร้างจากไฟล์ผลโดยตรง ·
 ชั้นข้อมูลผ่าน audit: [DATA_PIPELINE_AUDIT.md](../audit/DATA_PIPELINE_AUDIT.md)
 

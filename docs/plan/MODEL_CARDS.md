@@ -511,6 +511,9 @@ output เป็น **decision score** ไม่ใช่ probability (`output: 
 - `shuffle=False` ต้องตั้งทั้งสองฝั่ง ไม่งั้นลำดับการ update ต่างกันทันที
 - sklearn ไม่คูณ `eta0` กับ update ของ bias ต่างจาก weight — ตรวจกับโค้ดจริงถ้าไม่ตรง
 - loss ที่บันทึกใน `history_` ใช้ `perceptron_criterion` = `mean(max(0, -margin))` ตาม config
+- `history_["updates"]` บันทึกจำนวนการแก้น้ำหนักต่อ epoch; บน train จริงทั้งสอง variants การตรวจ linear feasibility ให้ผล `infeasible` จึงไม่อาจหยุดแบบไม่มีการอัปเดต (ดู `docs/models/perceptron/MODEL_PROGRESS.md`)
+
+**การทดลองเสริมหลังส่งงาน:** [RBF Kernel Perceptron](../models/perceptron/KERNEL_EXPERIMENT.md) ใช้กฎอัปเดตเมื่อทายผิดในพื้นที่ฟีเจอร์ของ kernel และลู่เข้าบน Train ทั้งสอง variants ผล Validation/Test บันทึกแยกจาก 19 โมเดลนี้
 
 **Unit test** ข้อมูล 2 มิติที่แยกเชิงเส้นได้ → ต้อง converge และ mistake_rate = 0 ·
 ตัวอย่างเดียวที่ทายผิด → ตรวจว่า w เปลี่ยนไปเท่ากับ `lr·y·x` พอดี

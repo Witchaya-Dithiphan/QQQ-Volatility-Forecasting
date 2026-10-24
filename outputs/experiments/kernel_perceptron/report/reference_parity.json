@@ -1,0 +1,22 @@
+[
+  {
+    "max_abs_score_difference": 4.463096558993129e-14,
+    "passed": true,
+    "prediction_agreement": 1.0,
+    "reference": "sklearn.metrics.pairwise.rbf_kernel",
+    "samples": 371,
+    "scope": "saved model inference; sklearn has no equivalent online Kernel Perceptron class",
+    "support_vectors": 929,
+    "variant": "with_spike"
+  },
+  {
+    "max_abs_score_difference": 5.728750807065808e-14,
+    "passed": true,
+    "prediction_agreement": 1.0,
+    "reference": "sklearn.metrics.pairwise.rbf_kernel",
+    "samples": 371,
+    "scope": "saved model inference; sklearn has no equivalent online Kernel Perceptron class",
+    "support_vectors": 722,
+    "variant": "non_spike"
+  }
+]

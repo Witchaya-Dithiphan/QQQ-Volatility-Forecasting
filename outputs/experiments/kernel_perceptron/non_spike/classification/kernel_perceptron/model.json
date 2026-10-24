@@ -1,0 +1,8 @@
+{
+  "params": {
+    "gamma": 0.75,
+    "learning_rate": 1.0,
+    "max_epochs": 1000
+  },
+  "seed": 42
+}
