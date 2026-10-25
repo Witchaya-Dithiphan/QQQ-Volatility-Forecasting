@@ -272,7 +272,7 @@ TEST_SPLIT_PATTERNS = (
 )
 # The separate post-submission evaluator also requires --allow-test and its own receipt.
 TEST_SPLIT_ALLOWED = {"core/data.py", "core/contracts.py", "run.py", "kernel_perceptron_test.py",
-                      "transfer_learning/test_eval.py"}
+                      "transfer_learning/test_eval.py", "log_har/test_eval.py"}
 
 
 def test_src_never_shuffles_or_splits_at_random() -> None:

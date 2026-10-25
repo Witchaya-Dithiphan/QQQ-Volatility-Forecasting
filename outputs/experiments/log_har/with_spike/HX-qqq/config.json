@@ -1,0 +1,22 @@
+{
+ "model": "log_har",
+ "params": {
+  "features": "X",
+  "kappa": 0.0,
+  "kappa_is_inf": false,
+  "prior": null
+ },
+ "variant": "with_spike",
+ "coef": {
+  "d": -0.04478643702314973,
+  "w": 0.07636177736524974,
+  "m": 0.5026095527801031,
+  "r": 0.2926067628300434,
+  "lev": -5.972989583721513
+ },
+ "intercept": 0.2572925626995366,
+ "residual_variance": 0.23639590316846626,
+ "train_rows": 1733,
+ "arm": "HX-qqq",
+ "kappa_grid": null
+}
