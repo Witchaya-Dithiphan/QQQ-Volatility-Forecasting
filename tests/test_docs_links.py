@@ -12,10 +12,17 @@ LINK = re.compile(r"\[[^\]]*\]\((?!https?://|mailto:|#)([^)#\s]+)(?:#[^)]*)?\)")
 
 def _shipped_files():
     """Paths git would put in a commit: tracked files plus new files that are not ignored."""
-    listing = subprocess.run(
-        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
-        cwd=PROJECT_ROOT, capture_output=True, check=True,
-    ).stdout.decode("utf-8")
+    try:
+        listing = subprocess.run(
+            ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
+            cwd=PROJECT_ROOT, capture_output=True, check=True,
+        ).stdout.decode("utf-8")
+    except (OSError, subprocess.CalledProcessError):
+        # A copy without .git (such as a ZIP download) holds only shipped files, so every
+        # project file on disk counts; virtual environments and caches are skipped.
+        return {path.relative_to(PROJECT_ROOT).as_posix() for path in PROJECT_ROOT.rglob("*")
+                if path.is_file() and not any(part.startswith(".") or part in {"tmp", "node_modules"}
+                                              for part in path.relative_to(PROJECT_ROOT).parts[:-1])}
     return {path for path in listing.split("\0") if path and (PROJECT_ROOT / path).exists()}
 
 
