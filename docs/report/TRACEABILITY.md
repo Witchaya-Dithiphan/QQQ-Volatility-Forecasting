@@ -25,6 +25,7 @@
 | ผลบน Test (อ่านครั้งเดียว) | หัวข้อ 4.4 | 21 | `outputs/modeling/selection_lock.json`, `outputs/modeling/finalize_receipt.json`, `outputs/modeling/final/with_spike/leaderboard_classification.md`, `outputs/modeling/final/segmented_metrics.csv`, `outputs/figures/modeling/final/test_roc_auc_by_segment.png` |
 | +5 creative problem / data preparation | หัวข้อ 1.1, 3.3.4 | 8–11, 22 | `outputs/figures/spike_analysis/daily_return_spikes.png`, `outputs/figures/spike_analysis/dataset_comparison.png`, `notebooks/06_spike_analysis.ipynb`, `outputs/figures/modeling/spike_rule/spike_rule_sensitivity.png`, `outputs/figures/modeling/spike_rule/affected_window_example.png` |
 | +5 much better than taught models | หัวข้อ 4.6 | 23 | `outputs/modeling/report/tables/validation_headline_vs_classroom.md`, `outputs/modeling/report/tables/test_headline_vs_classroom.md` |
+| การทดลองเพิ่มเติมหลังส่งงานและหลังนำเสนอ (ผล Test เป็น post-hoc) | ภาคผนวก ง, จ, ฉ | — | `outputs/experiments/kernel_perceptron/test_receipt.json`, `outputs/experiments/transfer_learning/test_receipt.json`, `outputs/experiments/log_har/test_receipt.json`, `docs/models/log_har/EXPERIMENT.md` |
 | Report | ทั้งฉบับ | — | `docs/report/REPORT_DRAFT.md`, `deliverables/report.docx` |
 | Slides | — | 24 แผ่น | `deliverables/slides.pptx` |
 | `.ipynb` และ `.py` | — | — | `notebooks/05_results_comparison.ipynb`, `notebooks/06_spike_analysis.ipynb`, `src/ml/run.py` |

@@ -10,6 +10,19 @@ try {
     # numbers are refreshed a second time after the document is laid out again.
     foreach ($toc in $doc.TablesOfContents) { $toc.Update() }
     $doc.Fields.Update() | Out-Null
+    # A Greek letter in a heading or caption keeps its Cambria font in the tables of contents but
+    # takes the 16 pt entry size there, so it is set back to the 12 pt used in body text.
+    foreach ($toc in $doc.TablesOfContents) {
+        foreach ($name in @("Cambria", "Segoe UI Symbol")) {
+            $find = $toc.Range.Find
+            $find.ClearFormatting()
+            $find.Replacement.ClearFormatting()
+            $find.Font.Name = $name
+            $find.Replacement.Font.Size = 12
+            # text, case, whole word, wildcards, sounds like, word forms, forward, wrap = stop, format, replacement, replace all
+            $find.Execute("", $false, $false, $false, $false, $false, $true, 0, $true, "", 2) | Out-Null
+        }
+    }
     $doc.Repaginate()
     foreach ($toc in $doc.TablesOfContents) { $toc.UpdatePageNumbers() }
     $doc.Save()
