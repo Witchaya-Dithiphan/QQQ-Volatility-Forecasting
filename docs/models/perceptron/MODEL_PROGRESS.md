@@ -1,6 +1,6 @@
 # perceptron — classification · ✅ เสร็จ (ผลแย่ แต่ถูกต้อง)
 
-**เจ้าของ:** Claude · **สเปก:** [card #8](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ผู้รับผิดชอบ:** พิทวัส · **สเปก:** [card #8](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 
@@ -27,7 +27,8 @@ lr=0.1    coef ตรง sklearn: True | AUC scratch 0.2993 | AUC sklearn 0.2993
 ### ทำไมถึงแย่ — ใช้เขียนรายงานได้ตรง ๆ
 
 1. **ข้อมูลไม่ linearly separable** → Perceptron ไม่มีการรับประกันการลู่เข้า
-   รันครบ 1000 epochs โดยยังผิด 38.1% และ**จบที่ weight ของการ update ครั้งสุดท้าย**
+   ตรวจอสมการ `y_i(w·x_i+b) >= 1` ด้วย `scipy.optimize.linprog` บน train ที่ standardize แล้ว: solver รายงาน `infeasible` ทั้ง `with_spike` และ `non_spike` (มี test ตรวจซ้ำใน `tests/ml/classification/test_perceptron.py`)
+   รันครบ 1000 epochs โดยยังผิด 38.1% ใน `with_spike` และ**จบที่ weight ของการ update ครั้งสุดท้าย**
    ซึ่งไม่ใช่จุดที่ดีที่สุดที่เคยผ่านมา
 2. **ไม่มี objective ให้ลด** — ต่างจาก logistic ที่ลู่เข้า optimum ของ convex loss
    Perceptron แก้เฉพาะตัวอย่างที่ผิดทีละตัว ไม่มีแนวคิดเรื่อง "คำตอบที่ดีที่สุด"
@@ -65,7 +66,28 @@ exact · coefficient ตรง sklearn ที่ **1e-10** ครบทั้ง
 
 ## ค้างอยู่
 
-- card #8 ใน `MODEL_CARDS.md` ยังไม่ได้ใส่ผลจริง
+- หากอาจารย์ต้องการให้โมเดลบนข้อมูล QQQ ลู่เข้าแบบไม่มีการแก้น้ำหนัก ต้องเปลี่ยนโจทย์ข้อมูลหรือเปลี่ยนอัลกอริทึม; Perceptron แบบดั้งเดิมบน train สองชุดนี้ทำไม่ได้
+
+## ตรวจการลู่เข้าเพิ่มเติม (branch `fix/perceptron-convergence`)
+
+ใช้ train ที่ `src.ml.core.data.load()` ยืนยัน hash และ `Standardizer` ที่ fit เฉพาะ train เช่นเดียวกับ trainer จากนั้นตรวจความเป็นไปได้ของเส้นแบ่งเชิงเส้นด้วย linear programming โดยปล่อย `w` และ `b` ไม่จำกัดเครื่องหมาย ผล `infeasible` ทั้งสอง variants แปลว่าไม่มีเส้นแบ่งที่จัดทุกแถวได้ถูกต้องพร้อม margin บวก ดังนั้น epoch ที่ไม่มีการอัปเดตไม่อาจเกิดกับข้อมูลฝึกเดิมได้
+
+| variant | train rows | train positives | LP status | updates epoch แรก | updates epoch สุดท้าย | ช่วง updates/epoch | train error หลังรอบ 1000 |
+| --- | ---: | ---: | --- | ---: | ---: | ---: | ---: |
+| `with_spike` | 1,733 | 433 | infeasible | 274 | 274 | 247–301 | 38.1% |
+| `non_spike` | 1,520 | 280 | infeasible | 209 | 209 | 195–237 | 42.4% |
+
+เพิ่ม `history_["updates"]` เพื่อให้ตรวจจำนวนการอัปเดตทุก epoch ได้ ผลฝึกซ้ำใน output root แยกมี validation AP/ROC-AUC/recall เท่าผลเดิมทั้งสอง variants และผ่าน reload check ไม่ได้แตะ Test หรือเขียนทับ artifact ที่ล็อกไว้
+
+ทดลองเก็บน้ำหนักที่มี train error ต่ำสุดเมื่อจบแต่ละ epoch (pocket) และเฉลี่ยน้ำหนักเมื่อจบแต่ละ epoch แบบสำรวจ โดยคงลำดับข้อมูลและ 1,000 epochs เดิม: validation ROC-AUC ของ pocket = 0.3574 / 0.3291 และของค่าเฉลี่ย = 0.3061 / 0.3254 (`with_spike` / `non_spike`); AP ของ pocket = 0.0718 / 0.0671 ส่วน AP ของค่าเฉลี่ย = 0.0645 / 0.0681 ไม่มีวิธีใดแก้การไม่ลู่เข้าแบบ Perceptron ดั้งเดิม และผลจัดอันดับไม่ดีพอให้แทนโมเดลเดิม จึงไม่เพิ่มวิธีเหล่านี้ใน pipeline
+
+การทำซ้ำหลักฐาน: `python -m pytest tests/ml/classification/test_perceptron.py -q` ตรวจ LP และกฎหยุด; รัน `python -m src.ml.run train --model perceptron --variant with_spike --output-root <temporary-directory>` และเปลี่ยน variant เป็น `non_spike` เพื่อดู `history.json` ใน output root แยก
+
+ทดลอง RBF Kernel Perceptron เพิ่มแบบแยกจากโมเดลบังคับแล้ว: ทั้งสอง variants หยุดโดยไม่มีการแก้น้ำหนักและทาย Train ถูกทุกแถว ผลและคำสั่งทำซ้ำอยู่ในบันทึกที่ลิงก์ไว้ด้านล่าง ห้ามนำผลนี้ไประบุว่า Perceptron แบบดั้งเดิมลู่เข้าแล้ว
+
+ผล Validation และ Test ที่ประเมินหลังส่งงานของโมเดลเสริม รวม metric, confusion matrix และ receipt อยู่ใน [บันทึก RBF Kernel Perceptron](KERNEL_EXPERIMENT.md) ผล Test นี้ไม่ใช่ผล Test ที่ล็อกไว้ล่วงหน้าของ Perceptron แบบดั้งเดิม
+
+การวิเคราะห์เสริมเสร็จแล้ว: walk-forward 4 fold ลู่เข้าทั้งสอง variants, มีช่วง 95% แบบ block bootstrap, ผลต่าง paired, feature importance และ Test แยกช่วง บันทึกใน `outputs/experiments/kernel_perceptron/report/` การตรวจเทียบ RBF ของไลบรารีผ่านบนโมเดลที่บันทึกไว้ แต่การฝึกอิสระของ `with_spike` หยุดคนละ epoch เพราะการคำนวณใกล้ศูนย์ไวต่อลำดับเลขทศนิยม ดูผลและข้อจำกัดใน [บันทึกการทดลอง](KERNEL_EXPERIMENT.md)
 
 ## ผลจริงจากไฟล์ผล (สร้างอัตโนมัติ ห้ามแก้ด้วยมือ)
 

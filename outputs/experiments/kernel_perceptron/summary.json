@@ -1,0 +1,96 @@
+[
+  {
+    "candidates": [
+      {
+        "average_precision": 0.1375385151105989,
+        "converged": true,
+        "epochs": 785,
+        "gamma": 0.5,
+        "id": "kernel_perceptron-00",
+        "roc_auc": 0.6132832955140513
+      },
+      {
+        "average_precision": 0.16856241573873232,
+        "converged": true,
+        "epochs": 274,
+        "gamma": 0.75,
+        "id": "kernel_perceptron-01",
+        "roc_auc": 0.6573573049397801
+      },
+      {
+        "average_precision": 0.1732138615532917,
+        "converged": true,
+        "epochs": 139,
+        "gamma": 1.0,
+        "id": "kernel_perceptron-02",
+        "roc_auc": 0.683452609530459
+      },
+      {
+        "average_precision": 0.1489032234334562,
+        "converged": true,
+        "epochs": 92,
+        "gamma": 1.5,
+        "id": "kernel_perceptron-03",
+        "roc_auc": 0.6763833129691046
+      },
+      {
+        "average_precision": 0.13773496937490268,
+        "converged": true,
+        "epochs": 72,
+        "gamma": 2.0,
+        "id": "kernel_perceptron-04",
+        "roc_auc": 0.6622447198463954
+      }
+    ],
+    "selected": "kernel_perceptron-02",
+    "train_correct": true,
+    "variant": "with_spike"
+  },
+  {
+    "candidates": [
+      {
+        "average_precision": 0.1333090295215105,
+        "converged": true,
+        "epochs": 275,
+        "gamma": 0.5,
+        "id": "kernel_perceptron-00",
+        "roc_auc": 0.6303892476872055
+      },
+      {
+        "average_precision": 0.14599396309004614,
+        "converged": true,
+        "epochs": 142,
+        "gamma": 0.75,
+        "id": "kernel_perceptron-01",
+        "roc_auc": 0.6533426426950603
+      },
+      {
+        "average_precision": 0.13551174492955984,
+        "converged": true,
+        "epochs": 114,
+        "gamma": 1.0,
+        "id": "kernel_perceptron-02",
+        "roc_auc": 0.637633094780939
+      },
+      {
+        "average_precision": 0.12630831604234638,
+        "converged": true,
+        "epochs": 76,
+        "gamma": 1.5,
+        "id": "kernel_perceptron-03",
+        "roc_auc": 0.6299528713562577
+      },
+      {
+        "average_precision": 0.1295209629259224,
+        "converged": true,
+        "epochs": 83,
+        "gamma": 2.0,
+        "id": "kernel_perceptron-04",
+        "roc_auc": 0.6397277011694886
+      }
+    ],
+    "selected": "kernel_perceptron-01",
+    "train_correct": true,
+    "variant": "non_spike"
+  }
+]

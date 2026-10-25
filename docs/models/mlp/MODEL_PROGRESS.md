@@ -1,6 +1,6 @@
 # mlp — classification · 🟡 รอ leaderboard
 
-**เจ้าของ:** Codex (T7 ทำต่อด้วย Claude Code ตามคำขอเจ้าของโปรเจกต์) · **สเปก:** [card #10](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ผู้รับผิดชอบ:** วิชญา (ตั้งแต่ขั้น T7 พิทวัสทำต่อ) · **สเปก:** [card #10](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 

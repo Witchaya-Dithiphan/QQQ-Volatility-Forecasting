@@ -1,6 +1,6 @@
 # xgboost — classification · 🟡 รอ leaderboard
 
-**เจ้าของ:** Codex (T5 ทำต่อด้วย Claude Code ตามคำขอเจ้าของโปรเจกต์) · **สเปก:** [card #14](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ผู้รับผิดชอบ:** วิชญา (ตั้งแต่ขั้น T5 พิทวัสทำต่อ) · **สเปก:** [card #14](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 

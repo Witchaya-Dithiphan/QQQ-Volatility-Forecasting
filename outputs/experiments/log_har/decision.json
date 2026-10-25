@@ -1,0 +1,87 @@
+{
+ "locked_model": "HX-prior: transfer ridge towards the ETF prior, kappa chosen on Validation RMSE",
+ "kappa_grid": [
+  "0.0",
+  "0.03",
+  "0.1",
+  "0.3",
+  "1.0",
+  "3.0",
+  "10.0",
+  "inf"
+ ],
+ "variants": {
+  "with_spike": {
+   "criteria": {
+    "selected_kappa": "inf",
+    "transfer_helps": false,
+    "beats_elastic_net": false,
+    "pool_beats_qqq_only_unselected": false
+   },
+   "validation_rmse": {
+    "elastic_net": 0.0668063264164164,
+    "HX-pool": 0.06734046401244982,
+    "HX-prior": 0.06734046401244982,
+    "HX-qqq": 0.06817220587962303,
+    "multiple_linear": 0.06886419975039984,
+    "simple_linear": 0.06903844628342107,
+    "polynomial": 0.06906490874823573,
+    "H3-qqq": 0.06949322123462137,
+    "baseline_train_mean": 0.07512236979061798,
+    "baseline_persistence": 0.08261088919009445
+   }
+  },
+  "non_spike": {
+   "criteria": {
+    "selected_kappa": "1.0",
+    "transfer_helps": false,
+    "beats_elastic_net": false,
+    "pool_beats_qqq_only_unselected": false
+   },
+   "validation_rmse": {
+    "elastic_net": 0.06425560007481504,
+    "polynomial": 0.06605634631691754,
+    "simple_linear": 0.06647931444511633,
+    "HX-prior": 0.06660151224403744,
+    "HX-pool": 0.06667648063261111,
+    "multiple_linear": 0.06682012384964278,
+    "HX-qqq": 0.06745537907024035,
+    "baseline_train_mean": 0.06763556203915197,
+    "H3-qqq": 0.06801634203052025,
+    "baseline_persistence": 0.08261088919009445
+   }
+  }
+ },
+ "hashes": {
+  "models": {
+   "with_spike/H3-qqq": "e1b446053e702923c641df586fcb10581bd36c74d3df5954a747478228839369",
+   "with_spike/HX-qqq": "737166310cafb771f1b5abd713fc7b2240b2d4b695bf84f30c092c0814934c17",
+   "with_spike/HX-pool": "54e44379998b5e9315587e6377da5bf630eb7f46dea677cba32e6d4bc9a67e90",
+   "with_spike/HX-prior": "54e44379998b5e9315587e6377da5bf630eb7f46dea677cba32e6d4bc9a67e90",
+   "non_spike/H3-qqq": "f453575cd387413ab5175083688b2001575994cd6e14a7e70f81ce7898f94bb0",
+   "non_spike/HX-qqq": "0c67552c799e96e9cba3c6a62b1bf2941535b47d5ca1359529d95c8125277243",
+   "non_spike/HX-pool": "6873074b0f7baeb9ed79b57ade12c94962df09b3dc33d192fb5c575401490932",
+   "non_spike/HX-prior": "c4d199ed0171fbc1b3497cb10444e6be2d76fd6b22ea0b3918fb857aea8a95b0"
+  },
+  "configs": {
+   "with_spike/H3-qqq": "dc1c6960512229c6d0a3aff54786aa4dff4d4dcf963e8021a974798cebe41756",
+   "with_spike/HX-qqq": "09e71d0c8e3dd5d1278e45694e6e6f57b88d1644a85cc9e585649d19145d0789",
+   "with_spike/HX-pool": "ca7d787119ef875fc7b35f91920b03ad9cbd70b7edaf0ef7c37e58d91f7712c2",
+   "with_spike/HX-prior": "e07535f03870302569d71a1a32b7de61d0111bd941f3b2273136ce1c3d4be65b",
+   "non_spike/H3-qqq": "d3d52e5cbf644d0caac44a90400f0acc0d4d1b50faa23cebca492570ede7e1c0",
+   "non_spike/HX-qqq": "9e2cf09de452e4bd7eeccbcc04b3193f59ce5fcf26bbc9943852bb30a039c087",
+   "non_spike/HX-pool": "47bc4f1ac1646c1593952e60cf49b8ea36d43a10777a50029af283e815938103",
+   "non_spike/HX-prior": "c92e0435a62d4babf34e892abebb275b634f141537fb5ca6315bc9e4f5a54beb"
+  },
+  "code": {
+   "__init__.py": "c768702cd55f1d28a5e2fadc73a66a815a618b3ded000937b1ee82bd66f8fcfb",
+   "experiment.py": "af634536d2a051eb07786285feba8f022fd51d11efa0f9ec2f9ae3b39df27dd2",
+   "features.py": "f82ea9cebc551f7db73a5b1e4a377d9e90d9b1f73ddbb64c0b4c860296f67b0c",
+   "model.py": "837bf0462a1ae4f9e04547f1cb53543962c7c6e1491f261bfadd0ea2275ff5f9",
+   "test_eval.py": "403db9d0206df6a379bb0f729cfa7e9ec3c5222d63bad2200ea87b87d9fec50d"
+  },
+  "source_manifest": "368d12c2b6e3b77748f2df73a0fe95c1ed3d69d0ff319f9924c0cd2333ffcaf7",
+  "prior": "bd303cbc5ee6ed5be3db1f7306b15f24b0e894ca61a847c2fb17925b22cf4891",
+  "validation_split": "b84a5fa31fe1afc6841528f8e5f0c8532b07e2bda8b80bd2ca1de664cf42f6ec"
+ }
+}

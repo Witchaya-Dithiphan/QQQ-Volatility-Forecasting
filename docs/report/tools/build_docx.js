@@ -1,12 +1,13 @@
 // Convert docs/report/REPORT_DRAFT.md (a restricted Markdown subset) to deliverables/report.docx.
-// The output follows the Thai academic report layout: front cover, blank flyleaf, inner title page,
-// preface, abstract, three tables of contents, chapters, bibliography, appendices.
+// The output follows the Thai academic report layout: front cover, preface, abstract, three
+// tables of contents, chapters, bibliography, appendices. Everything is set in TH SarabunPSK,
+// body text 16 pt, headings larger and bold, all in black with no shading or coloured text.
 // usage: node build_docx.js <repo root> <output.docx>
 const fs = require("fs");
 const path = require("path");
 const {
-  AlignmentType, BorderStyle, Document, Footer, Header, HeadingLevel, ImageRun, LevelFormat, NumberFormat,
-  Packer, PageBreak, PageNumber, PageOrientation, Paragraph, ShadingType, StyleLevel, Table, TableCell,
+  AlignmentType, BorderStyle, Document, Footer, HeadingLevel, ImageRun, LevelFormat, NumberFormat,
+  Packer, PageNumber, PageOrientation, Paragraph, StyleLevel, Table, TableCell,
   TableOfContents, TableRow, TextRun, WidthType,
 } = require("docx");
 
@@ -15,27 +16,64 @@ const output = process.argv[3];
 const source = path.join(root, "docs", "report", "REPORT_DRAFT.md");
 const lines = fs.readFileSync(source, "utf8").replace(/\r\n/g, "\n").split("\n");
 
-const FONT = "Leelawadee UI";
-const MONO = "Consolas";
-const BODY = 21; // half-points
-const INK = "1F2933";
-const MUTED = "52606D";
-const ACCENT = "1F4E79";
-const PORTRAIT_WIDTH = 11906 - 2 * 1134;
-const LANDSCAPE_WIDTH = 16838 - 2 * 1134;
+const FONT = "TH SarabunPSK";
+const BODY = 32; // half-points: 16 pt
+const SMALL = 28; // 14 pt, for source lines and table notes
+const INK = "000000";
+// Thai academic margins: 1.5 inch at the top and binding side, 1 inch elsewhere. A landscape
+// page holds only a wide table, so it keeps 1 inch all round to give the table more room.
+const MARGIN = { top: 2160, bottom: 1440, left: 2160, right: 1440 };
+const LANDSCAPE_MARGIN = { top: 1440, bottom: 1440, left: 1440, right: 1440 };
+const PORTRAIT_WIDTH = 11906 - MARGIN.left - MARGIN.right;
+const LANDSCAPE_WIDTH = 16838 - LANDSCAPE_MARGIN.left - LANDSCAPE_MARGIN.right;
 const FIRST_LINE = 720;
+const LINE = 240; // single spacing: TH SarabunPSK already carries generous leading
+// Thai text is tagged as Thai so Word can apply its own rules where they are installed.
+const LANGUAGE = { value: "en-US", bidirectional: "th-TH" };
+
+// Thai is written without spaces between words. A Word without the Thai editing language can
+// only break a line at a space, which leaves ragged lines, so a zero-width space is put at every
+// Thai word boundary that ICU's dictionary finds. The text itself is unchanged.
+const ZWSP = "​";
+const THAI = /[฀-๿]/;
+const segmenter = new Intl.Segmenter("th", { granularity: "word" });
+function thaiBreaks(text) {
+  let out = "";
+  let previous = "";
+  for (const { segment } of segmenter.segment(text)) {
+    if (previous && THAI.test(previous.slice(-1)) && THAI.test(segment[0])) out += ZWSP;
+    out += segment;
+    previous = segment;
+  }
+  return out;
+}
+
+// TH SarabunPSK has no Greek letters and few math signs. Word would substitute a font of its
+// own choosing at the full 16 pt, which looks bold and oversized next to Sarabun, so these
+// characters are set in Cambria (or Segoe UI Symbol) at three quarters of the size around them.
+const SYMBOLS = /([ŷͰ-Ͽᵀ‖⁰-₟←-⇿⊙★]+)/;
+const symbolFont = (text) => (/[⊙★]/.test(text) ? "Segoe UI Symbol" : "Cambria");
+function textRuns(text, { size = BODY, ...options }) {
+  return text.split(SYMBOLS).filter((part) => part !== "").map((part) => (SYMBOLS.test(part)
+    ? new TextRun({ language: LANGUAGE, text: part, ...options, size: Math.round(size * 0.75), font: symbolFont(part) })
+    : new TextRun({ language: LANGUAGE, text: part, ...options, size, font: FONT })));
+}
 
 function runs(text, { size = BODY, bold = false, italics = false, color = INK } = {}) {
-  // **bold** and `code` only; everything else is literal.
-  const parts = text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).filter((part) => part !== "");
-  return parts.map((part) => {
+  // Print link labels without Markdown URLs; preserve inline formatting inside labels.
+  const parts = text.split(/(\[[^\]]+\]\([^)]+\)|\*\*[^*]+\*\*|`[^`]+`)/g).filter((part) => part !== "");
+  return parts.flatMap((part) => {
+    if (part.startsWith("[") && part.includes("](")) {
+      return runs(part.slice(1, part.indexOf("](")), { size, bold, italics, color });
+    }
     if (part.startsWith("**") && part.endsWith("**")) {
-      return new TextRun({ text: part.slice(2, -2), bold: true, italics, size, color, font: FONT });
+      return textRuns(thaiBreaks(part.slice(2, -2)), { bold: true, italics, size, color });
     }
     if (part.startsWith("`") && part.endsWith("`")) {
-      return new TextRun({ text: part.slice(1, -1), bold, italics, size: size - 1, color: "243B53", font: MONO });
+      // A long identifier may wrap after "_" or "/" instead of stretching the line around it.
+      return textRuns(part.slice(1, -1).replace(/([_/])(?=\S)/g, `$1${ZWSP}`), { bold, italics, size, color });
     }
-    return new TextRun({ text: part, bold, italics, size, color, font: FONT });
+    return textRuns(thaiBreaks(part), { bold, italics, size, color });
   });
 }
 
@@ -43,7 +81,7 @@ function paragraph(text, options = {}) {
   return new Paragraph({
     children: runs(text, options),
     style: options.style,
-    spacing: { after: options.after ?? 120, line: 300 },
+    spacing: { after: options.after ?? 120, line: LINE },
     alignment: options.alignment,
     keepNext: options.keepNext,
     indent: options.indent,
@@ -62,14 +100,15 @@ function pngSize(file) {
 function caption(label, text, style, alignment) {
   return new Paragraph({
     style, alignment, keepNext: style === "TableCaption",
-    spacing: { before: style === "TableCaption" ? 160 : 60, after: style === "TableCaption" ? 80 : 200, line: 290 },
-    children: [new TextRun({ text: `${label} `, bold: true, size: 20, color: INK, font: FONT }), ...runs(text, { size: 20 })],
+    spacing: { before: style === "TableCaption" ? 160 : 60, after: style === "TableCaption" ? 80 : 200, line: LINE },
+    children: [new TextRun({ language: LANGUAGE, text: `${label} `, bold: true, size: BODY, color: INK, font: FONT }), ...runs(text, { size: BODY })],
   });
 }
 
 function image(file, text) {
   const { width, height } = pngSize(file);
-  const scale = Math.min(620 / width, 560 / height, 1);
+  // 550 px is the text width between the margins at 96 dpi; the height leaves room for the caption.
+  const scale = Math.min(550 / width, 640 / height, 1);
   const label = /^(รูปที่ \S+)\s+(.*)$/.exec(text);
   if (!label) throw new Error(`figure without a "รูปที่ N" label: ${text}`);
   return [
@@ -91,7 +130,6 @@ function splitRow(line) {
 
 // Cells may wrap after "_" and "," (a zero-width space is inserted there), so a column
 // only has to be as wide as its longest unbreakable piece.
-const ZWSP = "​";
 const breakable = (text) => text.replace(/([_,/])(?=\S)/g, `$1${ZWSP}`).replace(/\[/g, `${ZWSP}[`);
 
 function columnWeights(rows) {
@@ -105,17 +143,21 @@ function columnWeights(rows) {
 
 const tableNeed = (rows) => columnWeights(rows).reduce((sum, weight) => sum + weight, 0) + 1.5 * rows[0].length;
 
-function table(rows, available, notesFollow = false) {
+function table(rows, available, notesFollow = false, landscape = false) {
   const need = tableNeed(rows);
-  const size = need > 110 ? 14 : need > 90 ? 15 : need > 70 ? 17 : 19;
+  const size = need > 110 ? 22 : need > 90 ? 24 : need > 70 ? 26 : 28;
   const weights = columnWeights(rows);
   const total = weights.reduce((sum, weight) => sum + weight, 0);
   const widths = weights.map((weight) => Math.floor((weight / total) * available));
   widths[widths.length - 1] += available - widths.reduce((sum, width) => sum + width, 0);
-  const border = { style: BorderStyle.SINGLE, size: 4, color: "BCCCDC" };
+  const border = { style: BorderStyle.SINGLE, size: 4, color: INK };
   const borders = { top: border, bottom: border, left: border, right: border };
-  // A short table stays on one page with its caption; a long one may break between rows.
-  const together = rows.length <= 14;
+  // A short table stays on one page with its caption. A long or wide one may break between rows,
+  // but the caption keeps the first rows with it and the last three rows stay together.
+  const together = !landscape && rows.length <= 14;
+  const keep = (rowIndex) => (together
+    ? notesFollow || rowIndex < rows.length - 1
+    : rowIndex < 2 || (rowIndex >= rows.length - 3 && (notesFollow || rowIndex < rows.length - 1)));
   return new Table({
     width: { size: available, type: WidthType.DXA },
     columnWidths: widths,
@@ -126,10 +168,9 @@ function table(rows, available, notesFollow = false) {
         width: { size: widths[index], type: WidthType.DXA },
         borders,
         margins: { top: 50, bottom: 50, left: 70, right: 70 },
-        shading: rowIndex === 0 ? { type: ShadingType.CLEAR, fill: "E4ECF5", color: "auto" } : undefined,
         children: [new Paragraph({
-          spacing: { after: 0, line: 250 },
-          keepNext: together && (notesFollow || rowIndex < rows.length - 1),
+          spacing: { after: 0, line: LINE },
+          keepNext: keep(rowIndex),
           children: runs(breakable(cell), { size, bold: rowIndex === 0 }),
         })],
       })),
@@ -142,8 +183,8 @@ function table(rows, available, notesFollow = false) {
 function chapterHeading(text) {
   const chapter = /^(บทที่ \d+)\s+(.+)$/.exec(text);
   const children = chapter
-    ? [new TextRun({ text: chapter[1], font: FONT }), new TextRun({ text: chapter[2], font: FONT, break: 1 })]
-    : [new TextRun({ text, font: FONT })];
+    ? [new TextRun({ language: LANGUAGE, text: thaiBreaks(chapter[1]), font: FONT }), new TextRun({ language: LANGUAGE, text: thaiBreaks(chapter[2]), font: FONT, break: 1 })]
+    : [new TextRun({ language: LANGUAGE, text: thaiBreaks(text), font: FONT })];
   return new Paragraph({ heading: HeadingLevel.HEADING_1, alignment: AlignmentType.CENTER, pageBreakBefore: true, children });
 }
 
@@ -193,10 +234,10 @@ while (index < lines.length) {
     if (heading[1].length === 2) {
       chapter = text;
       if (bodyStart === null && /^บทที่ 1 /.test(text)) bodyStart = blocks.length;
-      push(chapterHeading(text));
+      push(chapterHeading(text), false, "chapter");
     } else {
       const level = heading[1].length === 3 ? HeadingLevel.HEADING_2 : HeadingLevel.HEADING_3;
-      push(new Paragraph({ heading: level, children: [new TextRun({ text, font: FONT })] }));
+      push(new Paragraph({ heading: level, children: textRuns(thaiBreaks(text), { size: heading[1].length === 3 ? 36 : 34 }) }), false, "heading");
     }
     index += 1;
     continue;
@@ -238,9 +279,9 @@ while (index < lines.length) {
       }
       index += 1;
     }
-    nodes.push(table(rows, landscape ? LANDSCAPE_WIDTH : PORTRAIT_WIDTH, notes.length > 0));
+    nodes.push(table(rows, landscape ? LANDSCAPE_WIDTH : PORTRAIT_WIDTH, notes.length > 0, landscape));
     notes.forEach((note, position) => nodes.push(paragraph(note, {
-      size: 17, italics: true, color: MUTED, after: 60, keepNext: position < notes.length - 1,
+      size: SMALL, italics: true, after: 60, keepNext: position < notes.length - 1,
     })));
     nodes.push(new Paragraph({ spacing: { after: 160 }, children: [] }));
     push(nodes, landscape);
@@ -250,11 +291,7 @@ while (index < lines.length) {
   if (line.startsWith(">")) {
     const text = [];
     while (index < lines.length && lines[index].startsWith(">")) { text.push(lines[index].replace(/^>\s?/, "")); index += 1; }
-    push(paragraph(text.join(" "), {
-      indent: { left: 300, right: 200 }, after: 180,
-      border: { left: { style: BorderStyle.SINGLE, size: 18, color: ACCENT, space: 10 } },
-      shading: { type: ShadingType.CLEAR, fill: "F0F4F8", color: "auto" },
-    }));
+    push(paragraph(text.join(" "), { indent: { left: 720, right: 360 }, after: 180 }));
     continue;
   }
 
@@ -266,12 +303,15 @@ while (index < lines.length) {
     const nodes = [];
     while (index < lines.length) {
       const item = ordered ? /^(\s*)(\d+)\. (.+)$/.exec(lines[index]) : /^(\s*)- (.+)$/.exec(lines[index]);
-      if (!item) break;
-      const text = ordered ? item[3] : item[2];
+      // Indented bullets under a numbered item stay in the same list, so the numbering carries on after them.
+      const nested = ordered && !item ? /^(\s{2,})- (.+)$/.exec(lines[index]) : null;
+      if (!item && !nested) break;
       nodes.push(new Paragraph({
-        children: runs(text),
-        numbering: { reference: ordered ? "numbers" : "bullets", level: item[1].length >= 2 ? 1 : 0, instance: listInstance },
-        spacing: { after: 70, line: 300 },
+        children: runs(nested ? nested[2] : ordered ? item[3] : item[2]),
+        numbering: nested
+          ? { reference: "bullets", level: 1, instance: listInstance }
+          : { reference: ordered ? "numbers" : "bullets", level: item[1].length >= 2 ? 1 : 0, instance: listInstance },
+        spacing: { after: 70, line: LINE },
       }));
       index += 1;
     }
@@ -283,9 +323,8 @@ while (index < lines.length) {
   // A line that is only inline code is a formula: centre it.
   if (/^`[^`]+`$/.test(line.trim())) {
     push(new Paragraph({
-      alignment: AlignmentType.CENTER, spacing: { before: 80, after: 160 },
-      shading: { type: ShadingType.CLEAR, fill: "F0F4F8", color: "auto" },
-      children: [new TextRun({ text: line.trim().slice(1, -1), font: MONO, size: BODY, color: "102A43" })],
+      alignment: AlignmentType.CENTER, spacing: { before: 80, after: 160, line: LINE },
+      children: textRuns(line.trim().slice(1, -1), { size: BODY, color: INK }),
     }));
     index += 1;
     continue;
@@ -304,9 +343,10 @@ while (index < lines.length) {
   } else if (chapter === "คำนำ" && joined.length < 30) {
     push(paragraph(joined, { alignment: AlignmentType.RIGHT, after: 60 }));
   } else if (joined.startsWith("ที่มา:")) {
-    push(paragraph(joined, { size: 19, color: MUTED, after: 160 }), false, "paragraph");
+    push(paragraph(joined, { size: SMALL, after: 160 }), false, "paragraph");
   } else {
-    push(paragraph(joined, { indent: { firstLine: FIRST_LINE } }), false, "paragraph");
+    // Body text is justified the Thai way, which spreads the spacing within each line.
+    push(paragraph(joined, { indent: { firstLine: FIRST_LINE }, alignment: AlignmentType.THAI_DISTRIBUTE }), false, "paragraph");
   }
 }
 if (pendingTableCaption) throw new Error(`caption without a table: ${pendingTableCaption[1]}`);
@@ -316,46 +356,63 @@ if (bodyStart === null) throw new Error('no "## บทที่ 1 ..." heading f
 const page = (landscape, pageNumbers) => ({
   page: {
     size: { width: 11906, height: 16838, orientation: landscape ? PageOrientation.LANDSCAPE : PageOrientation.PORTRAIT },
-    margin: { top: 1134, bottom: 1134, left: 1134, right: 1134 },
+    margin: landscape ? LANDSCAPE_MARGIN : MARGIN,
     pageNumbers,
   },
 });
-const header = new Header({ children: [new Paragraph({
-  alignment: AlignmentType.RIGHT,
-  children: [new TextRun({ text: "QQQ Volatility Forecasting", font: FONT, size: 16, color: MUTED })],
-})] });
 const pageNumberFooter = () => new Footer({ children: [new Paragraph({
   alignment: AlignmentType.CENTER,
-  children: [new TextRun({ children: [PageNumber.CURRENT], font: FONT, size: 18, color: MUTED })],
+  children: [new TextRun({ language: LANGUAGE, children: [PageNumber.CURRENT], font: FONT, size: BODY, color: INK })],
 })] });
 
 const centred = (text, size, { bold = false, before = 0, after = 160 } = {}) => new Paragraph({
-  alignment: AlignmentType.CENTER, spacing: { before, after, line: 340 },
-  children: [new TextRun({ text, font: FONT, size, bold, color: INK })],
+  alignment: AlignmentType.CENTER, spacing: { before, after, line: LINE },
+  children: [new TextRun({ language: LANGUAGE, text, font: FONT, size, bold, color: INK })],
 });
 
-// The front cover and the inner title page carry the same information.
+// "นายพิทวัส เฉิน 67011509" becomes three aligned columns: first name, surname, student ID.
+function authorTable() {
+  const none = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
+  const borders = { top: none, bottom: none, left: none, right: none };
+  const widths = [1900, 1900, 1500];
+  const cell = (text, width) => new TableCell({
+    width: { size: width, type: WidthType.DXA }, borders,
+    children: [new Paragraph({ spacing: { after: 80, line: LINE },
+      children: [new TextRun({ language: LANGUAGE, text, font: FONT, size: BODY, color: INK })] })],
+  });
+  return new Table({
+    alignment: AlignmentType.CENTER, width: { size: widths.reduce((a, b) => a + b, 0), type: WidthType.DXA },
+    columnWidths: widths,
+    borders: { top: none, bottom: none, left: none, right: none, insideHorizontal: none, insideVertical: none },
+    rows: meta.authors.map((author) => {
+      const parts = author.trim().split(/\s+/);
+      const id = /^\d+$/.test(parts[parts.length - 1]) ? parts.pop() : "";
+      return new TableRow({ children: [cell(parts[0] || "", widths[0]), cell(parts.slice(1).join(" "), widths[1]), cell(id, widths[2])] });
+    }),
+  });
+}
+
+// One front cover; the blank flyleaf and the inner title page were removed by the authors.
 function titlePage() {
   return [
-    centred("รายงานโครงงาน", 30, { bold: true, before: 1500, after: 500 }),
-    centred(title, 32, { bold: true, after: 200 }),
-    centred(meta.englishTitle || "", 24, { after: 1500 }),
-    centred("จัดทำโดย", 24, { after: 200 }),
-    ...meta.authors.map((author) => centred(author, 24, { after: 120 })),
-    centred("เสนอ", 24, { before: 1100, after: 200 }),
-    centred(meta.advisor || "", 24, { after: 1500 }),
-    centred(meta.course || "", 22, { after: 120 }),
-    centred(meta.term || "", 22, { after: 120 }),
-    centred(meta.institution || "", 22, { after: 0 }),
+    centred("รายงานโครงงาน", 40, { bold: true, before: 600, after: 600 }),
+    centred(title, 40, { bold: true, after: 200 }),
+    centred(meta.englishTitle || "", BODY, { after: 1400 }),
+    centred("จัดทำโดย", BODY, { bold: true, after: 200 }),
+    authorTable(),
+    centred("เสนอ", BODY, { bold: true, before: 1200, after: 200 }),
+    centred(meta.advisor || "", BODY, { after: 1400 }),
+    centred(meta.course || "", BODY, { after: 120 }),
+    centred(meta.term || "", BODY, { after: 120 }),
+    centred(meta.institution || "", BODY, { after: 0 }),
   ];
 }
-const pageBreak = () => new Paragraph({ children: [new PageBreak()] });
-const coverSection = [...titlePage(), pageBreak(), pageBreak(), ...titlePage()];
+const coverSection = titlePage();
 
 // "สารบัญ" itself is not a heading, so it does not list itself.
 const contents = [
   new Paragraph({ style: "FrontTitle", alignment: AlignmentType.CENTER, pageBreakBefore: true,
-    children: [new TextRun({ text: "สารบัญ", font: FONT })] }),
+    children: [new TextRun({ language: LANGUAGE, text: "สารบัญ", font: FONT })] }),
   new TableOfContents("สารบัญ", { hyperlink: true, headingStyleRange: "1-2" }),
   chapterHeading("สารบัญรูป"),
   new TableOfContents("สารบัญรูป", { hyperlink: true, stylesWithLevels: [new StyleLevel("FigureCaption", 1)] }),
@@ -368,6 +425,18 @@ blocks.forEach((block, position) => {
   const after = blocks[position + 1];
   if (block.kind === "paragraph" && before && after && before.landscape && after.landscape) block.landscape = true;
 });
+// A heading (and its opening paragraph) right before a wide table moves onto the table's
+// landscape page, so the portrait page before it is not left holding a heading alone.
+blocks.forEach((block, position) => {
+  if (!block.landscape || (blocks[position - 1] && blocks[position - 1].landscape)) return;
+  let start = position;
+  while (start > 0 && position - start < 3 && ["heading", "chapter", "paragraph"].includes(blocks[start - 1].kind)) {
+    start -= 1;
+    if (blocks[start].kind === "chapter") break;
+  }
+  while (start < position && blocks[start].kind === "paragraph") start += 1;
+  for (let moved = start; moved < position; moved += 1) blocks[moved].landscape = true;
+});
 
 const frontBlocks = blocks.slice(0, bodyStart);
 if (frontBlocks.some((block) => block.landscape)) throw new Error("the preface and abstract cannot hold a wide table");
@@ -376,7 +445,9 @@ const frontSection = [...frontBlocks.flatMap((block) => block.nodes), ...content
 const bodySections = [];
 let current = null;
 for (const block of blocks.slice(bodyStart)) {
-  if (!current || block.landscape !== current.landscape) {
+  // A chapter that opens on a landscape page after another landscape page starts its own section:
+  // inside one section Word adds a blank page before the chapter's page break.
+  if (!current || block.landscape !== current.landscape || (block.landscape && block.kind === "chapter")) {
     current = { landscape: block.landscape, children: [] };
     bodySections.push(current);
   }
@@ -385,8 +456,8 @@ for (const block of blocks.slice(bodyStart)) {
 
 const headingStyle = (id, name, size, before, after) => ({
   id, name, basedOn: "Normal", next: "Normal", quickFormat: true,
-  run: { size, bold: true, font: FONT, color: id === "Heading1" ? INK : ACCENT },
-  paragraph: { spacing: { before, after, line: 340 }, keepNext: true, outlineLevel: Number(id.slice(-1)) - 1 },
+  run: { size, bold: true, font: FONT, color: INK },
+  paragraph: { spacing: { before, after, line: LINE }, keepNext: true, outlineLevel: Number(id.slice(-1)) - 1 },
 });
 const plainStyle = (id, run, paragraphOptions = {}) => ({
   id, name: id, basedOn: "Normal", next: "Normal", quickFormat: true, run: { font: FONT, ...run }, paragraph: paragraphOptions,
@@ -397,14 +468,14 @@ const document = new Document({
   title,
   description: "Project report generated from docs/report/REPORT_DRAFT.md",
   styles: {
-    default: { document: { run: { font: FONT, size: BODY, color: INK } } },
+    default: { document: { run: { font: FONT, size: BODY, color: INK, language: LANGUAGE } } },
     paragraphStyles: [
-      headingStyle("Heading1", "Heading 1", 34, 0, 360),
-      headingStyle("Heading2", "Heading 2", 26, 300, 140),
-      headingStyle("Heading3", "Heading 3", 23, 220, 120),
-      plainStyle("FrontTitle", { size: 34, bold: true, color: INK }, { spacing: { after: 360, line: 340 } }),
-      plainStyle("FigureCaption", { size: 20, color: INK }),
-      plainStyle("TableCaption", { size: 20, color: INK }),
+      headingStyle("Heading1", "Heading 1", 40, 0, 360),
+      headingStyle("Heading2", "Heading 2", 36, 280, 140),
+      headingStyle("Heading3", "Heading 3", 34, 200, 100),
+      plainStyle("FrontTitle", { size: 40, bold: true, color: INK }, { spacing: { after: 360, line: LINE } }),
+      plainStyle("FigureCaption", { size: BODY, color: INK }),
+      plainStyle("TableCaption", { size: BODY, color: INK }),
     ],
   },
   numbering: {
@@ -423,7 +494,7 @@ const document = new Document({
   },
 
   sections: [
-    // Covers and flyleaf: no header, no page number.
+    // Front cover: no page number.
     { properties: page(false), children: coverSection },
     // Preface to the list of tables: Thai-letter page numbers (ก, ข, ค, ...).
     { properties: page(false, { start: 1, formatType: NumberFormat.THAI_LETTERS }),
@@ -432,7 +503,6 @@ const document = new Document({
     ...bodySections.map((section, position) => ({
       properties: page(section.landscape, position === 0
         ? { start: 1, formatType: NumberFormat.DECIMAL } : { formatType: NumberFormat.DECIMAL }),
-      headers: { default: header },
       footers: { default: pageNumberFooter() },
       children: section.children,
     })),

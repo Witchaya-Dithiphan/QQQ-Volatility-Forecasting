@@ -86,6 +86,16 @@ CLAUDE.local.md
 .codex/
 .superpowers/
 
+# Working notes from while the project was being built: day-by-day plans, step-by-step
+# implementation plans and hand-over notes. The results they led to are in docs/ and the report.
+docs/plan/
+docs/superpowers/
+docs/archive/*
+!docs/archive/REPORT_DRAFT_previous_format.md
+
+# Lock files Word and PowerPoint leave next to an open document
+~$*
+
 # Operating-system files
 .DS_Store
 Thumbs.db
@@ -102,3 +112,4 @@ site/
 # Node packages installed for the report build tool
 node_modules/
 package-lock.json
+docs/report/tools/package.json

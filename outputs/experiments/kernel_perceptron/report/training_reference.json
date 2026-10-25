@@ -1,0 +1,30 @@
+[
+  {
+    "converged": true,
+    "epochs": 144,
+    "first_update_count_mismatch_epoch": 15,
+    "interpretation": "floating-point order can change updates near zero; both runs still converge",
+    "reference": "sklearn RBF matrix + recomputed dual decision at each step",
+    "same_update_history": false,
+    "saved_epochs": 139,
+    "saved_validation_average_precision": 0.1732138615532917,
+    "train_accuracy": 1.0,
+    "validation_average_precision": 0.1744365473049269,
+    "validation_label_agreement": 0.967654986522911,
+    "variant": "with_spike"
+  },
+  {
+    "converged": true,
+    "epochs": 142,
+    "first_update_count_mismatch_epoch": null,
+    "interpretation": "floating-point order can change updates near zero; both runs still converge",
+    "reference": "sklearn RBF matrix + recomputed dual decision at each step",
+    "same_update_history": true,
+    "saved_epochs": 142,
+    "saved_validation_average_precision": 0.14599396309004614,
+    "train_accuracy": 1.0,
+    "validation_average_precision": 0.14599396309004614,
+    "validation_label_agreement": 1.0,
+    "variant": "non_spike"
+  }
+]

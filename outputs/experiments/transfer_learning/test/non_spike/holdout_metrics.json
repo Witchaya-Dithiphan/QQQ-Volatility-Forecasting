@@ -1,0 +1,221 @@
+{
+ "rows": 39,
+ "positives": 2,
+ "models": {
+  "G-full": {
+   "point": {
+    "average_precision": 1.0,
+    "roc_auc": 1.0,
+    "f1": 0.8,
+    "recall": 1.0,
+    "precision": 0.6666666666666666,
+    "specificity": 0.972972972972973,
+    "accuracy": 0.9743589743589743,
+    "confusion_matrix": [
+     [
+      36,
+      1
+     ],
+     [
+      0,
+      2
+     ]
+    ]
+   }
+  },
+  "G-probe": {
+   "point": {
+    "average_precision": 1.0,
+    "roc_auc": 1.0,
+    "f1": 0.6666666666666666,
+    "recall": 1.0,
+    "precision": 0.5,
+    "specificity": 0.9459459459459459,
+    "accuracy": 0.9487179487179487,
+    "confusion_matrix": [
+     [
+      35,
+      2
+     ],
+     [
+      0,
+      2
+     ]
+    ]
+   }
+  },
+  "G-scratch": {
+   "point": {
+    "average_precision": 1.0,
+    "roc_auc": 1.0,
+    "f1": 1.0,
+    "recall": 1.0,
+    "precision": 1.0,
+    "specificity": 1.0,
+    "accuracy": 1.0,
+    "confusion_matrix": [
+     [
+      37,
+      0
+     ],
+     [
+      0,
+      2
+     ]
+    ]
+   }
+  },
+  "G-ssl": {
+   "point": {
+    "average_precision": 1.0,
+    "roc_auc": 1.0,
+    "f1": 0.8,
+    "recall": 1.0,
+    "precision": 0.6666666666666666,
+    "specificity": 0.972972972972973,
+    "accuracy": 0.9743589743589743,
+    "confusion_matrix": [
+     [
+      36,
+      1
+     ],
+     [
+      0,
+      2
+     ]
+    ]
+   }
+  },
+  "T-full": {
+   "point": {
+    "average_precision": 0.04643206256109482,
+    "roc_auc": 0.17567567567567566,
+    "f1": 0.0,
+    "recall": 0.0,
+    "precision": 0.0,
+    "specificity": 0.6486486486486487,
+    "accuracy": 0.6153846153846154,
+    "confusion_matrix": [
+     [
+      24,
+      13
+     ],
+     [
+      2,
+      0
+     ]
+    ]
+   }
+  },
+  "T-probe": {
+   "point": {
+    "average_precision": 0.04206349206349206,
+    "roc_auc": 0.08108108108108103,
+    "f1": 0.0,
+    "recall": 0.0,
+    "precision": 0.0,
+    "specificity": 0.7837837837837838,
+    "accuracy": 0.7435897435897436,
+    "confusion_matrix": [
+     [
+      29,
+      8
+     ],
+     [
+      2,
+      0
+     ]
+    ]
+   }
+  },
+  "T-scratch": {
+   "point": {
+    "average_precision": 0.042483660130718956,
+    "roc_auc": 0.09459459459459457,
+    "f1": 0.0,
+    "recall": 0.0,
+    "precision": 0.0,
+    "specificity": 0.2702702702702703,
+    "accuracy": 0.2564102564102564,
+    "confusion_matrix": [
+     [
+      10,
+      27
+     ],
+     [
+      2,
+      0
+     ]
+    ]
+   }
+  },
+  "T-ssl": {
+   "point": {
+    "average_precision": 0.04390681003584229,
+    "roc_auc": 0.1351351351351351,
+    "f1": 0.0,
+    "recall": 0.0,
+    "precision": 0.0,
+    "specificity": 0.6216216216216216,
+    "accuracy": 0.5897435897435898,
+    "confusion_matrix": [
+     [
+      23,
+      14
+     ],
+     [
+      2,
+      0
+     ]
+    ]
+   }
+  },
+  "mlp": {
+   "point": {
+    "average_precision": 0.8333333333333333,
+    "roc_auc": 0.9864864864864865,
+    "f1": 0.6666666666666666,
+    "recall": 0.5,
+    "precision": 1.0,
+    "specificity": 1.0,
+    "accuracy": 0.9743589743589743,
+    "confusion_matrix": [
+     [
+      37,
+      0
+     ],
+     [
+      1,
+      1
+     ]
+    ]
+   }
+  },
+  "baseline_persistence": {
+   "point": {
+    "average_precision": 0.1380952380952381,
+    "roc_auc": 0.7432432432432432,
+    "f1": 0.0,
+    "recall": 0.0,
+    "precision": null,
+    "specificity": 1.0,
+    "accuracy": 0.9487179487179487,
+    "confusion_matrix": [
+     [
+      37,
+      0
+     ],
+     [
+      2,
+      0
+     ]
+    ]
+   }
+  }
+ },
+ "note": "Blind but tiny: AP with this few positive days is descriptive only; see holdout_predictions.csv day by day.",
+ "dates": [
+  "2026-08-24",
+  "2026-10-16"
+ ]
+}

@@ -1,6 +1,6 @@
 # random_forest — classification · 🟡 รอ leaderboard
 
-**เจ้าของ:** Codex · **สเปก:** [Random Forest card](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ผู้รับผิดชอบ:** วิชญา · **สเปก:** [Random Forest card](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 

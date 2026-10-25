@@ -1,6 +1,6 @@
 # adaboost — classification · 🟡 รอ leaderboard
 
-**เจ้าของ:** Codex (T3 ทำต่อด้วย Claude Code ตามคำขอเจ้าของโปรเจกต์) · **สเปก:** [card #15](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ผู้รับผิดชอบ:** วิชญา (ตั้งแต่ขั้น T3 พิทวัสทำต่อ) · **สเปก:** [card #15](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 **Dependency:** weighted stump จาก `decision_tree` (T1) — ใช้ `DecisionTree(max_depth=1, min_samples_leaf=1)` ตรง ๆ ไม่ได้แก้ไฟล์นั้น
 

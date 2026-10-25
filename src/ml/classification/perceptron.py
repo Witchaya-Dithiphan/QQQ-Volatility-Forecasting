@@ -35,7 +35,7 @@ class Perceptron(BaseModel):
 
         weights = np.zeros(X.shape[1])
         intercept = 0.0
-        self.history_ = {"iteration": [], "loss": []}
+        self.history_ = {"iteration": [], "loss": [], "updates": []}
 
         epoch = 0
         for epoch in range(1, self.max_epochs + 1):
@@ -48,6 +48,7 @@ class Perceptron(BaseModel):
             margin = signed * (X @ weights + intercept)
             self.history_["iteration"].append(epoch)
             self.history_["loss"].append(float(np.mean(np.maximum(0.0, -margin))))
+            self.history_["updates"].append(mistakes)
             if mistakes == 0:
                 break
 

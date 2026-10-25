@@ -1,7 +1,7 @@
 # knn — classification · ✅ เสร็จ
 
-**เจ้าของ:** Claude · **สเปก:** [card #7](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
-**ปลดล็อก:** `stacking` ของ Codex ใช้ตัวนี้เป็น base learner
+**ผู้รับผิดชอบ:** พิทวัส · **สเปก:** [card #7](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ปลดล็อก:** `stacking` ของวิชญา ใช้ตัวนี้เป็น base learner
 
 ## ผล (validation)
 

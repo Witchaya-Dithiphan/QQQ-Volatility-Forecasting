@@ -1,0 +1,11 @@
+{
+ "status": "completed",
+ "post_hoc": true,
+ "evaluated_at_utc": "2026-10-24T22:50:52+00:00",
+ "reason": "Post-submission log-HAR study; arms and kappa locked on Validation (decision.json) before this run. Test had already been opened for the 19-model study.",
+ "locked_model": "HX-prior: transfer ridge towards the ETF prior, kappa chosen on Validation RMSE",
+ "decision_sha256": "42aa55115d048260f001a6bee6df7ffd4edb8fa025af7b7eb57f8509b97d16f9",
+ "test_sha256": "5e8ac488cb895a8899abd9b3ae9193b4dc6ebda2e77b79982cef4f5ea9bf7295",
+ "test_rows": 373,
+ "holdout_rows": 39
+}

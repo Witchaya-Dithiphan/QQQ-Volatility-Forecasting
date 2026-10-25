@@ -1,0 +1,22 @@
+{
+  "evaluated_at_utc": "2026-10-24T12:13:20+00:00",
+  "reason": "Post-submission exploratory Kernel Perceptron evaluation; hyperparameters selected on Validation",
+  "runs": [
+    {
+      "config_sha256": "decd19ab406a9efa7d0527408114e1f92d9fe0cf879f3896ef7594cea0ebdaf0",
+      "gamma": 1.0,
+      "model_sha256": "5d9f4d29e6cfcd45a46b33891221e9924ec7cd8d3eaf5c27f619c716c18d7a2b",
+      "selected": "kernel_perceptron-02",
+      "variant": "with_spike"
+    },
+    {
+      "config_sha256": "9ed31004a4d6aa46e4e74a47498da4c8e2624a5515b650a3fbf3f6d164661a65",
+      "gamma": 0.75,
+      "model_sha256": "98694611f2edbae15d285abac109304ddd953e59d68729f27246244fbdd5c7a3",
+      "selected": "kernel_perceptron-01",
+      "variant": "non_spike"
+    }
+  ],
+  "test_rows": 373,
+  "test_sha256": "5e8ac488cb895a8899abd9b3ae9193b4dc6ebda2e77b79982cef4f5ea9bf7295"
+}

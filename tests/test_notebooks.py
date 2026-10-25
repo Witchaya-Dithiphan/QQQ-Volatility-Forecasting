@@ -49,3 +49,41 @@ def test_notebook_is_saved_executed(name):
     code = [cell for cell in _cells(name) if cell["cell_type"] == "code"]
     assert all(cell["execution_count"] is not None for cell in code)
     assert not any(output.get("output_type") == "error" for cell in code for output in cell["outputs"])
+
+
+@pytest.mark.parametrize("name,prefix", [("04_classification.ipynb", "kernel-train"),
+                                         ("05_results_comparison.ipynb", "kernel-test")])
+def test_kernel_supplement_has_ranking_and_rendered_graphs(name, prefix):
+    cells = {cell.get("id"): cell for cell in _cells(name)}
+    ranking = cells[f"{prefix}-board"]
+    plots = cells[f"{prefix}-plots"]
+    assert "kernel_perceptron" in "".join(ranking["source"])
+    assert "AP rank" in "".join(ranking["source"])
+    assert len([output for output in plots["outputs"]
+                if "image/png" in output.get("data", {})]) == 2
+    analysis = cells["kernel-analysis-train" if prefix == "kernel-train" else "kernel-analysis-test"]
+    assert any("image/png" in output.get("data", {}) for output in analysis["outputs"])
+
+
+@pytest.mark.parametrize("name,prefix", [("04_classification.ipynb", "transfer-train"),
+                                         ("05_results_comparison.ipynb", "transfer-test")])
+def test_transfer_supplement_has_ranking_and_rendered_graphs(name, prefix):
+    cells = {cell.get("id"): cell for cell in _cells(name)}
+    ranking = "".join(cells[f"{prefix}-board"]["source"])
+    assert "T-full" in ranking and "AP rank" in ranking and "post-presentation" in ranking
+    for cell_id in (f"{prefix}-plots", f"transfer-analysis-{prefix.split('-')[1]}"):
+        outputs = cells[cell_id]["outputs"]
+        assert any("image/png" in output.get("data", {}) for output in outputs), cell_id
+    # Both variants are drawn, like every other model in the study.
+    assert len([o for o in cells[f"{prefix}-plots"]["outputs"] if "image/png" in o.get("data", {})]) == 2
+
+
+@pytest.mark.parametrize("name,prefix", [("03_regression.ipynb", "logh-train"),
+                                         ("05_results_comparison.ipynb", "logh-test")])
+def test_log_har_supplement_has_ranking_and_rendered_graphs(name, prefix):
+    cells = {cell.get("id"): cell for cell in _cells(name)}
+    ranking = "".join(cells[f"{prefix}-board"]["source"])
+    assert "HX-prior" in ranking and "RMSE rank" in ranking and "post-presentation" in ranking
+    for cell_id in (f"{prefix}-plots", f"logh-analysis-{prefix.split('-')[1]}"):
+        outputs = cells[cell_id]["outputs"]
+        assert any("image/png" in output.get("data", {}) for output in outputs), cell_id

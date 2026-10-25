@@ -1,6 +1,6 @@
 # agglomerative — clustering · ✅ เสร็จ
 
-**เจ้าของ:** Claude · **สเปก:** [card #19](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ผู้รับผิดชอบ:** พิทวัส · **สเปก:** [card #19](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 
@@ -30,7 +30,7 @@ Agglomerative ให้ **labelling ของ train set** ไม่ใช่ก�
 แล้วส่งจุดใหม่ไป centroid ที่ใกล้ที่สุด
 
 **ส่วนขยายนี้เราเพิ่มเอง ไม่ใช่ส่วนหนึ่งของอัลกอริทึม → ต้องประกาศเป็นข้อจำกัดในรายงาน**
-(ตรงกับ R9 ใน `RISKS_AND_DOD.md`) · `predict` บน train set คืน label เดิมที่ fit ไว้ ไม่ใช่
+`predict` บน train set คืน label เดิมที่ fit ไว้ ไม่ใช่
 ผลของ nearest-centroid เพื่อไม่ให้ผลที่รายงานเพี้ยนจากการ approximate ตัวเอง
 
 ## Parity

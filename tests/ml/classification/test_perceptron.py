@@ -1,9 +1,12 @@
 import numpy as np
 import pytest
+from scipy.optimize import linprog
 from sklearn.linear_model import Perceptron as SkPerceptron
 
 from src.ml.classification.perceptron import Perceptron
 from src.ml.core.compare import assert_parity
+from src.ml.core.data import load
+from src.ml.core.preprocess import Standardizer
 
 
 @pytest.fixture
@@ -46,6 +49,23 @@ def test_stops_early_once_an_epoch_is_mistake_free():
     X = np.array([[-2.0], [2.0]])
     model = Perceptron(learning_rate=0.1, max_epochs=1000).fit(X, np.array([0, 1]))
     assert model.n_epochs_ < 1000
+    assert model.history_["updates"][-1] == 0
+
+
+@pytest.mark.parametrize("variant", ["with_spike", "non_spike"])
+def test_qqq_train_cannot_be_separated_by_a_linear_boundary(variant):
+    data = load(variant)
+    X = Standardizer().fit_transform(data.train.X)
+    signed = 2 * data.train.y_classification - 1
+    design = np.column_stack((X, np.ones(len(X))))
+    result = linprog(
+        np.zeros(design.shape[1]),
+        A_ub=-signed[:, None] * design,
+        b_ub=-np.ones(len(X)),
+        bounds=[(None, None)] * design.shape[1],
+        method="highs",
+    )
+    assert result.status == 2, result.message  # infeasible: no strict linear separator
 
 
 def test_output_is_a_decision_score_not_a_probability(data):
