@@ -1,6 +1,6 @@
 # slp — classification · ✅ เสร็จ
 
-**เจ้าของ:** Claude · **สเปก:** [card #9](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ผู้รับผิดชอบ:** พิทวัส · **สเปก:** [card #9](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 

@@ -2,7 +2,7 @@
 
 Hinge loss has kinks, so two correct solvers can stop at slightly different weights.
 The comparison is therefore on the objective both are minimising, as ADR-002 in
-docs/plan/ARCHITECTURE.md allows for this one model.
+docs/design/ARCHITECTURE.md allows for this one model.
 """
 
 import numpy as np

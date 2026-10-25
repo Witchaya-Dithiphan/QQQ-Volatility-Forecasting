@@ -1,4 +1,4 @@
-"""Strict scratch-vs-reference comparison. Policy: ADR-002 in docs/plan/ARCHITECTURE.md.
+"""Strict scratch-vs-reference comparison. Policy: ADR-002 in docs/design/ARCHITECTURE.md.
 
 The failure message names the worst index and both values because the point of this
 gate is diagnosing the mismatch; "arrays are not almost equal" sends you back to the

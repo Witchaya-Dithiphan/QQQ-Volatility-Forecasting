@@ -1,7 +1,7 @@
 # logistic — classification · ✅ เสร็จ
 
-**เจ้าของ:** Claude · **สเปก:** [card #5](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
-**ปลดล็อก:** `stacking` ของ Codex ครบแล้ว (ต้องการ `logistic` + `knn` + `decision_tree`)
+**ผู้รับผิดชอบ:** พิทวัส · **สเปก:** [card #5](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ปลดล็อก:** `stacking` ของวิชญา ครบแล้ว (ต้องการ `logistic` + `knn` + `decision_tree`)
 
 ## ผล (validation)
 

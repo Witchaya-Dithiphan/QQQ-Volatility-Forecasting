@@ -8,11 +8,8 @@ Python หรือ packages คนละ environment
 เอกสารที่เกี่ยวข้อง:
 
 - [README.md](../../README.md) — ภาพรวมโปรเจกต์และ Quick Start
-- [HANDOFF.md](../archive/HANDOFF.md) — รายละเอียดการส่งต่องานและ data contracts
-- [PHASE2_SPIKE_READINESS.md](../archive/PHASE2_SPIKE_READINESS.md) — หลักฐานการตรวจรับ Phase 2
-- [PROJECT_STATUS.md](../archive/PROJECT_STATUS.md) — สถานะ implementation
-- [MODEL_TRAINING_PLAN.md](../archive/MODEL_TRAINING_PLAN.md) — modeling requirements,
-  inventory 19 รายการ และ implementation milestones; คำสั่ง modeling ในแผนยังไม่พร้อมใช้
+- [PROJECT_GUIDE_TH.md](PROJECT_GUIDE_TH.md) — คำอธิบายทั้งโปรเจกต์ตั้งแต่ข้อมูลจนถึงผล
+- [DATA_PIPELINE_AUDIT.md](../audit/DATA_PIPELINE_AUDIT.md) — ผลตรวจชั้นข้อมูล
 
 > ⚠️ **แก้ไข 2026-10-11:** บันทึกด้านล่างเป็นประวัติ `src/modeling/config_schema.py`,
 > `tests/modeling/test_dependencies.py` และ `python -m src.modeling.config_sync` ถูกลบไปแล้ว
@@ -183,8 +180,8 @@ Raw Snapshot หรือ manifest
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
-Windows อาจ skip tests ที่ต้องใช้ symlink privilege ตามข้อจำกัดที่บันทึกใน
-[PHASE2_SPIKE_READINESS.md](../archive/PHASE2_SPIKE_READINESS.md)
+บน Windows อาจมี test บางข้อถูก skip เพราะต้องใช้สิทธิ์สร้าง symlink ซึ่งเป็นข้อจำกัดของระบบ
+ไม่ใช่ข้อผิดพลาดของโค้ด
 
 ## 8. รันแบบ isolated โดยไม่แก้ artifacts หลัก
 

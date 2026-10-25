@@ -1,6 +1,6 @@
 # perceptron — classification · ✅ เสร็จ (ผลแย่ แต่ถูกต้อง)
 
-**เจ้าของ:** Claude · **สเปก:** [card #8](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ผู้รับผิดชอบ:** พิทวัส · **สเปก:** [card #8](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 
@@ -83,7 +83,7 @@ exact · coefficient ตรง sklearn ที่ **1e-10** ครบทั้ง
 
 การทำซ้ำหลักฐาน: `python -m pytest tests/ml/classification/test_perceptron.py -q` ตรวจ LP และกฎหยุด; รัน `python -m src.ml.run train --model perceptron --variant with_spike --output-root <temporary-directory>` และเปลี่ยน variant เป็น `non_spike` เพื่อดู `history.json` ใน output root แยก
 
-ทดลอง RBF Kernel Perceptron เพิ่มแบบแยกจากโมเดลบังคับแล้ว: ทั้งสอง variants หยุดโดยไม่มีการแก้น้ำหนักและทาย Train ถูกทุกแถว ผลและคำสั่งทำซ้ำอยู่ใน [แผนการลู่เข้า](../../plan/PERCEPTRON_CONVERGENCE_PLAN.md#การทดลองเสริม-rbf-kernel-perceptron) ห้ามนำผลนี้ไประบุว่า Perceptron แบบดั้งเดิมลู่เข้าแล้ว
+ทดลอง RBF Kernel Perceptron เพิ่มแบบแยกจากโมเดลบังคับแล้ว: ทั้งสอง variants หยุดโดยไม่มีการแก้น้ำหนักและทาย Train ถูกทุกแถว ผลและคำสั่งทำซ้ำอยู่ในบันทึกที่ลิงก์ไว้ด้านล่าง ห้ามนำผลนี้ไประบุว่า Perceptron แบบดั้งเดิมลู่เข้าแล้ว
 
 ผล Validation และ Test ที่ประเมินหลังส่งงานของโมเดลเสริม รวม metric, confusion matrix และ receipt อยู่ใน [บันทึก RBF Kernel Perceptron](KERNEL_EXPERIMENT.md) ผล Test นี้ไม่ใช่ผล Test ที่ล็อกไว้ล่วงหน้าของ Perceptron แบบดั้งเดิม
 

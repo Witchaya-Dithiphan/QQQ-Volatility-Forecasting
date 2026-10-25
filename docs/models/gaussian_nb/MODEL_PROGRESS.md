@@ -1,6 +1,6 @@
 # gaussian_nb — classification · ✅ เสร็จ
 
-**เจ้าของ:** Claude · **สเปก:** [card #6](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ผู้รับผิดชอบ:** พิทวัส · **สเปก:** [card #6](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 

@@ -1,6 +1,6 @@
 # simple_linear — regression · ✅ เสร็จ
 
-**เจ้าของ:** Claude · **สเปก:** [card #1](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ผู้รับผิดชอบ:** พิทวัส · **สเปก:** [card #1](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 
@@ -50,7 +50,7 @@ exact · เทียบกับ `LinearRegression(fit_intercept=True)` **ค�
 ## ปัญหาที่เจอและแก้แล้ว
 
 **trainer ไม่เคารพ `preprocess` ใน config** — พบตอนจะเริ่มตัวนี้ว่า trainer standardize ทุกโมเดลเสมอ
-ทั้งที่ config ระบุ `preprocess: none` ให้ 7 โมเดล (รวม `simple_linear` และ 5 ตัวของอีก agent)
+ทั้งที่ config ระบุ `preprocess: none` ให้ 7 โมเดล (รวม `simple_linear` และ 5 ตัวในกลุ่ม tree)
 
 parity ไม่พัง (ทั้งสองฝั่งได้ X เดียวกัน) แต่รายงานจะบรรยาย preprocessing ผิด และ
 `gaussian_nb` จะได้ `var_smoothing` คนละสเกลกับที่ตั้งใจ (เพราะมันนิยามเทียบกับ variance สูงสุด)

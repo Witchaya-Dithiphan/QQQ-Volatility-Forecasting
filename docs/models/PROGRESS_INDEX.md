@@ -1,16 +1,18 @@
 # MASTER PROGRESS INDEX — 19 โมเดล
 
 > **ดัชนีเท่านั้น** — รายละเอียดอยู่ใน `docs/models/<name>/MODEL_PROGRESS.md` ของแต่ละตัว
-> สเปกของแต่ละโมเดลอยู่ใน [`MODEL_CARDS.md`](../plan/MODEL_CARDS.md)
+> สเปกของแต่ละโมเดลอยู่ใน [`MODEL_CARDS.md`](../design/MODEL_CARDS.md)
 
 **การทดลองเสริมหลังส่งงาน:** [RBF Kernel Perceptron](perceptron/KERNEL_EXPERIMENT.md) ลู่เข้าบน Train ทั้งสอง variants และมีผล Validation/Test แยกต่างหาก ไม่เพิ่มเข้า inventory 19 โมเดลเดิม
 
 **Transfer learning (หลังนำเสนอ):** [Transformer/GRU ที่ pretrain บน ETF 10 ตัวแล้ว fine-tune กับ QQQ](transfer_learning/EXPERIMENT.md) เขียนด้วย NumPy รวมถึง autograd และรันทั้งสอง variants ผลคือ GRU เสมอกับ MLP, Transformer แย่กว่า baseline และ pretraining ช่วยเฉพาะ Transformer ผล Test เป็น post-hoc และไม่เปลี่ยน leaderboard ของ 19 โมเดลเดิม
 
+**Log-HAR และ pooled-prior transfer (หลังนำเสนอ):** [โมเดล HAR ในสเกล log ที่ดึงสัมประสิทธิ์เข้าหาค่าที่ประมาณจาก ETF 10 ตัว](log_har/EXPERIMENT.md) สำหรับงาน regression รันทั้งสอง variants บน Validation ยังไม่ดีกว่า Elastic Net บน Test (post-hoc) ได้ RMSE ต่ำกว่าแต่ช่วงความเชื่อมั่นยังคร่อมศูนย์ และ prior จากตลาดอื่นแทบไม่ช่วย ผลนี้ไม่เปลี่ยน leaderboard ของ 19 โมเดลเดิม
+
 **สถานะรวม (อัปเดต 2026-10-11):** ✅ **ครบ 19/19 โมเดล ทั้งสอง variant** · Phase C เสร็จถึงขั้น finalize: leaderboard, เทียบ with_spike กับ non_spike, feature importance, walk-forward และผล Test (อ่านครั้งเดียว) อยู่ใต้ `outputs/modeling/` · ตารางท้ายไฟล์นี้สร้างจากไฟล์ผลโดยตรง ·
 ชั้นข้อมูลผ่าน audit: [DATA_PIPELINE_AUDIT.md](../audit/DATA_PIPELINE_AUDIT.md)
 
-## ฝั่ง Claude (11 ตัว — ของเรา)
+## ส่วนของพิทวัส (11 ตัว)
 
 | # | โมเดล | task | สถานะ | parity | ผลหลัก (validation, with_spike) | บันทึก |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -26,7 +28,7 @@
 | 10 | `kmeans` | clustering | ✅ | partition ตรง 5/5 · inertia ≤ sklearn | k=2 · silhouette **0.3666** | [↗](kmeans/MODEL_PROGRESS.md) |
 | 11 | `agglomerative` | clustering | ✅ | partition ตรง 10/10 | k=2 ward · silhouette 0.3602 | [↗](agglomerative/MODEL_PROGRESS.md) |
 
-## ฝั่ง Codex (8 ตัว — เจ้าของดูแลเอง)
+## ส่วนของวิชญา (8 ตัว)
 
 | โมเดล | สถานะ | ผลหลัก (validation) | บันทึก |
 | --- | --- | --- | --- |
@@ -45,9 +47,9 @@
 
 ```text
 ทุกตัว ──► src/ml/core/        เสร็จแล้ว ไม่บล็อกใคร
-Codex:  decision_tree ──► random_forest · adaboost · gradient_boosting ──► xgboost
-ข้ามฝั่ง: stacking (Codex) ต้องใช้ logistic + knn (เรา)   ← เหตุผลที่ดึง 2 ตัวนี้ขึ้นมาก่อน
-ฝั่งเรา: ไม่มี dependency ภายใน — ข้ามตัวที่ติดปัญหาไปทำตัวอื่นได้อิสระ
+วิชญา:  decision_tree ──► random_forest · adaboost · gradient_boosting ──► xgboost
+ข้ามส่วน: stacking (วิชญา) ต้องใช้ logistic + knn (พิทวัส)   ← เหตุผลที่ดึง 2 ตัวนี้ขึ้นมาก่อน
+พิทวัส: ไม่มี dependency ภายใน — ข้ามตัวที่ติดปัญหาไปทำตัวอื่นได้อิสระ
 ```
 
 ## สถานะ core framework

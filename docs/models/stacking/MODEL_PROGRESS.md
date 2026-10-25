@@ -1,6 +1,6 @@
 # stacking — classification · 🟡 รอ leaderboard
 
-**เจ้าของ:** Codex (T8 ทำต่อด้วย Claude Code ตามคำขอเจ้าของโปรเจกต์) · **สเปก:** [card #16](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ผู้รับผิดชอบ:** วิชญา (ตั้งแต่ขั้น T8 พิทวัสทำต่อ) · **สเปก:** [card #16](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 **Dependency:** `logistic`, `decision_tree`, `knn` — ใช้ class เดิมทั้งสาม ไม่ได้แก้ไฟล์ใด
 

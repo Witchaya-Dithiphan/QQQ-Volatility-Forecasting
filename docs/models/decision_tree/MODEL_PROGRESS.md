@@ -1,6 +1,6 @@
 # decision_tree — classification · 🟡 รอ leaderboard
 
-**เจ้าของ:** Codex · **สเปก:** [card #11](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ผู้รับผิดชอบ:** วิชญา · **สเปก:** [card #11](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 

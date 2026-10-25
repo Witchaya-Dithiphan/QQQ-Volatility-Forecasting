@@ -65,29 +65,29 @@ np.random.default_rng(42).integers(0, 200, 200)              -> [ 17 154 130  87
 
 | # | ชื่อ (= key ใน config) | task | เจ้าของ | preprocess | candidates | parity | ยาก | ชม. |
 | --- | --- | --- | --- | --- | ---: | --- | --- | ---: |
-| 1 | `simple_linear` | regression | Claude | none | 8 | exact | ง่าย | 1 |
-| 2 | `multiple_linear` | regression | Claude | standardize | 1 | exact | ง่าย | 0.5 |
-| 3 | `polynomial` | regression | Claude | standardize | 16 | exact | ง่าย | 1 |
-| 4 | `elastic_net` ★ | regression | Claude | standardize | 12 | iterative | กลาง | 3 |
-| 5 | `logistic` | classification | Claude | standardize | 6 | iterative | กลาง | 2.5 |
-| 6 | `gaussian_nb` | classification | Claude | none | 3 | exact | ง่าย | 1 |
-| 7 | `knn` | classification | Claude | standardize | 8 | exact | ง่าย | 1.5 |
-| 8 | `perceptron` | classification | Claude | standardize | 3 | iterative | ง่าย | 1.5 |
-| 9 | `slp` | classification | Claude | standardize | 8 | iterative | กลาง | 2.5 |
-| 10 | `kmeans` | clustering | Claude | standardize | 5 | seeded | กลาง | 2 |
-| 11 | `agglomerative` | clustering | Claude | standardize | 10 | exact | กลาง | 2.5 |
-| 12 | `decision_tree` | classification | Codex | none | 6 | exact | กลาง | 3 |
-| 13 | `random_forest` | classification | Codex | none + PCA | 7 | seeded | กลาง | 2.5 |
-| 14 | `gradient_boosting` | classification | Codex | none | 8 | exact | ยาก | 3.5 |
-| 15 | `xgboost` | classification | Codex | none | 8 | exact | ยาก | 4 |
-| 16 | `adaboost` ★ | classification | Codex | none | 6 | exact | กลาง | 3 |
-| 17 | `stacking` | classification | Codex | base-specific | 1 | iterative | ยาก | 3.5 |
-| 18 | `svm` | classification | Codex | standardize + PCA | 12 | iterative | ยาก | 3.5 |
-| 19 | `mlp` | classification | Codex | standardize | 12 | iterative | ยาก | 4 |
+| 1 | `simple_linear` | regression | พิทวัส | none | 8 | exact | ง่าย | 1 |
+| 2 | `multiple_linear` | regression | พิทวัส | standardize | 1 | exact | ง่าย | 0.5 |
+| 3 | `polynomial` | regression | พิทวัส | standardize | 16 | exact | ง่าย | 1 |
+| 4 | `elastic_net` ★ | regression | พิทวัส | standardize | 12 | iterative | กลาง | 3 |
+| 5 | `logistic` | classification | พิทวัส | standardize | 6 | iterative | กลาง | 2.5 |
+| 6 | `gaussian_nb` | classification | พิทวัส | none | 3 | exact | ง่าย | 1 |
+| 7 | `knn` | classification | พิทวัส | standardize | 8 | exact | ง่าย | 1.5 |
+| 8 | `perceptron` | classification | พิทวัส | standardize | 3 | iterative | ง่าย | 1.5 |
+| 9 | `slp` | classification | พิทวัส | standardize | 8 | iterative | กลาง | 2.5 |
+| 10 | `kmeans` | clustering | พิทวัส | standardize | 5 | seeded | กลาง | 2 |
+| 11 | `agglomerative` | clustering | พิทวัส | standardize | 10 | exact | กลาง | 2.5 |
+| 12 | `decision_tree` | classification | วิชญา | none | 6 | exact | กลาง | 3 |
+| 13 | `random_forest` | classification | วิชญา | none + PCA | 7 | seeded | กลาง | 2.5 |
+| 14 | `gradient_boosting` | classification | วิชญา | none | 8 | exact | ยาก | 3.5 |
+| 15 | `xgboost` | classification | วิชญา | none | 8 | exact | ยาก | 4 |
+| 16 | `adaboost` ★ | classification | วิชญา | none | 6 | exact | กลาง | 3 |
+| 17 | `stacking` | classification | วิชญา | base-specific | 1 | iterative | ยาก | 3.5 |
+| 18 | `svm` | classification | วิชญา | standardize + PCA | 12 | iterative | ยาก | 3.5 |
+| 19 | `mlp` | classification | วิชญา | standardize | 12 | iterative | ยาก | 4 |
 
 ★ = extracurricular ที่โจทย์บังคับให้ทำ **ทั้ง scratch และ ready-to-use** และอธิบายกลไกภายในอย่างละเอียด
 
-รวมฝั่ง Claude ≈ 19 ชม. · ฝั่ง Codex ≈ 27 ชม. — ฝั่ง Codex หนักกว่าโดยตั้งใจ เพราะ tree family
+งานของพิทวัสประมาณ 19 ชั่วโมง ของวิชญาประมาณ 27 ชั่วโมง ส่วนของวิชญาหนักกว่าโดยตั้งใจ เพราะ tree family
 reuse กันเองได้สูง (เขียน `_best_split` + stump ครั้งเดียว ใช้ต่อใน DT → RF → GB → XGB → AdaBoost)
 
 **PCA ไม่ใช่โมเดล** แต่เป็น config ของ `random_forest` และ `svm` ตามที่โจทย์ระบุ
@@ -99,7 +99,7 @@ reuse กันเองได้สูง (เขียน `_best_split` + stum
 
 ### 1. `simple_linear` — Simple Linear Regression
 
-**ไฟล์:** `src/ml/regression/simple_linear.py` · Claude · parity **exact**
+**ไฟล์:** `src/ml/regression/simple_linear.py` · พิทวัส · parity **exact**
 
 **กลไก** OLS บนฟีเจอร์เดียว ปิดรูปได้ ไม่ต้องวนซ้ำ
 
@@ -140,7 +140,7 @@ b0 = ȳ - b1·x̄
 
 ### 2. `multiple_linear` — Multiple Linear Regression (pilot)
 
-**ไฟล์:** `src/ml/regression/multiple_linear.py` · Claude · parity **exact**
+**ไฟล์:** `src/ml/regression/multiple_linear.py` · พิทวัส · parity **exact**
 
 **กลไก** ลด `||y - Xb||²` แก้ด้วย pseudo-inverse / lstsq (SVD) ไม่ใช่ `inv(XᵀX)`
 
@@ -179,7 +179,7 @@ b = pinv(X_design) @ y        โดย X_design = [1, X]
 
 ### 3. `polynomial` — Polynomial Regression
 
-**ไฟล์:** `src/ml/regression/polynomial.py` · Claude · parity **exact**
+**ไฟล์:** `src/ml/regression/polynomial.py` · พิทวัส · parity **exact**
 
 **กลไก** ยกกำลังฟีเจอร์เดียว **ไม่มี interaction term** แล้วทำ OLS
 
@@ -220,7 +220,7 @@ degree 3 บนฟีเจอร์ที่มี outlier ทำให้ desi
 
 ### 4. `elastic_net` ★ — Elastic Net (extracurricular, regression)
 
-**ไฟล์:** `src/ml/regression/elastic_net.py` · Claude · parity **iterative**
+**ไฟล์:** `src/ml/regression/elastic_net.py` · พิทวัส · parity **iterative**
 
 > โจทย์บังคับให้โมเดลนี้มี **ทั้ง scratch และ ready-to-use** และต้องอธิบายกลไกภายในอย่างละเอียดในรายงาน
 > card นี้จึงเขียนลึกกว่าตัวอื่น และเนื้อหาส่วน "กลไก" ให้ยกไปใช้ในรายงานได้โดยตรง
@@ -310,7 +310,7 @@ soft-threshold:  S(v, γ) = sign(v)·max(|v| - γ, 0)
 
 ### 5. `logistic` — Logistic Regression
 
-**ไฟล์:** `src/ml/classification/logistic.py` · Claude · parity **iterative**
+**ไฟล์:** `src/ml/classification/logistic.py` · พิทวัส · parity **iterative**
 
 **กลไก** full-batch gradient descent บน weighted BCE + L2 (ตาม config ไม่ใช่ Newton/LBFGS)
 
@@ -395,7 +395,7 @@ objective ลดลงทุก iteration
 
 ### 6. `gaussian_nb` — Gaussian Naive Bayes
 
-**ไฟล์:** `src/ml/classification/gaussian_nb.py` · Claude · parity **exact**
+**ไฟล์:** `src/ml/classification/gaussian_nb.py` · พิทวัส · parity **exact**
 
 **กลไก** ปิดรูปทั้งหมด ไม่มี iteration ไม่มี RNG
 
@@ -441,7 +441,7 @@ log p(x|c) = -0.5·Σ[ log(2π σ²_cj) + (xj - μ_cj)² / σ²_cj ]
 
 ### 7. `knn` — k-Nearest Neighbors
 
-**ไฟล์:** `src/ml/classification/knn.py` · Claude · parity **exact**
+**ไฟล์:** `src/ml/classification/knn.py` · พิทวัส · parity **exact**
 
 **กลไก** ไม่มีการเทรน เก็บ train ไว้แล้วตอนทำนายหาค่าเพื่อนบ้านที่ใกล้ที่สุด k ตัว
 
@@ -486,7 +486,7 @@ probability = vote_class1 / vote_total
 
 ### 8. `perceptron` — Perceptron
 
-**ไฟล์:** `src/ml/classification/perceptron.py` · Claude · parity **iterative**
+**ไฟล์:** `src/ml/classification/perceptron.py` · พิทวัส · parity **iterative**
 
 **กลไก** online mistake-driven update (ไม่มี loss surface ให้ลด ไม่ใช่ gradient descent)
 
@@ -537,7 +537,7 @@ output เป็น **decision score** ไม่ใช่ probability (`output: 
 
 ### 9. `slp` — Single-Layer Perceptron
 
-**ไฟล์:** `src/ml/classification/slp.py` · Claude · parity **iterative**
+**ไฟล์:** `src/ml/classification/slp.py` · พิทวัส · parity **iterative**
 
 **กลไก** 1 ชั้น sigmoid เทรนด้วย mini-batch gradient descent บน BCE — ต่างจาก `perceptron`
 ตรงที่มี activation ต่อเนื่องและมี loss ที่หาอนุพันธ์ได้
@@ -588,7 +588,7 @@ batch=full ต้องให้ผลเท่ากับ full-batch gradient 
 
 ### 10. `mlp` — Multi-Layer Perceptron
 
-**ไฟล์:** `src/ml/classification/mlp.py` · Codex · parity **iterative**
+**ไฟล์:** `src/ml/classification/mlp.py` · วิชญา · parity **iterative**
 
 **กลไก** ชั้นซ่อน ReLU + output sigmoid เทรนด้วย backpropagation
 
@@ -649,7 +649,7 @@ probability ต่างสูงสุด 3.3e-16, label ต่าง 0.
 
 ### 11. `decision_tree` — Decision Tree
 
-**ไฟล์:** `src/ml/classification/decision_tree.py` · Codex · parity **exact**
+**ไฟล์:** `src/ml/classification/decision_tree.py` · วิชญา · parity **exact**
 
 **เขียนตัวนี้ก่อนเพื่อน** เพราะ `_best_split` และ stump จะถูก reuse ใน RF, GB, XGBoost และ AdaBoost
 
@@ -710,7 +710,7 @@ Validation AUC = **0.641779** (`with_spike`, depth 2, leaf 5) และ **0.6923
 
 ### 12. `random_forest` — Random Forest
 
-**ไฟล์:** `src/ml/classification/random_forest.py` · Codex · parity **seeded**
+**ไฟล์:** `src/ml/classification/random_forest.py` · วิชญา · parity **seeded**
 
 **กลไก** bagging ของ decision tree + สุ่มฟีเจอร์ที่แต่ละ split
 
@@ -763,7 +763,7 @@ max_features="sqrt", bootstrap=True, random_state=42)`
 
 ### 13. `gradient_boosting` — Gradient Boosting
 
-**ไฟล์:** `src/ml/classification/gradient_boosting.py` · Codex · parity **exact**
+**ไฟล์:** `src/ml/classification/gradient_boosting.py` · วิชญา · parity **exact**
 
 **กลไก** สร้าง regression tree ทีละต้นเพื่อ fit **negative gradient** ของ logistic loss
 
@@ -822,7 +822,7 @@ n_estimators=n, min_samples_leaf=5, max_features=None, random_state=42, subsampl
 
 ### 14. `xgboost` — Extreme Gradient Boosting
 
-**ไฟล์:** `src/ml/classification/xgboost.py` · Codex · parity **exact** · **เริ่มแต่เช้า**
+**ไฟล์:** `src/ml/classification/xgboost.py` · วิชญา · parity **exact** · **เริ่มแต่เช้า**
 
 **กลไก** boosting แบบใช้ second-order Taylor ของ loss พร้อม regularization ในสูตร gain โดยตรง
 
@@ -870,7 +870,7 @@ colsample_bylevel=1, colsample_bynode=1, min_child_weight=0, base_score=0.5, ran
 `λ=0, γ=0, depth=1, n=1` → ต้องเท่ากับ Newton step ของ GB ที่ depth 1 ·
 เทียบ `predict(output_margin=True)` ทีละ iteration ด้วย `iteration_range`
 
-**ความเสี่ยง** สูงที่สุดในโปรเจกต์ (R1 ใน `RISKS_AND_DOD.md`)
+**ความเสี่ยง** สูงที่สุดในโปรเจกต์
 **แผนสำรอง:** ถ้าเกินครึ่งวันแล้วยังต่าง > 1e-3 ให้ลดเหลือกลไกแกน (exact greedy + g/h + leaf shrinkage)
 แล้วอธิบายขอบเขตในรายงานอย่างตรงไปตรงมา — ยังนับเป็น XGBoost from scratch ได้
 
@@ -900,7 +900,7 @@ colsample_bylevel=1, colsample_bynode=1, min_child_weight=0, base_score=0.5, ran
 
 ### 15. `adaboost` ★ — AdaBoost (extracurricular, classification)
 
-**ไฟล์:** `src/ml/classification/adaboost.py` · Codex · parity **exact**
+**ไฟล์:** `src/ml/classification/adaboost.py` · วิชญา · parity **exact**
 
 > โจทย์บังคับให้โมเดลนี้มี **ทั้ง scratch และ ready-to-use** และอธิบายกลไกภายในอย่างละเอียด
 
@@ -987,7 +987,7 @@ n_estimators=n, learning_rate=lr, algorithm="SAMME", random_state=42)`
 
 ### 16. `stacking` — Stacking Classifier
 
-**ไฟล์:** `src/ml/classification/stacking.py` · Codex · parity **iterative** · **ต้องทำหลัง logistic/DT/kNN เสร็จ**
+**ไฟล์:** `src/ml/classification/stacking.py` · วิชญา · parity **iterative** · **ต้องทำหลัง logistic/DT/kNN เสร็จ**
 
 **กลไก** เทรน base learner 3 ตัว เอา out-of-sample probability มาเป็นฟีเจอร์ให้ meta learner
 
@@ -1011,7 +1011,7 @@ cv=TimeSeriesSplit(4), passthrough=False)` เป็น behavioral reference เ
 **จุดที่ parity พลาด**
 
 - **purge ต้องนับตาม original trading day ไม่ใช่ row gap** เพราะ variant `non_spike` มีแถวหายไป
-  การนับ 5 แถวจะข้ามเวลาจริงมากกว่า 5 วัน → เกิด leakage (ความเสี่ยงที่ `MODEL_TRAINING_PLAN.md` เตือนไว้)
+  การนับ 5 แถวจะข้ามเวลาจริงมากกว่า 5 วัน → เกิด leakage
 - meta ห้ามเห็น in-sample probability เด็ดขาด
 - join ระหว่าง base กับ meta ต้องเป็น exact one-to-one ตาม Date (`position_join`)
 - `StackingClassifier` ของ sklearn ไม่มี purge → ตัวเลขจะต่าง และนั่นถูกต้องแล้ว ให้บันทึกเหตุผล
@@ -1047,7 +1047,7 @@ cv=TimeSeriesSplit(4), passthrough=False)` เป็น behavioral reference เ
 
 ### 17. `svm` — Support Vector Machine
 
-**ไฟล์:** `src/ml/classification/svm.py` · Codex · parity **iterative**
+**ไฟล์:** `src/ml/classification/svm.py` · วิชญา · parity **iterative**
 
 **กลไก** linear soft-margin แก้ด้วย subgradient descent (ตาม `scope` ใน config ไม่ใช่ SMO)
 
@@ -1127,7 +1127,7 @@ PCA ช่วยทุกขนาด (AP ~0.21 → ~0.25) ส่วน C แท
 
 ### 18. `kmeans` — k-Means
 
-**ไฟล์:** `src/ml/clustering/kmeans.py` · Claude · parity **seeded**
+**ไฟล์:** `src/ml/clustering/kmeans.py` · พิทวัส · parity **seeded**
 
 **กลไก** Lloyd's algorithm + k-means++ init
 
@@ -1180,7 +1180,7 @@ inertia ลดลง monotone ทุก iteration · k=1 → centroid = ค่�
 
 ### 19. `agglomerative` — Agglomerative Clustering
 
-**ไฟล์:** `src/ml/clustering/agglomerative.py` · Claude · parity **exact**
+**ไฟล์:** `src/ml/clustering/agglomerative.py` · พิทวัส · parity **exact**
 
 **กลไก** bottom-up merge ทีละคู่จนเหลือ k กลุ่ม
 
@@ -1229,7 +1229,7 @@ k = n → ทุกจุดเป็น cluster เดี่ยว · ward บ�
 
 ## 5. Checklist ก่อนบอกว่าโมเดลเสร็จ
 
-ติ๊กครบ 6 ข้อเท่านั้น (ชุดเดียวกับ `RISKS_AND_DOD.md` หัวข้อ 1.1)
+ติ๊กครบ 6 ข้อเท่านั้น
 
 - [ ] ไฟล์ `src/ml/<task>/<name>.py` ทำตาม `BaseModel` ครบทุก method และ hyperparameter มี default หมด
 - [ ] `tests/ml/<task>/test_<name>.py` มีครบ 3 แบบ: unit test กลไกภายใน · strict parity · save/load round-trip

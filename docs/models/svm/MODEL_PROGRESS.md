@@ -1,6 +1,6 @@
 # svm — classification · 🟡 รอ leaderboard
 
-**เจ้าของ:** Codex (T6 ทำต่อด้วย Claude Code ตามคำขอเจ้าของโปรเจกต์) · **สเปก:** [card #17](../../plan/MODEL_CARDS.md) · **วันที่:** 2026-10-11
+**ผู้รับผิดชอบ:** วิชญา (ตั้งแต่ขั้น T6 พิทวัสทำต่อ) · **สเปก:** [card #17](../../design/MODEL_CARDS.md) · **วันที่:** 2026-10-11
 
 ## ผล (validation)
 
@@ -32,7 +32,7 @@
 
 ## Parity
 
-เกณฑ์ของ SVM ตาม ADR-002 ใน `docs/plan/ARCHITECTURE.md` (ข้อยกเว้นเดียวของโปรเจกต์): เทียบที่ **objective** ไม่ใช่น้ำหนัก เพราะ hinge ไม่เรียบ.
+เกณฑ์ของ SVM ตาม ADR-002 ใน `docs/design/ARCHITECTURE.md` (ข้อยกเว้นเดียวของโปรเจกต์): เทียบที่ **objective** ไม่ใช่น้ำหนัก เพราะ hinge ไม่เรียบ.
 
 วัดครบ 24 candidates จริง (3 C × 4 PCA × 2 variants):
 
